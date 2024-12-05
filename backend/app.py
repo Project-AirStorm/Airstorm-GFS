@@ -6,7 +6,7 @@ CORS(app) #enables cross origin resource sharing AKA "CORS"
 
 @app.route('/api/test', methods=['GET'])
 def greet():
-    return jsonify({"message": "Hello Airstorm Team!"})
+    return jsonify({"message": "Hello Airstorm Team, lets do it!"})
 
 @app.route('/')
 def home():
