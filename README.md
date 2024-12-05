@@ -25,10 +25,11 @@ Make it Executable & Verify Installation:
 - `sudo chmod +x /usr/local/bin/docker-compose`
 - `docker-compose --version`
 
-## Run the app
+## Run the entire application
+The application is split into two containers
 docker-compose up --build
 
-# Backend Development (Flask)
+# 3. Backend Development (Flask)
 **Dependency management**  
 Pip is a package management system we will use in the backend. 
 1. Create a virtual environment: `python3 -m venv venv`  
