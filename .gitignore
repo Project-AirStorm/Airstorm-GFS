@@ -1,0 +1,43 @@
+# Ignore Python cache and virtual environments
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.venv/
+venv/
+ENV/
+env/
+
+# Ignore Node.js dependencies
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Ignore Docker files
+*.env
+docker-compose.override.yml
+*.pid
+
+# Ignore editor/IDE files
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# Ignore logs
+logs/
+*.log
+
+# Ignore OS files
+.DS_Store
+Thumbs.db
+
+# Ignore build outputs
+build/
+dist/
+*.out
+*.o
+*.class
+coverage/
+.cache/
