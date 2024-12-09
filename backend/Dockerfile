@@ -17,7 +17,7 @@ RUN pip install watchdog
 COPY . .
 
 # Exposes port 5000 for Flask
-EXPOSE 5000
+EXPOSE 5001
 
 # Run the flask application
 CMD ["flask", "--app", "app.py", "run", "--host=0.0.0.0", "--debug"]
