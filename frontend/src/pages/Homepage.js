@@ -33,7 +33,7 @@ const Homepage = () => {
               Weather
             </a>
             <a
-              href="/about"
+              href="/Learn more"
               className="hover:text-purple-300 transition duration-300"
             >
               About
@@ -48,7 +48,7 @@ const Homepage = () => {
           {message || "Loading..."}
         </h1>
         <p className="mt-6 text-center text-purple-200">
-          Explore the universe of real-time weather data powered by Graphcast.
+          Hello Airstorm TEAM!
         </p>
       </main>
 
