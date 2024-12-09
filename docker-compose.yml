@@ -2,7 +2,7 @@ services:
   backend:
     build: ./backend
     ports:
-      - "5001:5001" # Port Flask is served on
+      - "5001:5000" # Port Flask is served on
     volumes:
       - ./backend:/app
     depends_on:
