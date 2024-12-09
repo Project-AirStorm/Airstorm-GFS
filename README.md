@@ -13,7 +13,7 @@ https://docs.docker.com/desktop/setup/install/mac-install/
 
 Verify the installation is working by executing the command: `docker --version`
 
-# 2. Install Docker Compose 
+# 2. Install Docker Compose
 
 ### Windows & Mac 
 Docker Desktop is available for Windows and MacOS: https://www.docker.com/products/docker-desktop/
