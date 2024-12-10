@@ -11,7 +11,7 @@ def greet():
 @app.route('/home')
 def home():
     #this will eventually contain our Graphcast Data, served up to react
-    return jsonify({"message": "Welcome to the Airstorm, Everyone!"})
+    return jsonify({"message": "Hi, I am the flask API Everyone!"})
    
 if __name__ == "__main__":
     app.run(host='0.0.0.0', port=5000)

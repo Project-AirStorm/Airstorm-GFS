@@ -7,7 +7,7 @@ const Homepage = () => {
   useEffect(() => {
     // Fetch the homepage message from Flask backend
     axios
-      .get("http://localhost:5000/")
+      .get("http://localhost:5001/home")
       .then((response) => {
         setMessage(response.data.message);
       })
