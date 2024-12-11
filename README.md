@@ -2,7 +2,7 @@
 To get started clone this repository:
 
 # 1. Install Docker Deskop
-Docker will make dependency management in this process exponentially easier and will fix the "it works on my machine" problems that we may encounter while working on this project. Docker works by storing all of the dependencies for our project in a virtualized "container" so that you need only run the docker container and avoid dependency conflicts installed as if you installed them locally. 
+Docker works by storing all of the dependencies for our project in a virtualized "container" so that you need only run the docker container. This helps avoid dependency conflicts that could arise if they were installed on the machine locally. By working in the same environment, this will help reduce problems that could arise as a result of us developing on different machines. 
 
 https://www.docker.com/products/docker-desktop/
 
