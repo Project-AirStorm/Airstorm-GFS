@@ -4,14 +4,10 @@ FROM node:16-alpine
 # Set the working directory in the container
 WORKDIR /app
 
-# Copy package.json and package-lock.json
-COPY package*.json ./
-
-# Possible fix!
-RUN rm -rf node_modules && npm cache clean --force
-
-# Install app dependencies
-RUN npm install
+RUN rm -rf node_modules
+RUN rm -rf package-lock.json
+RUN npm install react-scripts
+RUN npm install 
 
 # Copy the rest of the application code
 COPY . .
