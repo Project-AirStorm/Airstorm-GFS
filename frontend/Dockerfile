@@ -13,6 +13,9 @@ RUN npm install
 # Install react-scripts globally
 RUN npm install -g react-scripts
 
+# Hotfix ESLINT error
+RUN mkdir -p node_modules/.cache && chmod -R 777 node_modules/.cache
+
 # Copy the rest of the application code
 COPY . .
 
