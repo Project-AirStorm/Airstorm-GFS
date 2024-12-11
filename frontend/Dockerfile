@@ -4,6 +4,7 @@ FROM node:16-alpine
 # Set the working directory in the container
 WORKDIR /app
 
+# NPM install chain, fixes docker errors
 RUN rm -rf node_modules
 RUN rm -rf package-lock.json
 RUN npm install react-scripts
