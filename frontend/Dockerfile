@@ -10,6 +10,9 @@ COPY package*.json ./
 # Install app dependencies
 RUN npm install
 
+# Fixes docker react-sripts error
+RUN npm install react-scripts
+
 # Copy the rest of the application code
 COPY . .
 
