@@ -4,11 +4,14 @@ FROM node:16-alpine
 # Set the working directory in the container
 WORKDIR /app
 
-# NPM install chain, fixes docker errors
-RUN rm -rf node_modules
-RUN rm -rf package-lock.json
-RUN npm install react-scripts
-RUN npm install 
+# Copy package.json and package-lock.json first
+COPY package*.json ./
+
+# Install dependencies
+RUN npm install
+
+# Install react-scripts globally
+RUN npm install -g react-scripts
 
 # Copy the rest of the application code
 COPY . .
