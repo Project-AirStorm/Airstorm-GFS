@@ -19,5 +19,7 @@ COPY . .
 # Exposes port 5000 for Flask
 EXPOSE 5001
 
+# a tiny change
+
 # Run the flask application
 CMD ["flask", "--app", "app.py", "run", "--host=0.0.0.0", "--debug"]
