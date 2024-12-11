@@ -7,11 +7,11 @@ WORKDIR /app
 # Copy package.json and package-lock.json
 COPY package*.json ./
 
+# Possible fix!
+RUN rm -rf node_modules && npm cache clean --force
+
 # Install app dependencies
 RUN npm install
-
-# Fixes docker react-sripts error
-RUN npm install react-scripts
 
 # Copy the rest of the application code
 COPY . .
