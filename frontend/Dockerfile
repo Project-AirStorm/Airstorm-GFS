@@ -4,11 +4,17 @@ FROM node:16-alpine
 # Set the working directory
 WORKDIR /app
 
-# Copy package files first (this is important for caching)
-COPY package.json package-lock.json ./
+# Copy package.json and package-lock.json first
+COPY package*.json ./
 
-# Install dependencies with clean npm install
-RUN npm ci
+# Install dependencies
+RUN npm install
+
+# Install react-scripts globally
+RUN npm install -g react-scripts
+
+# Hotfix ESLINT error
+RUN mkdir -p node_modules/.cache && chmod -R 777 node_modules/.cache
 
 # Copy the rest of the application code
 COPY . .

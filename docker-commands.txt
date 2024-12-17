@@ -1,0 +1,2 @@
+# Rebuilds the docker containers and starts them 
+docker-compose up --build
