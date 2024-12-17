@@ -6,6 +6,7 @@ import 'mapbox-gl/dist/mapbox-gl.css';
 const Weather = () => {
   const mapContainer = useRef(null);
   const map = useRef(null);
+  const [mapInitialized, setMapInitialized] = useState(false);
   const [weatherData, setWeatherData] = useState(null);
   const [selectedLocation, setSelectedLocation] = useState({
     lng: 0,
@@ -14,7 +15,8 @@ const Weather = () => {
 
   // Initialize MapTiler map
   useEffect(() => {
-    if (!mapContainer.current) return; // wait for container to be available
+    // Skip if map is already initialized or container isn't ready
+    if (mapInitialized || !mapContainer.current) return;
 
     // Set the access token for MapTiler
     const apiKey = process.env.REACT_APP_MAPTILER_API_KEY;
@@ -23,30 +25,36 @@ const Weather = () => {
       return;
     }
 
-    if (map.current) return; // initialize map only once
+    try {
+      map.current = new mapboxgl.Map({
+        container: mapContainer.current,
+        style: `https://api.maptiler.com/maps/streets-v2/style.json?key=${apiKey}`,
+        center: [0, 0],
+        zoom: 2,
+      });
 
-    map.current = new mapboxgl.Map({
-      container: mapContainer.current,
-      style: `https://api.maptiler.com/maps/streets-v2/style.json?key=${apiKey}`,
-      center: [0, 0],
-      zoom: 2,
-    });
+      // Add click event to get coordinates
+      map.current.on('click', (e) => {
+        const { lng, lat } = e.lngLat;
+        setSelectedLocation({ lng, lat });
+        fetchWeatherData(lng, lat);
+      });
 
-    // Add click event to get coordinates
-    map.current.on('click', (e) => {
-      const { lng, lat } = e.lngLat;
-      setSelectedLocation({ lng, lat });
-      fetchWeatherData(lng, lat);
-    });
+      // Mark map as initialized
+      setMapInitialized(true);
+    } catch (error) {
+      console.error('Error initializing map:', error);
+    }
 
     // Clean up on unmount
     return () => {
       if (map.current) {
         map.current.remove();
         map.current = null;
+        setMapInitialized(false);
       }
     };
-  }, []);
+  }, [mapInitialized]);
 
   // Fetch weather data from Flask backend
   const fetchWeatherData = async (lng, lat) => {
