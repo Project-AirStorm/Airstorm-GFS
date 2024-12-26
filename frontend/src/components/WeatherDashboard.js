@@ -5,6 +5,28 @@ import {
   IoStarOutline,
   IoStar,
 } from 'react-icons/io5';
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  Tooltip,
+  ResponsiveContainer,
+} from 'recharts';
+
+const CustomTooltip = ({ active, payload, label }) => {
+  if (active && payload && payload.length) {
+    return (
+      <div className="bg-gray-800 bg-opacity-90 p-2 rounded-lg shadow-lg">
+        <p className="text-white text-sm">{`Time: ${label}`}</p>
+        <p className="text-white text-sm">{`Temperature: ${payload[0].value.toFixed(
+          1
+        )}°F`}</p>
+      </div>
+    );
+  }
+  return null;
+};
 
 const WeatherCard = ({ location, onToggleFavorite }) => (
   <div className="bg-white bg-opacity-10 backdrop-blur-lg rounded-xl p-6 shadow-lg hover:shadow-xl transition-all duration-300">
@@ -35,19 +57,52 @@ const WeatherCard = ({ location, onToggleFavorite }) => (
     </div>
 
     {location.weather && (
-      <div className="mt-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center">
-            <IoThermometerOutline className="text-2xl text-red-400 mr-1" />
-            <span className="text-2xl font-bold text-white">
-              {location.weather.current_temperature.toFixed(1)}°F
+      <>
+        <div className="mt-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center">
+              <IoThermometerOutline className="text-2xl text-red-400 mr-1" />
+              <span className="text-2xl font-bold text-white">
+                {location.weather.current_temperature.toFixed(1)}°F
+              </span>
+            </div>
+            <span className="text-sm text-gray-300">
+              Last updated: {new Date().toLocaleTimeString()}
             </span>
           </div>
-          <span className="text-sm text-gray-300">
-            Last updated: {new Date().toLocaleTimeString()}
-          </span>
         </div>
-      </div>
+
+        <div className="mt-4 h-40">
+          <p className="text-sm text-gray-300 mb-2">24-Hour Forecast</p>
+          <ResponsiveContainer width="100%" height="100%">
+            <LineChart
+              data={location.weather.times.map((time, index) => ({
+                time,
+                temp: location.weather.temperatures[index],
+              }))}
+              margin={{ top: 5, right: 5, bottom: 5, left: 5 }}
+            >
+              <XAxis
+                dataKey="time"
+                tick={{ fill: '#e5e7eb', fontSize: 10 }}
+                interval={3}
+              />
+              <YAxis
+                tick={{ fill: '#e5e7eb', fontSize: 10 }}
+                domain={['auto', 'auto']}
+              />
+              <Tooltip content={<CustomTooltip />} />
+              <Line
+                type="monotone"
+                dataKey="temp"
+                stroke="#8b5cf6"
+                strokeWidth={2}
+                dot={false}
+              />
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
+      </>
     )}
   </div>
 );
@@ -75,7 +130,7 @@ const WeatherDashboard = ({ locations, onToggleFavorite }) => {
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      {favoriteLocations.map((location, index) => (
+      {favoriteLocations.map((location) => (
         <WeatherCard
           key={`${location.latitude}-${location.longitude}`}
           location={location}
