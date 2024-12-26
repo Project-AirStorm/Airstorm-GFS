@@ -15,7 +15,7 @@ RUN pip install watchdog
 
 # Adds packages need for openmeteo api
 RUN pip install openmeteo-requests
-RUN pip install requests-cache retry-requests numpy pandas
+RUN pip install openmeteo-requests requests-cache retry-requests numpy pandas
 
 # Copies the rest of the application code to the container
 COPY . .
