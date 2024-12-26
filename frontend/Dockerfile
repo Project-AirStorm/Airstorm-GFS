@@ -12,6 +12,8 @@ RUN npm install && \
     npm install -g react-scripts && \
     npm install react-icons --save && \
     npm install @maptiler/sdk && \
+    npm install recharts && \
+    npm install maplibre-gl && \
     npm cache clean --force
 
 # Hotfix ESLINT error
