@@ -49,7 +49,7 @@ const About = () => {
         <div className="max-w-4xl mx-auto">
           <div className="text-center mb-12">
             <h1 className="text-4xl font-bold text-purple-300 mb-6">
-              About Airstorm GFS
+              About Airstörm GFS
             </h1>
             <p className="text-lg text-purple-200 mb-4">
               A cutting-edge weather visualization platform integrating

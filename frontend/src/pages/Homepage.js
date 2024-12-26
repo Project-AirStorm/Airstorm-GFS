@@ -76,7 +76,7 @@ const Homepage = () => {
         <div className="space-y-8">
           <div className="text-center">
             <h1 className="text-4xl font-bold text-purple-300 mb-4">
-              Welcome to Airstorm GFS
+              Welcome to Airstörm GFS
             </h1>
             <p className="text-lg text-purple-200 mb-8">
               Your Favorite Locations Weather Dashboard
