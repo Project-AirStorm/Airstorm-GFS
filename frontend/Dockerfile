@@ -7,17 +7,21 @@ WORKDIR /app
 # Copy package.json and package-lock.json first
 COPY package*.json ./
 
-# Install dependencies
-RUN npm install
-
-# Install react-scripts globally
-RUN npm install -g react-scripts
+# Install dependencies including MapTiler SDK and other requirements
+RUN npm install && \
+    npm install -g react-scripts && \
+    npm install react-icons --save && \
+    npm install @maptiler/sdk && \
+    npm cache clean --force
 
 # Hotfix ESLINT error
 RUN mkdir -p node_modules/.cache && chmod -R 777 node_modules/.cache
 
 # Copy the rest of the application code
 COPY . .
+
+# Add MapTiler specific environment setup
+ENV REACT_APP_MAPTILER_API_KEY=SSva5warkCQmDREzBt3V
 
 # Expose port 3000
 EXPOSE 3000

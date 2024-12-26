@@ -1,19 +1,17 @@
-import os
-import requests
-from datetime import datetime, timedelta
 from flask import Flask, jsonify, request
 from flask_cors import CORS
-from dotenv import load_dotenv
-
-# Load environment variables
-load_dotenv()
+import openmeteo_requests
+import requests_cache
+from retry_requests import retry
+from datetime import datetime
 
 app = Flask(__name__)
 CORS(app)  # enables cross origin resource sharing
 
-# Meteomatics API configuration
-METEOMATICS_USERNAME = os.getenv('METEOMATICS_USERNAME')
-METEOMATICS_PASSWORD = os.getenv('METEOMATICS_PASSWORD')
+# Setup the Open-Meteo API client with cache and retry on error
+cache_session = requests_cache.CachedSession('.cache', expire_after=3600)
+retry_session = retry(cache_session, retries=5, backoff_factor=0.2)
+openmeteo = openmeteo_requests.Client(session=retry_session)
 
 
 @app.route('/api/test', methods=['GET'])
@@ -23,7 +21,6 @@ def greet():
 
 @app.route('/home')
 def home():
-    # this will eventually contain our Graphcast Data, served up to react
     return jsonify({"message": "Hi, I am the flask API Everyone!"})
 
 
@@ -38,63 +35,42 @@ def get_weather():
         return jsonify({"error": "Latitude and Longitude are required"}), 400
 
     try:
-        # Get current date and format for API
-        now = datetime.utcnow()
-        formatted_date = now.strftime('%Y-%m-%dT%H:%M:%SZ')
-
-        # Construct Meteomatics API URL
-        url = f'https://api.meteomatics.com/v1/{
-            formatted_date}/t_2m:C,precip_1h:mm,wind_speed_10m:kmh,wind_dir_10m:d,sunrise:sql,sunset:sql/{lat},{lon}/json'
+        # Configure Open-Meteo API request
+        url = "https://api.open-meteo.com/v1/forecast"
+        params = {
+            "latitude": lat,
+            "longitude": lon,
+            "hourly": ["temperature_2m", "precipitation", "wind_speed_10m", "wind_direction_10m"],
+            "daily": ["sunrise", "sunset"],
+            "timezone": "auto",
+            "current_weather": True
+        }
 
         # Make API request
-        response = requests.get(
-            url,
-            auth=(METEOMATICS_USERNAME, METEOMATICS_PASSWORD)
-        )
+        responses = openmeteo.weather_api(url, params=params)
+        response = responses[0]  # Get the first location
 
-        # Check if request was successful
-        response.raise_for_status()
+        # Get current weather
+        current = response.Current()
+        hourly = response.Hourly()
+        daily = response.Daily()
 
-        # Parse the response
-        weather_data = response.json()
-
-        # Transform the data into a more readable format
+        # Process the data into the same format as before
         processed_data = {
-            "temperature": next(
-                (item['coordinates'][0]['dates'][0]['value']
-                 for item in weather_data['data'] if item['parameter'] == 't_2m:C'),
-                None
-            ),
-            "precipitation": next(
-                (item['coordinates'][0]['dates'][0]['value']
-                 for item in weather_data['data'] if item['parameter'] == 'precip_1h:mm'),
-                None
-            ),
-            "wind_speed": next(
-                (item['coordinates'][0]['dates'][0]['value']
-                 for item in weather_data['data'] if item['parameter'] == 'wind_speed_10m:kmh'),
-                None
-            ),
-            "wind_direction": next(
-                (item['coordinates'][0]['dates'][0]['value']
-                 for item in weather_data['data'] if item['parameter'] == 'wind_dir_10m:d'),
-                None
-            ),
-            "sunrise": next(
-                (item['coordinates'][0]['dates'][0]['value']
-                 for item in weather_data['data'] if item['parameter'] == 'sunrise:sql'),
-                None
-            ),
-            "sunset": next(
-                (item['coordinates'][0]['dates'][0]['value']
-                 for item in weather_data['data'] if item['parameter'] == 'sunset:sql'),
-                None
-            )
+            "temperature": current.Variables(0).Value(),  # Current temperature
+            # Current hour precipitation
+            "precipitation": hourly.Variables(1).ValuesAsNumpy()[0],
+            "wind_speed": current.Variables(3).Value(),  # Current wind speed
+            # Current wind direction
+            "wind_direction": current.Variables(4).Value(),
+            # Today's sunrise
+            "sunrise": daily.Variables(0).ValuesAsNumpy()[0],
+            "sunset": daily.Variables(1).ValuesAsNumpy()[0]  # Today's sunset
         }
 
         return jsonify(processed_data)
 
-    except requests.RequestException as e:
+    except Exception as e:
         return jsonify({"error": str(e)}), 500
 
 

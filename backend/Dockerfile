@@ -13,6 +13,10 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Install watchdog to improve reloading in Docker
 RUN pip install watchdog
 
+# Adds packages need for openmeteo api
+RUN pip install openmeteo-requests
+RUN pip install requests-cache retry-requests numpy pandas
+
 # Copies the rest of the application code to the container
 COPY . .
 
