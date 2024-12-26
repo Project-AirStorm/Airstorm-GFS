@@ -20,9 +20,6 @@ RUN mkdir -p node_modules/.cache && chmod -R 777 node_modules/.cache
 # Copy the rest of the application code
 COPY . .
 
-# Add MapTiler specific environment setup
-ENV REACT_APP_MAPTILER_API_KEY=SSva5warkCQmDREzBt3V
-
 # Expose port 3000
 EXPOSE 3000
 
