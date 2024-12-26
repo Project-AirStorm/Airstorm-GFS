@@ -4,7 +4,9 @@ const Navbar = ({ onNavigate }) => {
   return (
     <nav className="bg-gray-800 bg-opacity-90 shadow-lg">
       <div className="container mx-auto px-4 py-3 flex justify-between items-center">
-        <h1 className="text-lg font-bold text-purple-400">Airstorm</h1>
+        <h1 className="text-lg font-bold text-purple-400">
+          Airstorm Global Forecasting System
+        </h1>
         <div className="flex space-x-4 text-white">
           <button
             onClick={() => onNavigate('home')}
