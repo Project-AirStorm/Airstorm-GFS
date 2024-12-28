@@ -2,7 +2,7 @@ services:
   backend:
     build: ./backend
     ports:
-      - "5001:5000"  # Port Flask is served on
+      - "5001:5000"
     volumes:
       - ./backend:/app
     environment:
@@ -12,10 +12,11 @@ services:
   frontend:
     build: ./frontend
     ports:
-      - "3000:3000"  # Port React is served on
+      - "3000:3000"
     volumes:
       - ./frontend:/app
-      - /app/node_modules  # This prevents the host node_modules from mounting
+      - /app/node_modules
     environment:
       - CHOKIDAR_USEPOLLING=true
-      - WDS_SOCKET_PORT=0  # This helps with WebSocket connections in Docker
+      - WDS_SOCKET_PORT=0
+      - REACT_APP_MAPTILER_KEY=${MAPTILER_KEY}
