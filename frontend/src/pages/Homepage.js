@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import WeatherDashboard from '../components/WeatherDashboard';
+import GraphCastForecast from '../components/GraphCastForecast';
 
 const Homepage = () => {
   const [locations, setLocations] = useState([]);
@@ -9,14 +10,12 @@ const Homepage = () => {
 
   const fetchLocations = async () => {
     try {
-      // Get locations
       const userId = process.env.REACT_APP_USER_ID || 'JoshuaFrancis';
       const response = await axios.get(
         `http://localhost:5001/api/locations?userId=${userId}`
       );
       const locationData = response.data;
 
-      // Fetch weather for each favorite location
       const locationsWithWeather = await Promise.all(
         locationData.map(async (location) => {
           if (location.isFavorite) {
@@ -48,8 +47,6 @@ const Homepage = () => {
 
   useEffect(() => {
     fetchLocations();
-
-    // Refresh weather data every 5 minutes
     const interval = setInterval(fetchLocations, 5 * 60 * 1000);
     return () => clearInterval(interval);
   }, []);
@@ -62,8 +59,6 @@ const Homepage = () => {
         latitude: location.latitude,
         longitude: location.longitude,
       });
-
-      // Refresh locations after toggling favorite
       fetchLocations();
     } catch (error) {
       console.error('Error toggling favorite:', error);
@@ -74,27 +69,34 @@ const Homepage = () => {
     <div className="flex flex-col min-h-screen bg-gradient-to-br from-gray-900 via-purple-800 to-gray-800 text-white">
       <main className="flex-grow container mx-auto px-4 py-12">
         <div className="space-y-8">
-          <div className="text-center">
+          <div className="text-center mb-8">
             <h1 className="text-4xl font-bold text-purple-300 mb-4">
               Welcome to Airstörm GFS
             </h1>
-            <p className="text-lg text-purple-200 mb-8">
-              Your Favorite Locations Weather Dashboard
+            <p className="text-lg text-purple-200">
+              Your Advanced Weather Forecasting Platform
             </p>
           </div>
 
-          {loading ? (
-            <div className="text-center text-purple-200">
-              <div className="animate-pulse">Loading weather data...</div>
-            </div>
-          ) : error ? (
-            <div className="text-center text-red-400">{error}</div>
-          ) : (
-            <WeatherDashboard
-              locations={locations}
-              onToggleFavorite={handleToggleFavorite}
-            />
-          )}
+          <GraphCastForecast />
+
+          <div className="mt-12">
+            <h2 className="text-2xl font-bold text-purple-300 mb-6 text-center">
+              Your Favorite Locations
+            </h2>
+            {loading ? (
+              <div className="text-center text-purple-200">
+                <div className="animate-pulse">Loading weather data...</div>
+              </div>
+            ) : error ? (
+              <div className="text-center text-red-400">{error}</div>
+            ) : (
+              <WeatherDashboard
+                locations={locations}
+                onToggleFavorite={handleToggleFavorite}
+              />
+            )}
+          </div>
         </div>
       </main>
     </div>

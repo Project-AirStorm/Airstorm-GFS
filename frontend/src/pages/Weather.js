@@ -45,6 +45,8 @@ const Weather = () => {
       style: `https://api.maptiler.com/maps/6fc667a0-09bd-4b69-bd77-1ce5af52e91b/style.json?key=${process.env.REACT_APP_MAPTILER_API_KEY}`,
       center: [-94.68554, 37.51718],
       zoom: 3.5,
+      terrain: true,
+      terrainControl: true,
     });
 
     marker.current = new maplibregl.Marker({
