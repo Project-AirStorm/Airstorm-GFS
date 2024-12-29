@@ -11,8 +11,8 @@ import {
   FileText, 
   Grid 
 } from 'lucide-react';
-import WeatherCard from '../components/WeatherCard';
-import GraphCastForecast from '../components/GraphCastForecast';
+import WeatherCard from '../../components/specific/WeatherCard/WeatherCard';
+import GraphCastForecast from '../../components/specific/GraphCastForecast/GraphCastForecast';
 import './Dashboard.css';
 
 /**

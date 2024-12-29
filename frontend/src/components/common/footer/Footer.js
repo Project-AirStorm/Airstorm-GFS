@@ -5,7 +5,7 @@ const Footer = () => {
     <footer className="py-4 bg-gray-800 bg-opacity-90 mt-auto">
       <div className="container mx-auto text-center">
         <p className="text-sm text-gray-400">
-          © {new Date().getFullYear()} Airstörm LLC. All rights reserved.
+          © {new Date().getFullYear()} Airstorm LLC. All rights reserved.
         </p>
       </div>
     </footer>

@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import Footer from './components/Footer';
-import Dashboard from './pages/Dashboard';
-import Weather from './pages/Weather';
-import About from './pages/About';
+import Footer from './components/common/footer/Footer';
+import Dashboard from './pages/Dashboard/Dashboard';
+import Weather from './pages/Weather/Weather';
+import About from './pages/About/About';
 
 function App() {
   const [currentPage, setCurrentPage] = useState('dashboard');
