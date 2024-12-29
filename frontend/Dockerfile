@@ -7,15 +7,15 @@ WORKDIR /app
 # Copy package.json and package-lock.json first
 COPY package*.json ./
 
-# Install dependencies including MapTiler SDK and other requirements
-RUN npm install && \
+# Install dependencies
+RUN npm cache clean --force && \
+    npm install && \
     npm install -g react-scripts && \
-    npm install react-icons --save && \
-    npm install @maptiler/sdk && \
-    npm install recharts && \
-    npm install maplibre-gl && \
-    npm install lucide-react && \
-    npm cache clean --force
+    npm install --save lucide-react@0.263.1 && \
+    npm install --save react-icons@4.x.x && \
+    npm install --save @maptiler/sdk && \
+    npm install --save recharts && \
+    npm install --save maplibre-gl
 
 # Hotfix ESLINT error
 RUN mkdir -p node_modules/.cache && chmod -R 777 node_modules/.cache
