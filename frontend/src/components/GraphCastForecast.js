@@ -24,7 +24,6 @@ const GraphCastForecast = () => {
   const [userLocation, setUserLocation] = useState(null);
 
   useEffect(() => {
-    // Get user's location
     if ('geolocation' in navigator) {
       navigator.geolocation.getCurrentPosition(
         async (position) => {
@@ -58,7 +57,7 @@ const GraphCastForecast = () => {
               }
             );
 
-            // Process the data for the chart
+            // Process hourly data into daily averages
             const hourlyData = response.data.hourly;
             const processedData = hourlyData.time.map((time, index) => ({
               time: new Date(time).toLocaleDateString(),
@@ -67,7 +66,7 @@ const GraphCastForecast = () => {
               cloudCover: hourlyData.cloud_cover[index],
             }));
 
-            // Get daily averages
+            // Calculate daily averages
             const dailyData = processedData.reduce((acc, curr) => {
               const date = curr.time;
               if (!acc[date]) {
@@ -87,11 +86,9 @@ const GraphCastForecast = () => {
             const averagedData = Object.values(dailyData).map((day) => ({
               time: day.time,
               temperature:
-                day.temperature.reduce((a, b) => a + b) /
-                day.temperature.length,
+                day.temperature.reduce((a, b) => a + b) / day.temperature.length,
               precipitationProb:
-                day.precipitationProb.reduce((a, b) => a + b) /
-                day.precipitationProb.length,
+                day.precipitationProb.reduce((a, b) => a + b) / day.precipitationProb.length,
               cloudCover:
                 day.cloudCover.reduce((a, b) => a + b) / day.cloudCover.length,
             }));
@@ -119,8 +116,8 @@ const GraphCastForecast = () => {
 
   if (loading) {
     return (
-      <div className="bg-gray-800 bg-opacity-50 rounded-lg p-6 mb-8">
-        <div className="animate-pulse text-center text-purple-300">
+      <div className="bg-white rounded-lg p-6 mb-8 shadow-sm">
+        <div className="animate-pulse text-center text-gray-500">
           Loading forecast data...
         </div>
       </div>
@@ -129,8 +126,8 @@ const GraphCastForecast = () => {
 
   if (error) {
     return (
-      <div className="bg-gray-800 bg-opacity-50 rounded-lg p-6 mb-8">
-        <div className="text-red-400 text-center">{error}</div>
+      <div className="bg-white rounded-lg p-6 mb-8 shadow-sm">
+        <div className="text-red-500 text-center">{error}</div>
       </div>
     );
   }
@@ -140,10 +137,10 @@ const GraphCastForecast = () => {
   const CustomTooltip = ({ active, payload, label }) => {
     if (active && payload && payload.length) {
       return (
-        <div className="bg-gray-800 p-4 rounded-lg shadow-lg border border-purple-500">
-          <p className="text-purple-300 font-bold mb-2">{label}</p>
+        <div className="bg-white p-3 rounded-lg shadow-lg border border-gray-200">
+          <p className="text-gray-700 font-semibold mb-1">{label}</p>
           {payload.map((entry, index) => (
-            <p key={index} className="text-sm" style={{ color: entry.color }}>
+            <p key={index} className="text-sm text-gray-600">
               {entry.name}: {entry.value.toFixed(1)} {entry.unit}
             </p>
           ))}
@@ -154,13 +151,13 @@ const GraphCastForecast = () => {
   };
 
   return (
-    <div className="bg-gray-800 bg-opacity-50 rounded-lg p-6 mb-8">
+    <div className="bg-white rounded-lg p-6 mb-8">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h2 className="text-2xl font-bold text-purple-300 mb-2">
+          <h2 className="text-2xl font-bold text-gray-800 mb-2">
             10-Day GraphCast Forecast
           </h2>
-          <div className="flex items-center text-purple-200">
+          <div className="flex items-center text-gray-600">
             <IoLocationOutline className="mr-1" />
             <span>
               {userLocation?.latitude.toFixed(2)}°N,{' '}
@@ -169,13 +166,13 @@ const GraphCastForecast = () => {
           </div>
         </div>
         <div className="flex flex-col items-end">
-          <div className="flex items-center text-purple-300 mb-2">
-            <IoThermometerOutline className="mr-1" />
+          <div className="flex items-center text-gray-800 mb-2">
+            <IoThermometerOutline className="mr-1 text-blue-600" />
             <span className="text-xl">
               {forecast.current.temperature_2m.toFixed(1)}°F
             </span>
           </div>
-          <div className="flex items-center text-purple-200">
+          <div className="flex items-center text-gray-600">
             <IoWaterOutline className="mr-1" />
             <span>{forecast.current.relative_humidity_2m}%</span>
             <IoCloudOutline className="ml-3 mr-1" />
@@ -190,20 +187,27 @@ const GraphCastForecast = () => {
             data={forecast.daily}
             margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
           >
-            <CartesianGrid strokeDasharray="3 3" stroke="#444" />
-            <XAxis dataKey="time" stroke="#d8b4fe" tick={{ fill: '#d8b4fe' }} />
+            <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+            <XAxis 
+              dataKey="time" 
+              stroke="#6b7280" 
+              tick={{ fill: '#6b7280' }}
+              style={{ fontSize: '12px' }}
+            />
             <YAxis
               yAxisId="left"
-              stroke="#d8b4fe"
-              tick={{ fill: '#d8b4fe' }}
+              stroke="#6b7280"
+              tick={{ fill: '#6b7280' }}
               domain={['auto', 'auto']}
+              style={{ fontSize: '12px' }}
             />
             <YAxis
               yAxisId="right"
               orientation="right"
-              stroke="#94a3b8"
-              tick={{ fill: '#94a3b8' }}
+              stroke="#6b7280"
+              tick={{ fill: '#6b7280' }}
               domain={[0, 100]}
+              style={{ fontSize: '12px' }}
             />
             <Tooltip content={<CustomTooltip />} />
             <Legend />
@@ -211,19 +215,21 @@ const GraphCastForecast = () => {
               yAxisId="left"
               type="monotone"
               dataKey="temperature"
-              stroke="#8b5cf6"
+              stroke="#A1A7FF"
               name="Temperature"
               unit="°F"
               strokeWidth={2}
+              dot={{ fill: '#A1A7FF', r: 4 }}
             />
             <Line
               yAxisId="right"
               type="monotone"
               dataKey="precipitationProb"
-              stroke="#0ea5e9"
+              stroke="#60a5fa"
               name="Precipitation"
               unit="%"
               strokeWidth={2}
+              dot={{ fill: '#60a5fa', r: 4 }}
             />
             <Line
               yAxisId="right"
@@ -233,6 +239,7 @@ const GraphCastForecast = () => {
               name="Cloud Cover"
               unit="%"
               strokeWidth={2}
+              dot={{ fill: '#94a3b8', r: 4 }}
             />
           </LineChart>
         </ResponsiveContainer>

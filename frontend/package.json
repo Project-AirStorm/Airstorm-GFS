@@ -11,6 +11,7 @@
     "react-dom": "^18.3.1",
     "react-scripts": "5.0.1",
     "react-icons": "^4.x.x",
+    "lucide-react": "^0.350.0",
     "web-vitals": "^2.1.4",
     "mapbox-gl": "^2.x.x"
   },

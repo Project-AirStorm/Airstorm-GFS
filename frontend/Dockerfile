@@ -14,6 +14,7 @@ RUN npm install && \
     npm install @maptiler/sdk && \
     npm install recharts && \
     npm install maplibre-gl && \
+    npm install lucide-react && \
     npm cache clean --force
 
 # Hotfix ESLINT error

@@ -1,29 +1,37 @@
 import React, { useState } from 'react';
-import Navbar from './components/Navbar';
 import Footer from './components/Footer';
-import Homepage from './pages/Homepage';
+import Dashboard from './pages/Dashboard';
 import Weather from './pages/Weather';
 import About from './pages/About';
 
 function App() {
-  const [currentPage, setCurrentPage] = useState('home');
+  const [currentPage, setCurrentPage] = useState('dashboard');
 
   const renderPage = () => {
     switch (currentPage) {
-      case 'home':
-        return <Homepage />;
+      case 'dashboard':
+        return <Dashboard setCurrentPage={setCurrentPage} />;
       case 'weather':
-        return <Weather />;
-      case 'about':
-        return <About />;
+        return <Weather setCurrentPage={setCurrentPage} />;
+      case 'maps':
+        return <Weather setCurrentPage={setCurrentPage} />;
+      case 'forecasts':
+        return <Weather setCurrentPage={setCurrentPage} />;
+      case 'alerts':
+        return <Weather setCurrentPage={setCurrentPage} />;
+      case 'analysis':
+        return <Weather setCurrentPage={setCurrentPage} />;
+      case 'settings':
+        return <Weather setCurrentPage={setCurrentPage} />;
+      case 'logs':
+        return <Weather setCurrentPage={setCurrentPage} />;
       default:
-        return <Homepage />;
+        return <Dashboard setCurrentPage={setCurrentPage} />;
     }
   };
 
   return (
     <div className="flex flex-col min-h-screen">
-      <Navbar onNavigate={setCurrentPage} />
       {renderPage()}
       <Footer />
     </div>

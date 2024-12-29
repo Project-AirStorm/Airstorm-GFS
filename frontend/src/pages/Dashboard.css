@@ -1,0 +1,150 @@
+.dashboard-container {
+  min-height: 100vh;
+  background-color: rgb(249 250 251);
+}
+
+.sidebar {
+  position: fixed;
+  width: 16rem;
+  height: 100%;
+  background-color: white;
+  border-right: 1px solid rgb(229 231 235);
+}
+
+.header {
+  padding: 1rem;
+  border-bottom: 1px solid rgb(229 231 235);
+}
+
+.logo-container {
+  width: 1.5rem;
+  height: 1.5rem;
+  background-color: rgb(229 231 235);
+  border-radius: 0.25rem;
+}
+
+.profile-section {
+  padding: 1rem;
+  margin-bottom: 1rem;
+}
+
+.profile-card {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem;
+  background-color: white;
+  border-radius: 0.25rem;
+  border: 1px solid rgb(229 231 235);
+}
+
+.profile-image {
+  width: 2rem;
+  height: 2rem;
+  background-color: rgb(229 231 235);
+  border-radius: 9999px;
+}
+
+.nav-section {
+  padding: 0 1rem;
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.5rem;
+  border-radius: 0.25rem;
+  cursor: pointer;
+}
+
+.nav-item:hover {
+  background-color: rgb(249 250 251);
+}
+
+.nav-item.active {
+  background-color: rgb(239 246 255);
+  color: rgb(37 99 235);
+}
+
+.main-content {
+  margin-left: 16rem;
+  padding: 1.5rem;
+}
+
+.content-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.toggle-section {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.toggle-buttons {
+  background-color: rgb(229 231 235);
+  border-radius: 0.375rem;
+  padding: 0.25rem;
+  display: flex;
+}
+
+.toggle-button {
+  padding: 0.25rem 1rem;
+  font-size: 0.875rem;
+}
+
+.toggle-button.active {
+  background-color: white;
+  border-radius: 0.25rem;
+}
+
+.weather-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.weather-card {
+  border-radius: 0.5rem;
+  padding: 1rem;
+  color: white;
+}
+
+.weather-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+}
+
+.stat-box {
+  background-color: rgb(37 99 235);
+  border-radius: 0.5rem;
+  padding: 0.75rem;
+}
+
+.chart-section {
+  background-color: white;
+  padding: 1.5rem;
+  border-radius: 0.5rem;
+  border: 1px solid rgb(229 231 235);
+  margin-bottom: 1.5rem;
+}
+
+.bottom-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 1.5rem;
+}
+
+.bottom-card {
+  background-color: white;
+  padding: 1.5rem;
+  border-radius: 0.5rem;
+  border: 1px solid rgb(229 231 235);
+}

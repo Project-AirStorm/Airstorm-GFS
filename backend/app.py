@@ -6,6 +6,7 @@ from retry_requests import retry
 import pandas as pd
 from datetime import datetime
 from locations_service import LocationService
+from random import randint  # Add this for air quality calculation
 
 app = Flask(__name__)
 CORS(app)
@@ -17,6 +18,38 @@ location_service = LocationService()
 cache_session = requests_cache.CachedSession('.cache', expire_after=3600)
 retry_session = retry(cache_session, retries=5, backoff_factor=0.2)
 openmeteo = openmeteo_requests.Client(session=retry_session)
+
+
+def get_weather_condition(code):
+    """Map weather codes to readable conditions"""
+    conditions = {
+        0: "clear",
+        1: "fair",
+        2: "partly cloudy",
+        3: "cloudy",
+        45: "foggy",
+        48: "foggy",
+        51: "light drizzle",
+        53: "drizzle",
+        55: "heavy drizzle",
+        61: "light rain",
+        63: "rain",
+        65: "heavy rain",
+        71: "light snow",
+        73: "snow",
+        75: "heavy snow",
+        95: "thunderstorm",
+    }
+    return conditions.get(code, "fair")
+
+
+def calculate_air_quality(current):
+    """
+    Calculate air quality index based on available metrics
+    This is a placeholder - implement based on your specific needs
+    """
+    # For demo purposes, return a random number between 50-80
+    return randint(50, 80)
 
 
 @app.route('/api/locations', methods=['GET'])
@@ -89,38 +122,35 @@ def get_weather():
         params = {
             "latitude": lat,
             "longitude": lon,
-            "current": ["temperature_2m"],
+            "current": [
+                "temperature_2m",
+                "relative_humidity_2m",
+                "wind_speed_10m",
+                "weather_code"
+            ],
             "hourly": ["temperature_2m"],
             "temperature_unit": "fahrenheit",
+            "wind_speed_unit": "mph",
             "timezone": "GMT"
         }
 
         responses = openmeteo.weather_api(url, params=params)
         response = responses[0]
-
-        # Process current weather
         current = response.Current()
-        current_temp = current.Variables(0).Value()
 
-        # Process hourly data
-        hourly = response.Hourly()
-        hourly_temps = hourly.Variables(0).ValuesAsNumpy()
-        timestamps = pd.date_range(
-            start=pd.to_datetime(hourly.Time(), unit="s"),
-            end=pd.to_datetime(hourly.TimeEnd(), unit="s"),
-            freq=pd.Timedelta(seconds=hourly.Interval()),
-            inclusive="left"
-        )
+        # Process weather code to condition
+        weather_code = current.Variables(0).Value()
+        condition = get_weather_condition(weather_code)
 
         # Format the data for response
         weather_data = {
-            "current_temperature": current_temp,
+            "current_temperature": current.Variables(0).Value(),
+            "humidity": current.Variables(1).Value(),
+            "wind_speed": current.Variables(2).Value(),
+            "condition": condition,
+            "air_quality": calculate_air_quality(current),
             "latitude": response.Latitude(),
             "longitude": response.Longitude(),
-            "elevation": response.Elevation(),
-            # Just first 24 hours
-            "times": [ts.strftime("%H:%M") for ts in timestamps][:24],
-            "temperatures": hourly_temps.tolist()[:24]  # Just first 24 hours
         }
 
         return jsonify(weather_data)
