@@ -1,54 +1,16 @@
-// src/pages/Dashboard.js
-import React, { useState, useEffect } from 'react';
+// Dashboard.js
+import React, { useState } from 'react';
 import PropTypes from 'prop-types';
-import axios from 'axios';
-import { 
-  Settings, 
-  Menu, 
-  Map, 
-  BarChart2, 
-  Bell, 
-  FileText, 
-  Grid 
-} from 'lucide-react';
 import WeatherCard from '../../components/specific/WeatherCard/WeatherCard';
 import GraphCastForecast from '../../components/specific/GraphCastForecast/GraphCastForecast';
+import Sidebar from '../../components/common/sidebar/Sidebar';
+import Header from '../../components/common/header/Header';  // Add this import
+import ActionButtons from '../../components/specific/ActionButtons/ActionButtons';
 import './Dashboard.css';
 
-/**
- * NavItem component for sidebar navigation
- */
-const NavItem = ({ icon, label, badge, isActive, onClick }) => (
-  <div 
-    className={`nav-item ${isActive ? 'active' : ''}`} 
-    onClick={onClick}
-  >
-    <div className="flex items-center gap-3">
-      {icon}
-      <span className="text-sm font-semibold">{label}</span>
-    </div>
-    {badge && (
-      <span className="px-2 py-1 bg-red-500 text-white text-xs rounded">
-        {badge}
-      </span>
-    )}
-  </div>
-);
-
-NavItem.propTypes = {
-  icon: PropTypes.node.isRequired,
-  label: PropTypes.string.isRequired,
-  badge: PropTypes.string,
-  isActive: PropTypes.bool,
-  onClick: PropTypes.func.isRequired
-};
-
-/**
- * Dashboard component serves as the main interface for weather monitoring
- */
 const Dashboard = ({ setCurrentPage }) => {
   const [activeView, setActiveView] = useState('overview');
-  const [locations, setLocations] = useState([
+  const [locations] = useState([
     {
       city: "Bossier City",
       state: "LA",
@@ -72,70 +34,16 @@ const Dashboard = ({ setCurrentPage }) => {
     }
   ]);
 
-  // Navigation items configuration
-  const navItems = [
-    { icon: <Grid className="w-4 h-4" />, label: 'Dashboard', page: 'dashboard', isActive: true },
-    { icon: <Map className="w-4 h-4" />, label: 'Maps', page: 'maps' },
-    { icon: <BarChart2 className="w-4 h-4" />, label: 'Forecasts', page: 'forecasts' },
-    { icon: <Bell className="w-4 h-4" />, label: 'Alerts', page: 'alerts', badge: '4' },
-    { icon: <FileText className="w-4 h-4" />, label: 'Analysis', page: 'analysis' },
-    { icon: <Settings className="w-4 h-4" />, label: 'Settings', page: 'settings' },
-    { icon: <FileText className="w-4 h-4" />, label: 'Logs', page: 'logs' }
-  ];
-
   return (
     <div className="dashboard-container">
       {/* Sidebar */}
-      <div className="sidebar">
-        {/* Header */}
-        <div className="header">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <div className="logo-container"></div>
-              <div>
-                <h1 className="text-lg font-bold text-gray-800">Airstorm</h1>
-                <p className="text-xs text-gray-500">Admin Panel</p>
-              </div>
-            </div>
-            <Menu className="w-5 h-5 text-gray-500" />
-          </div>
-        </div>
+      <Sidebar setCurrentPage={setCurrentPage} />
 
-        {/* User Profile */}
-        <div className="profile-section">
-          <div className="profile-card">
-            <div className="profile-image"></div>
-            <div>
-              <p className="text-sm font-semibold text-gray-800">Sgt. Tubbs</p>
-              <p className="text-xs text-gray-500">Flight Chief</p>
-            </div>
-          </div>
-        </div>
-
-        {/* Navigation */}
-        <nav className="nav-section">
-          <p className="text-sm text-gray-500 mb-4">Main Menu</p>
-          <div className="space-y-2">
-            {navItems.map((item) => (
-              <NavItem 
-                key={item.label}
-                icon={item.icon}
-                label={item.label}
-                badge={item.badge}
-                isActive={item.isActive}
-                onClick={() => setCurrentPage(item.page)}
-              />
-            ))}
-          </div>
-        </nav>
-      </div>
+      {/* Header - Replace the old header markup with the Header component */}
+      <Header title="Dashboard" />
 
       {/* Main Content */}
       <div className="main-content">
-        <div className="content-header">
-          <h2 className="text-xl font-bold text-gray-800">Dashboard</h2>
-        </div>
-
         {/* View Toggle */}
         <div className="toggle-section">
           <div className="toggle-buttons">
@@ -153,15 +61,11 @@ const Dashboard = ({ setCurrentPage }) => {
             </button>
           </div>
           
-          <div className="ml-auto flex items-center gap-4">
-            <button className="px-4 py-1 bg-white rounded border text-sm text-gray-600">
-              Week
-            </button>
-            <button className="px-4 py-1 bg-blue-600 text-white rounded flex items-center gap-2 text-sm">
-              <span className="text-lg">+</span>
-              Add New Base
-            </button>
-          </div>
+          <ActionButtons 
+            onTimeframeChange={() => console.log('Timeframe changed')}
+            onAddBase={() => console.log('Add base clicked')}
+            timeframe="Week"
+          />
         </div>
 
         {/* Weather Cards Grid */}

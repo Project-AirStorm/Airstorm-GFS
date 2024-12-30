@@ -1,14 +1,19 @@
+/* Dashboard.css */
 .dashboard-container {
   min-height: 100vh;
   background-color: rgb(249 250 251);
+  display: flex;
+  flex-direction: column;
 }
 
+/* Sidebar Styles */
 .sidebar {
   position: fixed;
   width: 16rem;
   height: 100%;
   background-color: white;
   border-right: 1px solid rgb(229 231 235);
+  z-index: 20;
 }
 
 .header {
@@ -67,18 +72,19 @@
   color: rgb(37 99 235);
 }
 
+
+
+/* Main Content */
 .main-content {
   margin-left: 16rem;
-  padding: 1.5rem;
+  padding-top: calc(60px + 1.5rem);
+  padding-left: 1.5rem;
+  padding-right: 1.5rem;
+  padding-bottom: 1.5rem;
+  min-height: calc(100vh - 60px);
 }
 
-.content-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 1.5rem;
-}
-
+/* Toggle Section */
 .toggle-section {
   display: flex;
   align-items: center;
@@ -103,6 +109,7 @@
   border-radius: 0.25rem;
 }
 
+/* Weather Grid */
 .weather-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -128,6 +135,7 @@
   padding: 0.75rem;
 }
 
+/* Chart Section */
 .chart-section {
   background-color: white;
   padding: 1.5rem;
@@ -136,6 +144,7 @@
   margin-bottom: 1.5rem;
 }
 
+/* Bottom Grid */
 .bottom-grid {
   display: grid;
   grid-template-columns: 2fr 1fr;
