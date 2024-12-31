@@ -1,0 +1,17 @@
+.weather-card {
+    border-radius: 0.5rem;
+    padding: 1rem;
+    color: white;
+  }
+  
+  .weather-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+  }
+  
+  .stat-box {
+    background-color: rgb(37 99 235);
+    border-radius: 0.5rem;
+    padding: 0.75rem;
+  }

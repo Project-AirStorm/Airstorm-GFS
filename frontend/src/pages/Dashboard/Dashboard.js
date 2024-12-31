@@ -1,11 +1,9 @@
-// Dashboard.js
 import React, { useState } from 'react';
 import PropTypes from 'prop-types';
 import WeatherCard from '../../components/specific/WeatherCard/WeatherCard';
 import GraphCastForecast from '../../components/specific/GraphCastForecast/GraphCastForecast';
-import Sidebar from '../../components/common/sidebar/Sidebar';
-import Header from '../../components/common/header/Header';  // Add this import
 import ActionButtons from '../../components/specific/ActionButtons/ActionButtons';
+import OverviewSwitch from '../../components/specific/OverviewSwitch/OverviewSwitch';
 import './Dashboard.css';
 
 const Dashboard = ({ setCurrentPage }) => {
@@ -36,30 +34,13 @@ const Dashboard = ({ setCurrentPage }) => {
 
   return (
     <div className="dashboard-container">
-      {/* Sidebar */}
-      <Sidebar setCurrentPage={setCurrentPage} />
-
-      {/* Header - Replace the old header markup with the Header component */}
-      <Header title="Dashboard" />
-
-      {/* Main Content */}
       <div className="main-content">
-        {/* View Toggle */}
-        <div className="toggle-section">
-          <div className="toggle-buttons">
-            <button 
-              className={`toggle-button ${activeView === 'overview' ? 'active' : ''}`}
-              onClick={() => setActiveView('overview')}
-            >
-              Overview
-            </button>
-            <button 
-              className={`toggle-button ${activeView === 'detailed' ? 'active' : ''}`}
-              onClick={() => setActiveView('detailed')}
-            >
-              Detailed
-            </button>
-          </div>
+        {/* View Toggle and Action Buttons */}
+        <div className="flex items-center gap-4 mb-6">
+          <OverviewSwitch 
+            activeView={activeView}
+            onViewChange={setActiveView}
+          />
           
           <ActionButtons 
             onTimeframeChange={() => console.log('Timeframe changed')}
@@ -68,7 +49,7 @@ const Dashboard = ({ setCurrentPage }) => {
           />
         </div>
 
-        {/* Weather Cards Grid */}
+        {/* Rest of the dashboard content remains the same */}
         <div className="weather-grid">
           {locations.map((location) => (
             <WeatherCard
@@ -82,7 +63,6 @@ const Dashboard = ({ setCurrentPage }) => {
           ))}
         </div>
 
-        {/* Charts Section */}
         <div className="chart-section">
           <h3 className="text-lg font-semibold mb-2">Local Weather Conditions</h3>
           <p className="text-sm text-gray-600 mb-4">
@@ -91,7 +71,6 @@ const Dashboard = ({ setCurrentPage }) => {
           <GraphCastForecast />
         </div>
 
-        {/* Bottom Grid */}
         <div className="bottom-grid">
           <div className="bottom-card">
             <h3 className="text-lg font-semibold mb-4">Weather Alerts</h3>

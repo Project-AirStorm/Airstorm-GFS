@@ -11,6 +11,7 @@ import {
 } from 'lucide-react';
 import profilePic from '../../../assets/sample-profile-pic.jpeg';
 import afgscLogo from '../../../assets/afgsc-logo.png';
+import './Sidebar.css';
 
 /**
  * NavItem component for sidebar navigation
@@ -23,7 +24,7 @@ import afgscLogo from '../../../assets/afgsc-logo.png';
  */
 const NavItem = ({ icon, label, badge, isActive, onClick }) => (
   <div 
-    className={`nav-item ${isActive ? 'active' : ''}`} 
+    className={`nav-item ${isActive ? 'active' : ''}`}
     onClick={onClick}
   >
     <div className="flex items-center gap-3">
@@ -89,7 +90,7 @@ const Sidebar = ({ setCurrentPage }) => {
           <img 
             src={profilePic} 
             alt="Profile" 
-            className="w-10 h-10 rounded-full object-cover"
+            className="profile-image"
           />
           <div>
             <p className="text-sm font-semibold text-gray-800">Sgt. Tubbs</p>

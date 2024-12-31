@@ -16,6 +16,7 @@ import {
   IoWaterOutline,
   IoCloudOutline,
 } from 'react-icons/io5';
+import './GraphCastForecast.css';
 
 const GraphCastForecast = () => {
   const [forecast, setForecast] = useState(null);
@@ -57,7 +58,6 @@ const GraphCastForecast = () => {
               }
             );
 
-            // Process hourly data into daily averages
             const hourlyData = response.data.hourly;
             const processedData = hourlyData.time.map((time, index) => ({
               time: new Date(time).toLocaleDateString(),
@@ -66,7 +66,6 @@ const GraphCastForecast = () => {
               cloudCover: hourlyData.cloud_cover[index],
             }));
 
-            // Calculate daily averages
             const dailyData = processedData.reduce((acc, curr) => {
               const date = curr.time;
               if (!acc[date]) {
@@ -116,18 +115,16 @@ const GraphCastForecast = () => {
 
   if (loading) {
     return (
-      <div className="bg-white rounded-lg p-6 mb-8 shadow-sm">
-        <div className="animate-pulse text-center text-gray-500">
-          Loading forecast data...
-        </div>
+      <div className="loading-state">
+        <div>Loading forecast data...</div>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="bg-white rounded-lg p-6 mb-8 shadow-sm">
-        <div className="text-red-500 text-center">{error}</div>
+      <div className="error-state">
+        <div>{error}</div>
       </div>
     );
   }
@@ -137,10 +134,10 @@ const GraphCastForecast = () => {
   const CustomTooltip = ({ active, payload, label }) => {
     if (active && payload && payload.length) {
       return (
-        <div className="bg-white p-3 rounded-lg shadow-lg border border-gray-200">
-          <p className="text-gray-700 font-semibold mb-1">{label}</p>
+        <div className="custom-tooltip">
+          <p className="tooltip-label">{label}</p>
           {payload.map((entry, index) => (
-            <p key={index} className="text-sm text-gray-600">
+            <p key={index} className="tooltip-value">
               {entry.name}: {entry.value.toFixed(1)} {entry.unit}
             </p>
           ))}
@@ -151,13 +148,11 @@ const GraphCastForecast = () => {
   };
 
   return (
-    <div className="bg-white rounded-lg p-6 mb-8">
-      <div className="flex items-center justify-between mb-6">
+    <div className="graphcast-container">
+      <div className="graphcast-header">
         <div>
-          <h2 className="text-2xl font-bold text-gray-800 mb-2">
-            10-Day GraphCast Forecast
-          </h2>
-          <div className="flex items-center text-gray-600">
+          <h2 className="graphcast-title">10-Day GraphCast Forecast</h2>
+          <div className="graphcast-location">
             <IoLocationOutline className="mr-1" />
             <span>
               {userLocation?.latitude.toFixed(2)}°N,{' '}
@@ -165,23 +160,27 @@ const GraphCastForecast = () => {
             </span>
           </div>
         </div>
-        <div className="flex flex-col items-end">
-          <div className="flex items-center text-gray-800 mb-2">
+        <div className="current-weather">
+          <div className="temperature-display">
             <IoThermometerOutline className="mr-1 text-blue-600" />
             <span className="text-xl">
               {forecast.current.temperature_2m.toFixed(1)}°F
             </span>
           </div>
-          <div className="flex items-center text-gray-600">
-            <IoWaterOutline className="mr-1" />
-            <span>{forecast.current.relative_humidity_2m}%</span>
-            <IoCloudOutline className="ml-3 mr-1" />
-            <span>{forecast.current.cloud_cover}%</span>
+          <div className="weather-stats">
+            <div className="weather-stat">
+              <IoWaterOutline className="mr-1" />
+              <span>{forecast.current.relative_humidity_2m}%</span>
+            </div>
+            <div className="weather-stat">
+              <IoCloudOutline className="mr-1" />
+              <span>{forecast.current.cloud_cover}%</span>
+            </div>
           </div>
         </div>
       </div>
 
-      <div className="h-96">
+      <div className="chart-container">
         <ResponsiveContainer width="100%" height="100%">
           <LineChart
             data={forecast.daily}
