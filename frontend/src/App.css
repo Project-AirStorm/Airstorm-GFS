@@ -1,19 +1,36 @@
-.App {
-  text-align: center;
+/* App.css */
+
+/* Main layout structure - exactly matching Tailwind's flex min-h-screen */
+.app-wrapper {
+  display: flex;
+  min-height: 100vh;
 }
 
-.App-logo {
+/* Main content area - matching Tailwind's flex-1 flex flex-col */
+.main-content-wrapper {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Content area - matching Tailwind's flex-1 */
+.content-area {
+  flex: 1;
+}
+
+/* These styles are from the original App.css */
+.app-logo {
   height: 40vmin;
   pointer-events: none;
 }
 
 @media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
+  .app-logo {
+    animation: app-logo-spin infinite 20s linear;
   }
 }
 
-.App-header {
+.app-header {
   background-color: #282c34;
   min-height: 100vh;
   display: flex;
@@ -24,11 +41,11 @@
   color: white;
 }
 
-.App-link {
+.app-link {
   color: #61dafb;
 }
 
-@keyframes App-logo-spin {
+@keyframes app-logo-spin {
   from {
     transform: rotate(0deg);
   }

@@ -1,11 +1,10 @@
-/* Dashboard.css */
+/* Dashboard Container */
 .dashboard-container {
   min-height: 100vh;
   background-color: rgb(249 250 251);
   display: flex;
   flex-direction: column;
 }
-
 
 /* Main Content */
 .main-content {
@@ -15,14 +14,27 @@
   padding-right: 1.5rem;
   padding-bottom: 1.5rem;
   min-height: calc(100vh - 60px);
+  min-width: 1200px; /* Minimum width to ensure content doesn't squeeze */
+  overflow-x: auto; /* Enable horizontal scrolling */
 }
 
-/* Weather Grid */
+/* Controls Container */
+.controls-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  width: 100%;
+}
+
+/* Weather Grid (for WeatherCards) */
 .weather-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 1.5rem;
   margin-bottom: 1.5rem;
+  width: 100%;
 }
 
 /* Chart Section (Middle area) */
@@ -32,6 +44,19 @@
   border-radius: 0.5rem;
   border: 1px solid rgb(229 231 235);
   margin-bottom: 1.5rem;
+  width: 100%;
+}
+
+.chart-title {
+  font-size: 1.125rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.chart-description {
+  font-size: 0.875rem;
+  color: rgb(75 85 99);
+  margin-bottom: 1rem;
 }
 
 /* Bottom Grid */
@@ -39,6 +64,7 @@
   display: grid;
   grid-template-columns: 2fr 1fr;
   gap: 1.5rem;
+  width: 100%;
 }
 
 .bottom-card {
@@ -46,4 +72,21 @@
   padding: 1.5rem;
   border-radius: 0.5rem;
   border: 1px solid rgb(229 231 235);
+}
+
+.card-title {
+  font-size: 1.125rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+}
+
+.stats-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.stats-text {
+  font-size: 0.875rem;
+  color: rgb(75 85 99);
 }

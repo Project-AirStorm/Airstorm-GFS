@@ -1,5 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+import './ActionButtons.css';
 
 /**
  * ActionButtons component containing primary and secondary action buttons
@@ -10,18 +11,18 @@ import PropTypes from 'prop-types';
  */
 const ActionButtons = ({ onTimeframeChange, onAddBase, timeframe = 'Week' }) => {
   return (
-    <div className="ml-auto flex items-center gap-4">
+    <div className="action-buttons-container">
       <button 
-        className="px-4 py-1 bg-white rounded border text-sm text-gray-600 hover:bg-gray-50 transition-colors"
+        className="timeframe-button"
         onClick={onTimeframeChange}
       >
         {timeframe}
       </button>
       <button 
-        className="px-4 py-1 bg-blue-600 text-white rounded flex items-center gap-2 text-sm hover:bg-blue-700 transition-colors"
+        className="add-base-button"
         onClick={onAddBase}
       >
-        <span className="text-lg">+</span>
+        <span className="add-button-plus">+</span>
         Add New Base
       </button>
     </div>

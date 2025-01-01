@@ -1,0 +1,40 @@
+.action-buttons-container {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+  
+  .timeframe-button {
+    padding: 0.25rem 1rem;
+    background-color: white;
+    border-radius: 0.25rem;
+    border: 1px solid rgb(229 231 235);
+    font-size: 0.875rem;
+    color: rgb(75 85 99);
+    transition: background-color 0.15s;
+  }
+  
+  .timeframe-button:hover {
+    background-color: rgb(249 250 251);
+  }
+  
+  .add-base-button {
+    padding: 0.25rem 1rem;
+    background-color: rgb(37 99 235);
+    color: white;
+    border-radius: 0.25rem;
+    font-size: 0.875rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: background-color 0.15s;
+  }
+  
+  .add-base-button:hover {
+    background-color: rgb(29 78 216);
+  }
+  
+  .add-button-plus {
+    font-size: 1.125rem;
+  }

@@ -1,14 +1,14 @@
 /* Footer.css */
 
-/* Main footer container .*/
-   .footer {
+/* Main footer container */
+.footer {
     background-color: rgba(51,97,224,255);
     display: flex;
-    align-items: center;  /* Centers content vertically */
-    justify-content: center; /* Centers content horizontally */
+    align-items: center;
+    justify-content: center;
     padding: 1rem 0;
-    margin-top: auto;
     width: 100%;
+    margin-top: auto; /* This pushes the footer to the bottom */
   }
   
   .footer-container {
@@ -26,8 +26,6 @@
     line-height: 1.25;
   }
   
-  /* Company name emphasis
-     Slightly bolder weight for the company name if needed */
   .footer-company {
     font-weight: 500;
   }

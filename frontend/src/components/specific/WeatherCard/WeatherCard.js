@@ -6,6 +6,7 @@ import {
   IoThermometerOutline,
   IoLocationOutline,
 } from 'react-icons/io5';
+import './WeatherCard.css';
 
 /**
  * WeatherCard component displays weather information for a specific location
@@ -45,19 +46,19 @@ const WeatherCard = ({ city, state, latitude, longitude, backgroundColor }) => {
   if (loading) {
     return (
       <div 
-        className="weather-card rounded-xl p-6 animate-pulse"
+        className="weather-card weather-card--loading"
         style={{ backgroundColor }}
       >
-        <div className="h-6 bg-white bg-opacity-30 rounded w-1/2 mb-2"></div>
-        <div className="h-4 bg-white bg-opacity-30 rounded w-3/4 mb-4"></div>
-        <div className="h-4 bg-white bg-opacity-30 rounded w-2/3 mb-4"></div>
-        <div className="h-3 bg-white bg-opacity-30 rounded w-full mb-6"></div>
+        <div className="loading-line loading-line--title"></div>
+        <div className="loading-line loading-line--subtitle"></div>
+        <div className="loading-line loading-line--text"></div>
+        <div className="loading-line loading-line--full"></div>
         
-        <div className="grid grid-cols-3 gap-4">
+        <div className="weather-stats-grid">
           {[1, 2, 3].map((index) => (
-            <div key={index} className="rounded-lg p-3" style={{ backgroundColor: '#3361E0' }}>
-              <div className="h-3 bg-white bg-opacity-30 rounded w-2/3 mb-2"></div>
-              <div className="h-6 bg-white bg-opacity-30 rounded w-1/2"></div>
+            <div key={index} className="stat-box stat-box--loading">
+              <div className="loading-line loading-line--stat-label"></div>
+              <div className="loading-line loading-line--stat-value"></div>
             </div>
           ))}
         </div>
@@ -68,12 +69,12 @@ const WeatherCard = ({ city, state, latitude, longitude, backgroundColor }) => {
   if (error) {
     return (
       <div 
-        className="weather-card rounded-xl p-6"
+        className="weather-card"
         style={{ backgroundColor }}
       >
-        <div className="flex flex-col items-center justify-center text-white">
-          <p className="text-lg font-semibold mb-2">Error</p>
-          <p className="text-sm">{error}</p>
+        <div className="error-container">
+          <p className="error-title">Error</p>
+          <p className="error-message">{error}</p>
         </div>
       </div>
     );
@@ -81,19 +82,19 @@ const WeatherCard = ({ city, state, latitude, longitude, backgroundColor }) => {
 
   return (
     <div 
-      className="weather-card rounded-xl p-6"
+      className="weather-card"
       style={{ backgroundColor }}
     >
-      <h3 className="text-lg font-bold text-white">{city}</h3>
-      <p className="text-sm mb-2 text-white">{city}, {state}</p>
-      <p className="text-sm mb-4 text-white">
+      <h3 className="weather-title">{city}</h3>
+      <p className="weather-subtitle">{city}, {state}</p>
+      <p className="weather-description">
         It's {weatherData.current_temperature.toFixed(0)}° and {weatherData.condition}.
       </p>
-      <p className="text-xs mb-4 text-white">
+      <p className="weather-forecast">
         Today's high temperature will be the same as yesterday's
       </p>
       
-      <div className="grid grid-cols-3 gap-4">
+      <div className="weather-stats-grid">
         <WeatherStat 
           label="Humidity" 
           value={weatherData.humidity} 
@@ -125,12 +126,12 @@ const WeatherCard = ({ city, state, latitude, longitude, backgroundColor }) => {
  * @param {string} [props.description] - Optional description to display below the value
  */
 const WeatherStat = ({ label, value, unit, description }) => (
-  <div className="rounded-lg p-3" style={{ backgroundColor: '#3361E0' }}>
-    <p className="text-xs font-bold mb-1 text-white">{label}</p>
-    <p className="text-xl text-white">
+  <div className="stat-box">
+    <p className="stat-label">{label}</p>
+    <p className="stat-value">
       {value}
-      {unit && <span className="text-sm">{unit}</span>}
-      {description && <span className="text-xs">{description}</span>}
+      {unit && <span className="stat-unit">{unit}</span>}
+      {description && <span className="stat-description">{description}</span>}
     </p>
   </div>
 );

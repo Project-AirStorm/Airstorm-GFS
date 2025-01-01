@@ -4,8 +4,11 @@ import Header from './components/common/header/Header';
 import Sidebar from './components/common/sidebar/Sidebar';
 import Dashboard from './pages/Dashboard/Dashboard';
 import Weather from './pages/Unused/Weather/Weather';
-import About from './pages/Unused/About/About';
+import './App.css';
 
+/**
+ * Main Application component that handles routing and layout
+ */
 function App() {
   const [currentPage, setCurrentPage] = useState('dashboard');
 
@@ -57,11 +60,15 @@ function App() {
   };
 
   return (
-    <div className="flex flex-col min-h-screen">
+    <div className="app-wrapper">
       <Sidebar setCurrentPage={setCurrentPage} />
-      <Header title={getPageTitle()} />
-      {renderPage()}
-      <Footer />
+      <div className="main-content-wrapper">
+        <Header title={getPageTitle()} />
+        <div className="content-area">
+          {renderPage()}
+        </div>
+        <Footer />
+      </div>
     </div>
   );
 }

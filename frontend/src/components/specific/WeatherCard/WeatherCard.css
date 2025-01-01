@@ -1,17 +1,145 @@
+/* WeatherCard.css */
+
+/* Base Card Styles */
 .weather-card {
-    border-radius: 0.5rem;
-    padding: 1rem;
+    border-radius: 0.75rem;
+    padding: 1.5rem;
     color: white;
   }
   
-  .weather-stats {
+  /* Card Title and Text Styles */
+  .weather-title {
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: white;
+  }
+  
+  .weather-subtitle {
+    font-size: 0.875rem;
+    margin-bottom: 0.5rem;
+    color: white;
+  }
+  
+  .weather-description {
+    font-size: 0.875rem;
+    margin-bottom: 1rem;
+    color: white;
+  }
+  
+  .weather-forecast {
+    font-size: 0.75rem;
+    margin-bottom: 1rem;
+    color: white;
+  }
+  
+  /* Stats Grid Layout */
+  .weather-stats-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 1rem;
   }
   
+  /* Individual Stat Box */
   .stat-box {
-    background-color: rgb(37 99 235);
     border-radius: 0.5rem;
     padding: 0.75rem;
+    background-color: #3361E0;
+  }
+  
+  .stat-label {
+    font-size: 0.75rem;
+    font-weight: 700;
+    margin-bottom: 0.25rem;
+    color: white;
+  }
+  
+  .stat-value {
+    font-size: 1.25rem;
+    color: white;
+  }
+  
+  .stat-unit {
+    font-size: 0.875rem;
+  }
+  
+  .stat-description {
+    font-size: 0.75rem;
+  }
+  
+  /* Loading State Styles */
+  .weather-card--loading {
+    animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+  
+  .loading-line {
+    background-color: rgba(255, 255, 255, 0.3);
+    border-radius: 0.25rem;
+  }
+  
+  .loading-line--title {
+    height: 1.5rem;
+    width: 50%;
+    margin-bottom: 0.5rem;
+  }
+  
+  .loading-line--subtitle {
+    height: 1rem;
+    width: 75%;
+    margin-bottom: 1rem;
+  }
+  
+  .loading-line--text {
+    height: 1rem;
+    width: 66.666667%;
+    margin-bottom: 1rem;
+  }
+  
+  .loading-line--full {
+    height: 0.75rem;
+    width: 100%;
+    margin-bottom: 1.5rem;
+  }
+  
+  .stat-box--loading {
+    background-color: #3361E0;
+  }
+  
+  .loading-line--stat-label {
+    height: 0.75rem;
+    width: 66.666667%;
+    margin-bottom: 0.5rem;
+  }
+  
+  .loading-line--stat-value {
+    height: 1.5rem;
+    width: 50%;
+  }
+  
+  /* Error State Styles */
+  .error-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: white;
+  }
+  
+  .error-title {
+    font-size: 1.125rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+  }
+  
+  .error-message {
+    font-size: 0.875rem;
+  }
+  
+  /* Animation Keyframes */
+  @keyframes pulse {
+    0%, 100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: .5;
+    }
   }
