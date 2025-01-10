@@ -13,6 +13,7 @@
     "react-icons": "^4.x.x",
     "lucide-react": "^0.263.1", 
     "web-vitals": "^2.1.4",
+    "react-router-dom": "^6.x.x",
     "mapbox-gl": "^2.x.x"
   },
   "scripts": {

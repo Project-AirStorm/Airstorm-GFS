@@ -2,20 +2,14 @@
 .dashboard-container {
   min-height: 100vh;
   background-color: rgb(249 250 251);
-  display: flex;
-  flex-direction: column;
+  overflow-x: auto; /* Allow horizontal scroll if needed */
+  min-width: 1200px; /* Minimum width to prevent squishing */
 }
 
 /* Main Content */
 .main-content {
-  margin-left: 16rem;
-  padding-top: calc(77px + 1.5rem);
-  padding-left: 1.5rem;
-  padding-right: 1.5rem;
-  padding-bottom: 1.5rem;
-  min-height: calc(100vh - 60px);
-  min-width: 1200px; /* Minimum width to ensure content doesn't squeeze */
-  overflow-x: auto; /* Enable horizontal scrolling */
+  width: 100%;
+  padding: 1.5rem;
 }
 
 /* Controls Container */
@@ -28,7 +22,7 @@
   width: 100%;
 }
 
-/* Weather Grid (for WeatherCards) */
+/* Weather Grid */
 .weather-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -37,7 +31,7 @@
   width: 100%;
 }
 
-/* Chart Section (Middle area) */
+/* Chart Section */
 .chart-section {
   background-color: white;
   padding: 1.5rem;
@@ -89,4 +83,36 @@
 .stats-text {
   font-size: 0.875rem;
   color: rgb(75 85 99);
+}
+
+/* Responsive Design */
+@media screen and (max-width: 1200px) {
+  .weather-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media screen and (max-width: 768px) {
+  .main-content {
+    padding: 1rem;
+  }
+
+  .weather-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .controls-container {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .bottom-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media screen and (max-width: 480px) {
+  .main-content {
+    padding: 0.75rem;
+  }
 }

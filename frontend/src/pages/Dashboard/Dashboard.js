@@ -36,7 +36,7 @@ const Dashboard = ({ setCurrentPage }) => {
     <div className="dashboard-container">
       <div className="main-content">
         {/* View Toggle and Action Buttons */}
-        <div className="flex items-center gap-4 mb-6">
+        <div className="controls-container">
           <OverviewSwitch 
             activeView={activeView}
             onViewChange={setActiveView}
@@ -49,7 +49,6 @@ const Dashboard = ({ setCurrentPage }) => {
           />
         </div>
 
-        {/* Rest of the dashboard content remains the same */}
         <div className="weather-grid">
           {locations.map((location) => (
             <WeatherCard
@@ -64,8 +63,8 @@ const Dashboard = ({ setCurrentPage }) => {
         </div>
 
         <div className="chart-section">
-          <h3 className="text-lg font-semibold mb-2">Local Weather Conditions</h3>
-          <p className="text-sm text-gray-600 mb-4">
+          <h3 className="chart-title">Local Weather Conditions</h3>
+          <p className="chart-description">
             Customize the chart to compare weather condition trends.
           </p>
           <GraphCastForecast />
@@ -73,23 +72,24 @@ const Dashboard = ({ setCurrentPage }) => {
 
         <div className="bottom-grid">
           <div className="bottom-card">
-            <h3 className="text-lg font-semibold mb-4">Weather Alerts</h3>
-            <p className="text-sm text-gray-600">
+            <h3 className="card-title">Weather Alerts</h3>
+            <div className="stats-text">
               No active weather alerts for your monitored locations.
-            </p>
+            </div>
           </div>
+          
           <div className="bottom-card">
-            <h3 className="text-lg font-semibold mb-4">Quick Stats</h3>
-            <div className="space-y-2">
-              <p className="text-sm text-gray-600">
+            <h3 className="card-title">Quick Stats</h3>
+            <div className="stats-list">
+              <div className="stats-text">
                 Monitored Locations: {locations.length}
-              </p>
-              <p className="text-sm text-gray-600">
+              </div>
+              <div className="stats-text">
                 Active Alerts: 0
-              </p>
-              <p className="text-sm text-gray-600">
+              </div>
+              <div className="stats-text">
                 Last Updated: {new Date().toLocaleTimeString()}
-              </p>
+              </div>
             </div>
           </div>
         </div>

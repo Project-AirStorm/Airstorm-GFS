@@ -1,55 +1,55 @@
 /* App.css */
 
-/* Main layout structure - exactly matching Tailwind's flex min-h-screen */
+/* Root variables */
+:root {
+  --sidebar-width: 16rem;
+  --header-height: 77px;
+}
+
+/* Main layout structure */
 .app-wrapper {
   display: flex;
   min-height: 100vh;
 }
 
-/* Main content area - matching Tailwind's flex-1 flex flex-col */
+/* Main content wrapper */
 .main-content-wrapper {
   flex: 1;
   display: flex;
   flex-direction: column;
+  margin-left: var(--sidebar-width);
+  min-width: 0; /* Important for proper flex behavior */
 }
 
-/* Content area - matching Tailwind's flex-1 */
+/* Content area */
 .content-area {
   flex: 1;
+  padding-top: var(--header-height);
+  background-color: #f9fafb;
+  width: 100%;
+  min-height: calc(100vh - var(--header-height));
 }
 
-/* These styles are from the original App.css */
-.app-logo {
-  height: 40vmin;
-  pointer-events: none;
+/* Header adjustments */
+.dashboard-header {
+  position: fixed;
+  top: 0;
+  right: 0;
+  left: var(--sidebar-width);
+  height: var(--header-height);
+  background-color: white;
+  border-bottom: 1px solid rgb(229 231 235);
+  z-index: 30;
+  transition: left 0.3s ease;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  .app-logo {
-    animation: app-logo-spin infinite 20s linear;
+/* Responsive Design */
+@media screen and (max-width: 768px) {
+  .main-content-wrapper {
+    margin-left: 0;
   }
-}
 
-.app-header {
-  background-color: #282c34;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  font-size: calc(10px + 2vmin);
-  color: white;
-}
-
-.app-link {
-  color: #61dafb;
-}
-
-@keyframes app-logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
+  .dashboard-header {
+    left: 0;
   }
 }

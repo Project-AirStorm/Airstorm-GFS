@@ -1,12 +1,4 @@
-/* .overview-switch-section {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  margin-bottom: 1.5rem;
-}
-*/
 
-/* Overview Switch section will be on the left */
 .overview-switch-section {
     display: flex;
     align-items: center;

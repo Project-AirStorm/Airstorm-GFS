@@ -1,0 +1,42 @@
+.maps-container {
+    min-height: 100vh;
+    background-color: rgb(249 250 251);
+    padding-left: 16rem; /* Account for sidebar width */
+    position: relative;
+  }
+  
+  .maps-content {
+    padding: 6rem 1.5rem 1.5rem; /* Account for header height */
+    min-height: calc(100vh - 4rem); /* Subtract footer height */
+  }
+  
+  .maps-wrapper {
+    background-color: white;
+    border-radius: 0.5rem;
+    padding: 1.5rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  }
+  
+  .maps-title {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: rgb(31 41 55);
+    margin-bottom: 1rem;
+  }
+  
+  .maps-description {
+    font-size: 0.875rem;
+    color: rgb(75 85 99);
+    margin-bottom: 1.5rem;
+  }
+  
+  /* Responsive Design */
+  @media screen and (max-width: 768px) {
+    .maps-container {
+      padding-left: 0;
+    }
+  
+    .maps-content {
+      padding: 5rem 1rem 1rem;
+    }
+  }

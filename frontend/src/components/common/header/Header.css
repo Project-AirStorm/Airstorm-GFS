@@ -1,18 +1,26 @@
 .dashboard-header {
-    position: fixed;
-    top: 0;
-    right: 0;
-    left: 16rem;
-    height: 77px;
-    background-color: white;
-    border-bottom: 1px solid rgb(229 231 235);
-    z-index: 30;
-    width: calc(100% - 16rem);
+  position: fixed;
+  top: 0;
+  right: 0;
+  left: 16rem;
+  height: 77px;
+  background-color: white;
+  border-bottom: 1px solid rgb(229 231 235);
+  z-index: 30;
+  width: calc(100% - 16rem);
+}
+
+.header-content {
+  height: 100%;
+  padding: 0 1.5rem;
+  display: flex;
+  align-items: center;
+}
+
+/* Media query for mobile devices */
+@media screen and (max-width: 768px) {
+  .dashboard-header {
+    left: 0;
+    width: 100%;
   }
-  
-  .header-content {
-    height: 100%;
-    padding: 0 1.5rem;
-    display: flex;
-    align-items: center;
-  }
+}

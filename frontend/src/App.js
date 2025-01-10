@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Footer from './components/common/footer/Footer';
 import Header from './components/common/header/Header';
 import Sidebar from './components/common/sidebar/Sidebar';
@@ -8,9 +8,25 @@ import './App.css';
 
 /**
  * Main Application component that handles routing and layout
+ * Includes responsive design handling and mobile menu state
  */
 function App() {
   const [currentPage, setCurrentPage] = useState('dashboard');
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [windowWidth, setWindowWidth] = useState(window.innerWidth);
+
+  // Handle window resize events
+  useEffect(() => {
+    const handleResize = () => {
+      setWindowWidth(window.innerWidth);
+      if (window.innerWidth > 768) {
+        setIsMobileMenuOpen(false);
+      }
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   // Get the page title based on current page
   const getPageTitle = () => {
@@ -36,6 +52,7 @@ function App() {
     }
   };
 
+  // Render the current page content
   const renderPage = () => {
     switch (currentPage) {
       case 'dashboard':
@@ -59,14 +76,31 @@ function App() {
     }
   };
 
+  // Toggle mobile menu
+  const toggleMobileMenu = () => {
+    setIsMobileMenuOpen(!isMobileMenuOpen);
+  };
+
   return (
     <div className="app-wrapper">
-      <Sidebar setCurrentPage={setCurrentPage} />
+      <Sidebar 
+        setCurrentPage={setCurrentPage}
+        isOpen={isMobileMenuOpen}
+        onClose={() => setIsMobileMenuOpen(false)}
+        currentPage={currentPage}
+      />
+      
       <div className="main-content-wrapper">
-        <Header title={getPageTitle()} />
-        <div className="content-area">
+        <Header 
+          title={getPageTitle()} 
+          onMenuToggle={toggleMobileMenu}
+          isMobileMenuOpen={isMobileMenuOpen}
+        />
+        
+        <main className="content-area">
           {renderPage()}
-        </div>
+        </main>
+        
         <Footer />
       </div>
     </div>
