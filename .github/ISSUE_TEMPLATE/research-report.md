@@ -21,10 +21,19 @@ Clear statement of what needs to be investigated.
 ## Background Knowledge
 Current understanding of the topic. List any context/background details that others might not be aware of.
 
-## Code 
+- [Detail #1]
+- [Detail #2]
+- [Detail #3]
+
+### Screenshots 
+[Attach images here, if needed]
+
+## Code for Possible Implementation(s)
 ```
 // Add code here
 ```
+## Screenshots from Possible Implementation(s)
+[Attach images here, if needed]
 
 ## Conclusions
 - [Conclusion #1]
