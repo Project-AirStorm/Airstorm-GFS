@@ -21,9 +21,9 @@ Clear statement of what needs to be investigated.
 ## Background Knowledge
 Current understanding of the topic. List any context/background details that others might not be aware of.
 
-- [Detail #1]
-- [Detail #2]
-- [Detail #3]
+- [Detail 1]
+- [Detail 2]
+- [Detail 3]
 
 ### Screenshots 
 [Attach images here, if needed]
@@ -36,9 +36,9 @@ Current understanding of the topic. List any context/background details that oth
 [Attach images here, if needed]
 
 ## Conclusions
-- [Conclusion #1]
-- [Conclusion #2]
-- [Conclusion #3]
+- [Conclusion 1]
+- [Conclusion 2]
+- [Conclusion 3]
 
 ## Resources
 - Links
