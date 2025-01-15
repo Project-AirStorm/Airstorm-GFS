@@ -1,0 +1,22 @@
+.controls-wrapper {
+    width: 100%;
+  }
+  
+  .controls-inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    width: 100%;
+    padding: 0 1.5rem;
+  }
+  
+  /* Responsive styles */
+  @media screen and (max-width: 768px) {
+    .controls-inner {
+      flex-direction: column;
+      align-items: stretch;
+      padding: 1rem;
+    }
+  }

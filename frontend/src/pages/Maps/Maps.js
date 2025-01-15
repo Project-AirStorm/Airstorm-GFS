@@ -1,31 +1,44 @@
-import React from 'react';
+// Maps.js
+import React, { useState } from 'react';
 import PropTypes from 'prop-types';
-import Header from '../../components/common/header/Header';
-import Footer from '../../components/common/footer/Footer';
+import OverviewSwitch from '../../components/specific/OverviewSwitch/OverviewSwitch';
+import ActionButtons from '../../components/specific/ActionButtons/ActionButtons';
 import './Maps.css';
 
 /**
- * Maps component representing the maps page of the application
- * Displays mapping functionality and geographical data visualization
- * 
+ * Maps component for displaying geographical data and weather maps
+ * Follows exact Dashboard layout structure
  * @component
- * @param {Object} props
- * @param {Function} props.setCurrentPage - Function to update the current page state
+ * @param {Object} props - Component properties
+ * @param {Function} props.setCurrentPage - Function to update current page in parent component
+ * @returns {JSX.Element} Maps component
  */
 const Maps = ({ setCurrentPage }) => {
+  const [activeView, setActiveView] = useState('overview');
+
   return (
-    <div className="maps-container">
-      <Header title="Maps" />
-      <main className="maps-content">
-        <div className="maps-wrapper">
-          {/* Maps content will go here */}
-          <h2 className="maps-title">Weather Maps</h2>
-          <p className="maps-description">
-            Interactive weather maps and geographical data visualization.
-          </p>
+    <div className="dashboard-container">
+      <div className="main-content">
+        {/* View Toggle and Action Buttons */}
+        <div className="controls-container">
+          <OverviewSwitch 
+            activeView={activeView}
+            onViewChange={setActiveView}
+          />
+          
+          <ActionButtons 
+            onTimeframeChange={() => console.log('Timeframe changed')}
+            onAddBase={() => console.log('Add base clicked')}
+            timeframe="Week"
+          />
         </div>
-      </main>
-      <Footer />
+
+        <div className="maps-body">
+          <div className="map-placeholder">
+            <p>Map Content Will Be Displayed Here</p>
+          </div>
+        </div>
+      </div>
     </div>
   );
 };

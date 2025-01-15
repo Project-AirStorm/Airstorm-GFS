@@ -1,4 +1,5 @@
 import React from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import PropTypes from 'prop-types';
 import { 
   Settings, 
@@ -49,19 +50,20 @@ NavItem.propTypes = {
 
 /**
  * Sidebar component for application navigation
- * @param {Object} props - Component props
- * @param {Function} props.setCurrentPage - Function to update current page
  */
-const Sidebar = ({ setCurrentPage }) => {
+const Sidebar = () => {
+  const navigate = useNavigate();
+  const location = useLocation();
+
   // Navigation items configuration
   const navItems = [
-    { icon: <Grid className="w-4 h-4" />, label: 'Dashboard', page: 'dashboard', isActive: true },
-    { icon: <Map className="w-4 h-4" />, label: 'Maps', page: 'maps' },
-    { icon: <BarChart2 className="w-4 h-4" />, label: 'Forecasts', page: 'forecasts' },
-    { icon: <Bell className="w-4 h-4" />, label: 'Alerts', page: 'alerts', badge: '4' },
-    { icon: <FileText className="w-4 h-4" />, label: 'Analysis', page: 'analysis' },
-    { icon: <Settings className="w-4 h-4" />, label: 'Settings', page: 'settings' },
-    { icon: <FileText className="w-4 h-4" />, label: 'Logs', page: 'logs' }
+    { icon: <Grid className="w-4 h-4" />, label: 'Dashboard', page: '/dashboard' },
+    { icon: <Map className="w-4 h-4" />, label: 'Maps', page: '/maps' },
+    { icon: <BarChart2 className="w-4 h-4" />, label: 'Forecasts', page: '/forecasts' },
+    { icon: <Bell className="w-4 h-4" />, label: 'Alerts', page: '/alerts', badge: '4' },
+    { icon: <FileText className="w-4 h-4" />, label: 'Analysis', page: '/analysis' },
+    { icon: <Settings className="w-4 h-4" />, label: 'Settings', page: '/settings' },
+    { icon: <FileText className="w-4 h-4" />, label: 'Logs', page: '/logs' }
   ];
 
   return (
@@ -109,18 +111,14 @@ const Sidebar = ({ setCurrentPage }) => {
               icon={item.icon}
               label={item.label}
               badge={item.badge}
-              isActive={item.isActive}
-              onClick={() => setCurrentPage(item.page)}
+              isActive={location.pathname === item.page}
+              onClick={() => navigate(item.page)}
             />
           ))}
         </div>
       </nav>
     </div>
   );
-};
-
-Sidebar.propTypes = {
-  setCurrentPage: PropTypes.func.isRequired
 };
 
 export default Sidebar;
