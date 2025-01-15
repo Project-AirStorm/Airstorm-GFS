@@ -42,7 +42,7 @@ const Weather = () => {
 
     map.current = new maplibregl.Map({
       container: mapContainer.current,
-      style: `https://api.maptiler.com/maps/6fc667a0-09bd-4b69-bd77-1ce5af52e91b/style.json?key=${process.env.REACT_APP_MAPTILER_API_KEY}`,
+      style: `https://api.maptiler.com/maps/6fc667a0-09bd-4b69-bd77-1ce5af52e91b/style.json?key=${process.env.REACT_MAPTILER_API_KEY}`,
       center: [-94.68554, 37.51718],
       zoom: 3.7,
       terrain: true,

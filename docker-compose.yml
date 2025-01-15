@@ -1,5 +1,7 @@
 services:
   backend:
+    env_file: 
+      - .env
     build: ./backend
     ports:
       - "5001:5000"
@@ -8,8 +10,13 @@ services:
     environment:
       - FLASK_ENV=development
       - FLASK_DEBUG=1
+      - GOOGLE_MAPS_API_KEY=${BACKEND_GOOGLE_MAPS_API_KEY}
+      - METEOMATICS_USERNAME=${BACKEND_METEOMATICS_USERNAME}
+      - METEOMATICS_PASSWORD=${BACKEND_METEOMATICS_PASSWORD}
 
   frontend:
+    env_file: 
+      - .env
     build: ./frontend
     ports:
       - "3000:3000"
@@ -19,4 +26,7 @@ services:
     environment:
       - CHOKIDAR_USEPOLLING=true
       - WDS_SOCKET_PORT=0
-      - REACT_APP_MAPTILER_KEY=${MAPTILER_KEY}
+      - MAPTILER_KEY=${REACT_MAPTILER_KEY}
+      - MAPTILER_API_KEY=${REACT_MAPTILER_API_KEY}
+      - REACT_APP_USER_ID=${REACT_USER_ID}
+      - GOOGLE_MAPS_API_KEY=${REACT_GOOGLE_MAPS_API_KEY}
