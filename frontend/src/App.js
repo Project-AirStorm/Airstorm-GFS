@@ -1,5 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  Navigate,
+  useLocation,
+} from 'react-router-dom';
 import Footer from './components/common/footer/Footer';
 import Header from './components/common/header/Header';
 import Sidebar from './components/common/sidebar/Sidebar';
@@ -34,22 +40,20 @@ const Layout = ({ children }) => {
 
   return (
     <div className="app-wrapper">
-      <Sidebar 
+      <Sidebar
         isOpen={isMobileMenuOpen}
         onClose={() => setIsMobileMenuOpen(false)}
       />
-      
+
       <div className="main-content-wrapper">
-        <Header 
-          title={getPageTitle(location.pathname)} 
+        <Header
+          title={getPageTitle(location.pathname)}
           onMenuToggle={toggleMobileMenu}
           isMobileMenuOpen={isMobileMenuOpen}
         />
-        
-        <main className="content-area">
-          {children}
-        </main>
-        
+
+        <main className="content-area">{children}</main>
+
         <Footer />
       </div>
     </div>
@@ -66,24 +70,20 @@ function App() {
       <Layout>
         <Routes>
           {/* Redirect root to dashboard */}
-          <Route 
-            path="/" 
-            element={<Navigate to={ROUTES.dashboard.path} replace />} 
+          <Route
+            path="/"
+            element={<Navigate to={ROUTES.dashboard.path} replace />}
           />
-          
+
           {/* Generate routes from configuration */}
           {Object.values(ROUTES).map(({ path, element: Element }) => (
-            <Route 
-              key={path}
-              path={path}
-              element={<Element />}
-            />
+            <Route key={path} path={path} element={<Element />} />
           ))}
-          
+
           {/* Catch all unmatched routes and redirect to dashboard */}
-          <Route 
-            path="*" 
-            element={<Navigate to={ROUTES.dashboard.path} replace />} 
+          <Route
+            path="*"
+            element={<Navigate to={ROUTES.dashboard.path} replace />}
           />
         </Routes>
       </Layout>

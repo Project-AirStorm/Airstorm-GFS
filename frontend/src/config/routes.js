@@ -1,6 +1,8 @@
 import Dashboard from '../pages/Dashboard/Dashboard';
 import Maps from '../pages/Maps/Maps';
 import Weather from '../pages/Unused/Weather/Weather';
+import MeteogramPbp from '../components/specific/MeteogramPbp/MeteogramPbp';
+import SkewTPbp from '../components/specific/SkewTPbp/SkewTPbp';
 
 /**
  * Application route configuration
@@ -10,43 +12,53 @@ export const ROUTES = {
   dashboard: {
     path: '/dashboard',
     title: 'Dashboard',
-    element: Dashboard
+    element: Dashboard,
+  },
+  meteogramPbp: {
+    path: '/meteogram-pbp',
+    title: 'Meteogram PBP',
+    element: MeteogramPbp,
+  },
+  skewTPbp: {
+    path: '/skewt-pbp',
+    title: 'SkewT PBP',
+    element: SkewTPbp,
   },
   weather: {
     path: '/weather',
     title: 'Weather',
-    element: Weather
+    element: Weather,
   },
   maps: {
     path: '/maps',
     title: 'Maps',
-    element: Maps 
+    element: Maps,
   },
   forecasts: {
     path: '/forecasts',
     title: 'Forecasts',
-    element: Weather
+    element: Weather,
   },
   alerts: {
     path: '/alerts',
     title: 'Alerts',
-    element: Weather
+    element: Weather,
   },
   analysis: {
     path: '/analysis',
     title: 'Analysis',
-    element: Weather
+    element: Weather,
   },
   settings: {
     path: '/settings',
     title: 'Settings',
-    element: Weather
+    element: Weather,
   },
   logs: {
     path: '/logs',
     title: 'Logs',
-    element: Weather
-  }
+    element: Weather,
+  },
 };
 
 /**
@@ -55,6 +67,6 @@ export const ROUTES = {
  * @returns {string} Page title
  */
 export const getPageTitle = (pathname) => {
-  const route = Object.values(ROUTES).find(route => route.path === pathname);
+  const route = Object.values(ROUTES).find((route) => route.path === pathname);
   return route?.title || 'Dashboard';
 };

@@ -1,14 +1,14 @@
 import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import PropTypes from 'prop-types';
-import { 
-  Settings, 
-  Menu, 
-  Map, 
-  BarChart2, 
-  Bell, 
-  FileText, 
-  Grid 
+import {
+  Settings,
+  Menu,
+  Map,
+  BarChart2,
+  Bell,
+  FileText,
+  Grid,
 } from 'lucide-react';
 import profilePic from '../../../assets/sample-profile-pic.jpeg';
 import afgscLogo from '../../../assets/afgsc-logo.png';
@@ -24,10 +24,7 @@ import './Sidebar.css';
  * @param {Function} props.onClick - Click handler
  */
 const NavItem = ({ icon, label, badge, isActive, onClick }) => (
-  <div 
-    className={`nav-item ${isActive ? 'active' : ''}`}
-    onClick={onClick}
-  >
+  <div className={`nav-item ${isActive ? 'active' : ''}`} onClick={onClick}>
     <div className="flex items-center gap-3">
       {icon}
       <span className="text-sm font-semibold">{label}</span>
@@ -45,7 +42,7 @@ NavItem.propTypes = {
   label: PropTypes.string.isRequired,
   badge: PropTypes.string,
   isActive: PropTypes.bool,
-  onClick: PropTypes.func.isRequired
+  onClick: PropTypes.func.isRequired,
 };
 
 /**
@@ -57,13 +54,44 @@ const Sidebar = () => {
 
   // Navigation items configuration
   const navItems = [
-    { icon: <Grid className="w-4 h-4" />, label: 'Dashboard', page: '/dashboard' },
+    {
+      icon: <Grid className="w-4 h-4" />,
+      label: 'Dashboard',
+      page: '/dashboard',
+    },
     { icon: <Map className="w-4 h-4" />, label: 'Maps', page: '/maps' },
-    { icon: <BarChart2 className="w-4 h-4" />, label: 'Forecasts', page: '/forecasts' },
-    { icon: <Bell className="w-4 h-4" />, label: 'Alerts', page: '/alerts', badge: '4' },
-    { icon: <FileText className="w-4 h-4" />, label: 'Analysis', page: '/analysis' },
-    { icon: <Settings className="w-4 h-4" />, label: 'Settings', page: '/settings' },
-    { icon: <FileText className="w-4 h-4" />, label: 'Logs', page: '/logs' }
+    {
+      icon: <BarChart2 className="w-4 h-4" />,
+      label: 'Meteogram PBP',
+      page: '/meteogram-pbp',
+    },
+    {
+      icon: <FileText className="w-4 h-4" />,
+      label: 'SkewT PBP',
+      page: '/skewt-pbp',
+    },
+    {
+      icon: <BarChart2 className="w-4 h-4" />,
+      label: 'Forecasts',
+      page: '/forecasts',
+    },
+    {
+      icon: <Bell className="w-4 h-4" />,
+      label: 'Alerts',
+      page: '/alerts',
+      badge: '4',
+    },
+    {
+      icon: <FileText className="w-4 h-4" />,
+      label: 'Analysis',
+      page: '/analysis',
+    },
+    {
+      icon: <Settings className="w-4 h-4" />,
+      label: 'Settings',
+      page: '/settings',
+    },
+    { icon: <FileText className="w-4 h-4" />, label: 'Logs', page: '/logs' },
   ];
 
   return (
@@ -72,9 +100,9 @@ const Sidebar = () => {
       <div className="header">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <img 
-              src={afgscLogo} 
-              alt="AFGSC Logo" 
+            <img
+              src={afgscLogo}
+              alt="AFGSC Logo"
               className="w-8 h-8 object-contain"
             />
             <div>
@@ -89,11 +117,7 @@ const Sidebar = () => {
       {/* User Profile */}
       <div className="profile-section">
         <div className="profile-card">
-          <img 
-            src={profilePic} 
-            alt="Profile" 
-            className="profile-image"
-          />
+          <img src={profilePic} alt="Profile" className="profile-image" />
           <div>
             <p className="text-sm font-semibold text-gray-800">Sgt. Tubbs</p>
             <p className="text-xs text-gray-500">Flight Chief</p>
@@ -106,7 +130,7 @@ const Sidebar = () => {
         <p className="text-sm text-gray-500 mb-4">Main Menu</p>
         <div className="space-y-2">
           {navItems.map((item) => (
-            <NavItem 
+            <NavItem
               key={item.label}
               icon={item.icon}
               label={item.label}
