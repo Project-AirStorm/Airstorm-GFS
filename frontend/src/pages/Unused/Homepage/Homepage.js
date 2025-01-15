@@ -10,7 +10,7 @@ const Homepage = () => {
 
   const fetchLocations = async () => {
     try {
-      const userId = process.env.REACT_USER_ID || 'JoshuaFrancis';
+      const userId = process.env.USER_ID || 'JoshuaFrancis';
       const response = await axios.get(
         `http://localhost:5001/api/locations?userId=${userId}`
       );
@@ -53,7 +53,7 @@ const Homepage = () => {
 
   const handleToggleFavorite = async (location) => {
     try {
-      const userId = process.env.REACT_USER_ID || 'JoshuaFrancis';
+      const userId = process.env.USER_ID || 'JoshuaFrancis';
       await axios.post('http://localhost:5001/api/locations/favorite', {
         userId,
         latitude: location.latitude,

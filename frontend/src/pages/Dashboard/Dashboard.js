@@ -7,7 +7,7 @@ import ActionButtons from '../../components/specific/ActionButtons/ActionButtons
 import OverviewSwitch from '../../components/specific/OverviewSwitch/OverviewSwitch';
 import './Dashboard.css';
 
-const USER_ID = process.env.REACT_USER_ID || 'JoshuaFrancis';
+const USER_ID = process.env.USER_ID || 'JoshuaFrancis';
 const API_BASE_URL = 'http://localhost:5001/api';
 
 const Dashboard = ({ setCurrentPage }) => {
