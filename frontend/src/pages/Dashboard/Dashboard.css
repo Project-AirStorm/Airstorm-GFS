@@ -1,26 +1,4 @@
-/* Dashboard Container */
-.dashboard-container {
-  min-height: 100vh;
-  background-color: rgb(249 250 251);
-  overflow-x: auto; /* Allow horizontal scroll if needed */
-  min-width: 1200px; /* Minimum width to prevent squishing */
-}
-
-/* Main Content */
-.main-content {
-  width: 100%;
-  padding: 1.5rem;
-}
-
-/* Controls Container */
-.controls-container {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
-  margin-bottom: 1.5rem;
-  width: 100%;
-}
+/* Dashboard.css */
 
 /* Weather Grid */
 .weather-grid {
@@ -93,26 +71,11 @@
 }
 
 @media screen and (max-width: 768px) {
-  .main-content {
-    padding: 1rem;
-  }
-
   .weather-grid {
     grid-template-columns: 1fr;
   }
 
-  .controls-container {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
   .bottom-grid {
     grid-template-columns: 1fr;
-  }
-}
-
-@media screen and (max-width: 480px) {
-  .main-content {
-    padding: 0.75rem;
   }
 }
