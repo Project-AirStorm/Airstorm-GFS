@@ -4,6 +4,7 @@ __pycache__/
 *.pyo
 *.pyd
 *.venv/
+*.cache.sqlite
 venv/
 ENV/
 env/
