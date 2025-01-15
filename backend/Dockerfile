@@ -13,9 +13,13 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Install watchdog to improve reloading in Docker
 RUN pip install watchdog
 
-# Adds packages need for openmeteo api
+# Adds packages needed for openmeteo api
 RUN pip install openmeteo-requests
-RUN pip install openmeteo-requests requests-cache retry-requests numpy pandas
+RUN pip install openmeteo-requests requests-cache retry-requests numpy pandas 
+
+# Adds packages needed for Google Reverse GeoCoding API
+RUN pip install requests
+RUN pip install python-dotenv
 
 # Copies the rest of the application code to the container
 COPY . .

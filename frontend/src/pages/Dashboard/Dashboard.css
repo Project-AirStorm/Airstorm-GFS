@@ -2,11 +2,43 @@
 
 /* Weather Grid */
 .weather-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  display: flex;
   gap: 1.5rem;
   margin-bottom: 1.5rem;
   width: 100%;
+  overflow-x: auto;
+  padding: 0.5rem 0;
+  scrollbar-width: thin;
+  -ms-overflow-style: none;
+  scroll-behavior: smooth;
+}
+
+/* Customize scrollbar */
+.weather-grid::-webkit-scrollbar {
+  height: 6px;
+}
+
+.weather-grid::-webkit-scrollbar-track {
+  background: rgb(243 244 246);
+  border-radius: 3px;
+}
+
+.weather-grid::-webkit-scrollbar-thumb {
+  background: rgb(209 213 219);
+  border-radius: 3px;
+}
+
+.weather-grid::-webkit-scrollbar-thumb:hover {
+  background: rgb(156 163 175);
+}
+
+/* Make weather cards maintain width */
+.weather-grid > * {
+  min-width: calc(
+    (100% - 3rem) / 3
+  ); /* 3rem accounts for the two gaps between cards */
+  max-width: calc((100% - 3rem) / 3);
+  flex: 0 0 auto;
 }
 
 /* Chart Section */
@@ -63,19 +95,43 @@
   color: rgb(75 85 99);
 }
 
-/* Responsive Design */
-@media screen and (max-width: 1200px) {
-  .weather-grid {
-    grid-template-columns: repeat(2, 1fr);
+/* Loading and Error States */
+.loading-state,
+.error-state {
+  text-align: center;
+  padding: 2rem;
+  background-color: white;
+  border-radius: 0.5rem;
+  border: 1px solid rgb(229 231 235);
+  margin-bottom: 1.5rem;
+}
+
+.error-state {
+  color: rgb(239 68 68);
+}
+
+/* Responsive Design - maintain 3 cards view */
+@media screen and (min-width: 1201px) {
+  .weather-grid > * {
+    min-width: calc((100% - 3rem) / 3);
+    max-width: calc((100% - 3rem) / 3);
   }
 }
 
-@media screen and (max-width: 768px) {
-  .weather-grid {
-    grid-template-columns: 1fr;
+@media screen and (max-width: 1200px) {
+  .weather-grid > * {
+    min-width: calc((100% - 3rem) / 3);
+    max-width: calc((100% - 3rem) / 3);
   }
 
   .bottom-grid {
     grid-template-columns: 1fr;
+  }
+}
+
+@media screen and (max-width: 768px) {
+  .weather-grid > * {
+    min-width: calc((100% - 3rem) / 3);
+    max-width: calc((100% - 3rem) / 3);
   }
 }

@@ -1,18 +1,30 @@
-from flask import Flask, jsonify, request
-from flask_cors import CORS
-import openmeteo_requests
-import requests_cache
-from retry_requests import retry
-import pandas as pd
-from datetime import datetime
+from random import randint
 from locations_service import LocationService
-from random import randint  # Add this for air quality calculation
+from datetime import datetime
+import pandas as pd
+from retry_requests import retry
+import requests_cache
+import openmeteo_requests
+from flask_cors import CORS
+from flask import Flask, jsonify, request
+import requests
+import logging
+import os
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
 
 app = Flask(__name__)
 CORS(app)
 
 # Initialize services
 location_service = LocationService()
+GOOGLE_MAPS_API_KEY = os.getenv('GOOGLE_MAPS_API_KEY')
+
+# Logging setup
+logging.basicConfig(level=logging.DEBUG)
+logger = logging.getLogger(__name__)
 
 # Setup the Open-Meteo API client
 cache_session = requests_cache.CachedSession('.cache', expire_after=3600)
@@ -109,6 +121,118 @@ def toggle_favorite():
     return jsonify({"success": success})
 
 
+@app.route('/api/geocode', methods=['GET'])
+def get_location_info():
+    try:
+        lat = request.args.get('lat', type=float)
+        lon = request.args.get('lon', type=float)
+
+        logger.info(f"Geocoding request for lat={lat}, lon={lon}")
+
+        if lat is None or lon is None:
+            return jsonify({"error": "Latitude and Longitude are required"}), 400
+
+        if not GOOGLE_MAPS_API_KEY:
+            logger.error("Google Maps API key not configured")
+            return jsonify({
+                "error": "Geocoding service not configured",
+                "details": "Missing API key"
+            }), 503
+
+        # Build the geocoding request
+        url = "https://maps.googleapis.com/maps/api/geocode/json"
+        params = {
+            "latlng": f"{lat},{lon}",
+            "key": GOOGLE_MAPS_API_KEY,
+            "language": "en"
+        }
+
+        response = requests.get(url, params=params)
+        data = response.json()
+
+        # Fix for multiline f-string error
+        status = data.get('status')
+        error_message = data.get('error_message', 'No results found')
+        logger.error(f"Geocoding API error: {status} - {error_message}")
+
+        if status != "OK" or not data.get("results"):
+            return jsonify({
+                "error": "Geocoding failed",
+                "details": error_message
+            }), 503
+
+        # Initialize location info structure
+        location_info = {
+            "formatted_address": "",
+            "components": {
+                "city": "",
+                "state": "",
+                "state_code": "",
+                "county": "",
+                "country": "",
+                "country_code": ""
+            }
+        }
+
+        # Get the first result that has address components
+        result = next((r for r in data["results"]
+                      if r.get("address_components")), None)
+
+        if result:
+            location_info["formatted_address"] = result["formatted_address"]
+
+            for component in result["address_components"]:
+                types = component["types"]
+
+                # City can be locality or sublocality
+                if "locality" in types:
+                    location_info["components"]["city"] = component["long_name"]
+                # State
+                elif "administrative_area_level_1" in types:
+                    location_info["components"]["state"] = component["long_name"]
+                    location_info["components"]["state_code"] = component["short_name"]
+                # County
+                elif "administrative_area_level_2" in types:
+                    location_info["components"]["county"] = component["long_name"]
+                # Country
+                elif "country" in types:
+                    location_info["components"]["country"] = component["long_name"]
+                    location_info["components"]["country_code"] = component["short_name"]
+
+            # If no city was found in locality, check for neighborhood or sublocality
+            if not location_info["components"]["city"]:
+                for component in result["address_components"]:
+                    if "sublocality" in component["types"] or "neighborhood" in component["types"]:
+                        location_info["components"]["city"] = component["long_name"]
+                        break
+
+            # If still no city, try to use the first locality found in any result
+            if not location_info["components"]["city"]:
+                for r in data["results"]:
+                    for component in r.get("address_components", []):
+                        if "locality" in component["types"]:
+                            location_info["components"]["city"] = component["long_name"]
+                            break
+                    if location_info["components"]["city"]:
+                        break
+
+        logger.debug(f"Processed location info: {location_info}")
+        return jsonify(location_info)
+
+    except requests.exceptions.RequestException as e:
+        logger.error(f"Request error in geocoding: {str(e)}")
+        return jsonify({
+            "error": "Geocoding service unavailable",
+            "details": str(e)
+        }), 503
+    except Exception as e:
+        logger.error(f"Unexpected error in geocoding: {str(e)}")
+        return jsonify({
+            "error": "Internal server error",
+            "details": str(e)
+        }), 500
+
+
 @app.route('/api/weather', methods=['GET'])
 def get_weather():
     lat = request.args.get('lat', type=float)
@@ -139,7 +263,7 @@ def get_weather():
         current = response.Current()
 
         # Process weather code to condition
-        weather_code = current.Variables(0).Value()
+        weather_code = current.Variables(3).Value()
         condition = get_weather_condition(weather_code)
 
         # Format the data for response

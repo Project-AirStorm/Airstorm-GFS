@@ -1,51 +1,73 @@
-// src/components/WeatherCard/WeatherCard.js
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import axios from 'axios';
 import {
   IoThermometerOutline,
+  IoTrashOutline,
+  IoStarOutline,
+  IoStarSharp,
   IoLocationOutline,
 } from 'react-icons/io5';
 import './WeatherCard.css';
 
-/**
- * WeatherCard component displays weather information for a specific location
- * with loading states and error handling.
- * 
- * @component
- * @param {Object} props
- * @param {string} props.city - The name of the city
- * @param {string} props.state - The state abbreviation
- * @param {number} props.latitude - The latitude coordinate
- * @param {number} props.longitude - The longitude coordinate
- * @param {string} props.backgroundColor - The background color for the card
- */
-const WeatherCard = ({ city, state, latitude, longitude, backgroundColor }) => {
-  const [weatherData, setWeatherData] = React.useState(null);
-  const [loading, setLoading] = React.useState(true);
-  const [error, setError] = React.useState(null);
+const WeatherCard = ({
+  city,
+  state,
+  latitude,
+  longitude,
+  backgroundColor,
+  onDelete,
+  onToggleFavorite,
+  isFavorite,
+}) => {
+  const [weatherData, setWeatherData] = useState(null);
+  const [locationInfo, setLocationInfo] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  React.useEffect(() => {
-    const fetchWeather = async () => {
+  useEffect(() => {
+    const fetchData = async () => {
       try {
-        const response = await axios.get(`http://localhost:5001/api/weather`, {
-          params: { lat: latitude, lon: longitude }
-        });
-        setWeatherData(response.data);
+        console.log(`Fetching data for ${city} at ${latitude}, ${longitude}`);
+
+        // First try to fetch weather data
+        const weatherResponse = await axios.get(
+          `http://localhost:5001/api/weather`,
+          {
+            params: { lat: latitude, lon: longitude },
+          }
+        );
+        console.log('Weather response:', weatherResponse.data);
+        setWeatherData(weatherResponse.data);
+
+        // Then try to fetch location data
+        const locationResponse = await axios.get(
+          `http://localhost:5001/api/geocode`,
+          {
+            params: { lat: latitude, lon: longitude },
+          }
+        );
+        console.log('Location response:', locationResponse.data);
+        setLocationInfo(locationResponse.data);
+
         setLoading(false);
       } catch (err) {
-        console.error('Error fetching weather:', err);
-        setError('Unable to load weather data');
+        console.error('Data fetch error:', err.response?.data || err.message);
+        setError(
+          `Unable to load data\nLocation: ${city} (${latitude.toFixed(
+            4
+          )}, ${longitude.toFixed(4)})`
+        );
         setLoading(false);
       }
     };
 
-    fetchWeather();
-  }, [latitude, longitude]);
+    fetchData();
+  }, [latitude, longitude, city]);
 
   if (loading) {
     return (
-      <div 
+      <div
         className="weather-card weather-card--loading"
         style={{ backgroundColor }}
       >
@@ -53,7 +75,7 @@ const WeatherCard = ({ city, state, latitude, longitude, backgroundColor }) => {
         <div className="loading-line loading-line--subtitle"></div>
         <div className="loading-line loading-line--text"></div>
         <div className="loading-line loading-line--full"></div>
-        
+
         <div className="weather-stats-grid">
           {[1, 2, 3].map((index) => (
             <div key={index} className="stat-box stat-box--loading">
@@ -68,8 +90,8 @@ const WeatherCard = ({ city, state, latitude, longitude, backgroundColor }) => {
 
   if (error) {
     return (
-      <div 
-        className="weather-card"
+      <div
+        className="weather-card weather-card--error"
         style={{ backgroundColor }}
       >
         <div className="error-container">
@@ -81,50 +103,75 @@ const WeatherCard = ({ city, state, latitude, longitude, backgroundColor }) => {
   }
 
   return (
-    <div 
-      className="weather-card"
-      style={{ backgroundColor }}
-    >
-      <h3 className="weather-title">{city}</h3>
-      <p className="weather-subtitle">{city}, {state}</p>
+    <div className="weather-card" style={{ backgroundColor }}>
+      <div className="weather-card-header">
+        <div>
+          <h3 className="weather-title">{city}</h3>
+          {locationInfo?.components && (
+            <p className="weather-subtitle">
+              <IoLocationOutline className="inline-icon" />
+              {locationInfo.components.city &&
+              locationInfo.components.state_code
+                ? `${locationInfo.components.city}, ${locationInfo.components.state_code}`
+                : locationInfo.formatted_address}
+            </p>
+          )}
+          {locationInfo?.components?.county && (
+            <p className="location-details">
+              {locationInfo.components.county}
+              {locationInfo.components.state &&
+                ` • ${locationInfo.components.state}`}
+            </p>
+          )}
+        </div>
+        <div className="weather-card-actions">
+          <button
+            onClick={onToggleFavorite}
+            className="action-button"
+            title={
+              isFavorite
+                ? 'Remove from monitored locations'
+                : 'Add to monitored locations'
+            }
+          >
+            {isFavorite ? (
+              <IoStarSharp className="w-5 h-5" />
+            ) : (
+              <IoStarOutline className="w-5 h-5" />
+            )}
+          </button>
+          <button
+            onClick={onDelete}
+            className="action-button"
+            title="Delete location"
+          >
+            <IoTrashOutline className="w-5 h-5" />
+          </button>
+        </div>
+      </div>
+
       <p className="weather-description">
-        It's {weatherData.current_temperature.toFixed(0)}° and {weatherData.condition}.
+        It's {weatherData.current_temperature.toFixed(0)}° and{' '}
+        {weatherData.condition}.
       </p>
-      <p className="weather-forecast">
-        Today's high temperature will be the same as yesterday's
-      </p>
-      
+
       <div className="weather-stats-grid">
-        <WeatherStat 
-          label="Humidity" 
-          value={weatherData.humidity} 
-          unit="%" 
+        <WeatherStat label="Humidity" value={weatherData.humidity} unit="%" />
+        <WeatherStat
+          label="Wind"
+          value={weatherData.wind_speed.toFixed(0)}
+          unit="mph"
         />
-        <WeatherStat 
-          label="Wind" 
-          value={weatherData.wind_speed.toFixed(0)} 
-          unit="mph" 
-        />
-        <WeatherStat 
-          label="Air Quality" 
-          value={weatherData.air_quality} 
-          description="(Moderate)" 
+        <WeatherStat
+          label="Air Quality"
+          value={weatherData.air_quality}
+          description="(Moderate)"
         />
       </div>
     </div>
   );
 };
 
-/**
- * WeatherStat component displays a single weather statistic
- * 
- * @component
- * @param {Object} props
- * @param {string} props.label - The label for the statistic
- * @param {number|string} props.value - The value to display
- * @param {string} [props.unit] - Optional unit to display after the value
- * @param {string} [props.description] - Optional description to display below the value
- */
 const WeatherStat = ({ label, value, unit, description }) => (
   <div className="stat-box">
     <p className="stat-label">{label}</p>
@@ -145,10 +192,13 @@ WeatherStat.propTypes = {
 
 WeatherCard.propTypes = {
   city: PropTypes.string.isRequired,
-  state: PropTypes.string.isRequired,
+  state: PropTypes.string,
   latitude: PropTypes.number.isRequired,
   longitude: PropTypes.number.isRequired,
   backgroundColor: PropTypes.string.isRequired,
+  onDelete: PropTypes.func.isRequired,
+  onToggleFavorite: PropTypes.func.isRequired,
+  isFavorite: PropTypes.bool.isRequired,
 };
 
 export default WeatherCard;

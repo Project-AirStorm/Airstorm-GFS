@@ -1,48 +1,99 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
+import axios from 'axios';
 import WeatherCard from '../../components/specific/WeatherCard/WeatherCard';
 import GraphCastForecast from '../../components/specific/GraphCastForecast/GraphCastForecast';
 import ActionButtons from '../../components/specific/ActionButtons/ActionButtons';
 import OverviewSwitch from '../../components/specific/OverviewSwitch/OverviewSwitch';
 import './Dashboard.css';
 
+const USER_ID = process.env.REACT_APP_USER_ID || 'JoshuaFrancis';
+const API_BASE_URL = 'http://localhost:5001/api';
+
 const Dashboard = ({ setCurrentPage }) => {
   const [activeView, setActiveView] = useState('overview');
-  const [locations] = useState([
-    {
-      city: "Bossier City",
-      state: "LA",
-      latitude: 32.5162,
-      longitude: -93.7321,
-      backgroundColor: "#A1A7FF"
-    },
-    {
-      city: "Shreveport",
-      state: "LA",
-      latitude: 32.5251,
-      longitude: -93.7502,
-      backgroundColor: "#C4D0BA"
-    },
-    {
-      city: "Ruston",
-      state: "LA",
-      latitude: 32.5232,
-      longitude: -92.6379,
-      backgroundColor: "#A1A7FF"
+  const [locations, setLocations] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  const fetchLocations = async () => {
+    try {
+      const response = await axios.get(`${API_BASE_URL}/locations`, {
+        params: { userId: USER_ID },
+      });
+
+      // Add background colors to locations
+      const backgroundColors = ['#A1A7FF', '#C4D0BA', '#94B0DA'];
+      const locationsWithStyles = response.data.map((loc, index) => ({
+        ...loc,
+        backgroundColor: backgroundColors[index % 3],
+      }));
+
+      setLocations(locationsWithStyles);
+      setLoading(false);
+    } catch (err) {
+      console.error('Error fetching locations:', err);
+      setError('Failed to fetch locations');
+      setLoading(false);
     }
-  ]);
+  };
+
+  useEffect(() => {
+    fetchLocations();
+  }, []);
+
+  const handleDeleteLocation = async (latitude, longitude) => {
+    try {
+      await axios.delete(`${API_BASE_URL}/locations`, {
+        data: {
+          userId: USER_ID,
+          latitude,
+          longitude,
+        },
+      });
+      // Refresh locations after deletion
+      fetchLocations();
+    } catch (err) {
+      console.error('Error deleting location:', err);
+    }
+  };
+
+  const handleToggleFavorite = async (latitude, longitude) => {
+    try {
+      await axios.post(`${API_BASE_URL}/locations/favorite`, {
+        userId: USER_ID,
+        latitude,
+        longitude,
+      });
+      // Refresh locations after toggling favorite
+      fetchLocations();
+    } catch (err) {
+      console.error('Error toggling favorite:', err);
+    }
+  };
+
+  // Calculate monitored locations (favorites)
+  const monitoredLocations = locations.filter((loc) => loc.isFavorite);
+
+  if (loading) {
+    return <div className="loading-state">Loading locations...</div>;
+  }
+
+  if (error) {
+    return <div className="error-state">{error}</div>;
+  }
 
   return (
     <div className="dashboard-container">
       <div className="main-content">
         {/* View Toggle and Action Buttons */}
         <div className="controls-container">
-          <OverviewSwitch 
+          <OverviewSwitch
             activeView={activeView}
             onViewChange={setActiveView}
           />
-          
-          <ActionButtons 
+
+          <ActionButtons
             onTimeframeChange={() => console.log('Timeframe changed')}
             onAddBase={() => console.log('Add base clicked')}
             timeframe="Week"
@@ -52,12 +103,19 @@ const Dashboard = ({ setCurrentPage }) => {
         <div className="weather-grid">
           {locations.map((location) => (
             <WeatherCard
-              key={`${location.city}-${location.state}`}
-              city={location.city}
-              state={location.state}
+              key={`${location.name}-${location.latitude}-${location.longitude}`}
+              city={location.name}
+              state="" // You might want to add state to your location data
               latitude={location.latitude}
               longitude={location.longitude}
               backgroundColor={location.backgroundColor}
+              onDelete={() =>
+                handleDeleteLocation(location.latitude, location.longitude)
+              }
+              onToggleFavorite={() =>
+                handleToggleFavorite(location.latitude, location.longitude)
+              }
+              isFavorite={location.isFavorite}
             />
           ))}
         </div>
@@ -74,18 +132,20 @@ const Dashboard = ({ setCurrentPage }) => {
           <div className="bottom-card">
             <h3 className="card-title">Weather Alerts</h3>
             <div className="stats-text">
-              No active weather alerts for your monitored locations.
+              {monitoredLocations.length > 0
+                ? `Monitoring alerts for ${monitoredLocations.length} locations`
+                : 'No locations currently being monitored for alerts.'}
             </div>
           </div>
-          
+
           <div className="bottom-card">
             <h3 className="card-title">Quick Stats</h3>
             <div className="stats-list">
               <div className="stats-text">
-                Monitored Locations: {locations.length}
+                Total Locations: {locations.length}
               </div>
               <div className="stats-text">
-                Active Alerts: 0
+                Monitored Locations: {monitoredLocations.length}
               </div>
               <div className="stats-text">
                 Last Updated: {new Date().toLocaleTimeString()}
@@ -99,7 +159,7 @@ const Dashboard = ({ setCurrentPage }) => {
 };
 
 Dashboard.propTypes = {
-  setCurrentPage: PropTypes.func.isRequired
+  setCurrentPage: PropTypes.func.isRequired,
 };
 
 export default Dashboard;
