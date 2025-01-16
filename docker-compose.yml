@@ -2,20 +2,19 @@ services:
   backend:
     build: ./backend
     ports:
-      - "5001:5000"  # Port Flask is served on
+      - "80:5000"  # Changed to port 80 for public HTTP access
     volumes:
       - ./backend:/app
     environment:
-      - FLASK_ENV=development
-      - FLASK_DEBUG=1
-
+      - FLASK_ENV=production  # Changed to production
+      - FLASK_DEBUG=0  # Disabled debug mode for security
   frontend:
     build: ./frontend
     ports:
-      - "3000:3000"  # Port React is served on
+      - "3000:3000"  # This is fine if you want direct access to React
     volumes:
       - ./frontend:/app
-      - /app/node_modules  # This prevents the host node_modules from mounting
+      - /app/node_modules
     environment:
       - CHOKIDAR_USEPOLLING=true
-      - WDS_SOCKET_PORT=0  # This helps with WebSocket connections in Docker
+      - WDS_SOCKET_PORT=0
