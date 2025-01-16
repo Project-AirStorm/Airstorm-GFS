@@ -12,8 +12,7 @@ const Homepage = () => {
 
   const fetchLocations = async () => {
     try {
-      const REACT_APP_USER_ID =
-        process.env.REACT_APP_USER_ID || 'JoshuaFrancis';
+      const REACT_APP_USER_ID = process.env.REACT_APP_USER_ID;
       const response = await axios.get(
         `${REACT_APP_API_URL}/api/locations?userId=${REACT_APP_USER_ID}`
       );

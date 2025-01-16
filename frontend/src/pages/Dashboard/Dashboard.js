@@ -9,7 +9,7 @@ import './Dashboard.css';
 
 const REACT_APP_API_URL = process.env.REACT_APP_API_URL;
 
-const REACT_APP_USER_ID = process.env.REACT_APP_USER_ID || 'JoshuaFrancis';
+const REACT_APP_USER_ID = process.env.REACT_APP_USER_ID;
 const API_BASE_URL = `${REACT_APP_API_URL}/api`;
 
 const Dashboard = ({ setCurrentPage }) => {
