@@ -10,6 +10,8 @@ import {
 } from 'react-icons/io5';
 import './WeatherCard.css';
 
+const REACT_APP_API_URL = process.env.REACT_APP_API_URL;
+
 const WeatherCard = ({
   city,
   state,
@@ -32,7 +34,7 @@ const WeatherCard = ({
 
         // First try to fetch weather data
         const weatherResponse = await axios.get(
-          `http://localhost:5001/api/weather`,
+          `${REACT_APP_API_URL}/api/weather`,
           {
             params: { lat: latitude, lon: longitude },
           }
@@ -42,7 +44,7 @@ const WeatherCard = ({
 
         // Then try to fetch location data
         const locationResponse = await axios.get(
-          `http://localhost:5001/api/geocode`,
+          `${REACT_APP_API_URL}/api/geocode`,
           {
             params: { lat: latitude, lon: longitude },
           }

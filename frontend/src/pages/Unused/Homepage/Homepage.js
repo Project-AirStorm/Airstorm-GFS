@@ -3,6 +3,8 @@ import axios from 'axios';
 import WeatherDashboard from '../components/WeatherDashboard';
 import GraphCastForecast from '../components/GraphCastForecast';
 
+const REACT_APP_API_URL = process.env.REACT_APP_API_URL;
+
 const Homepage = () => {
   const [locations, setLocations] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -10,9 +12,9 @@ const Homepage = () => {
 
   const fetchLocations = async () => {
     try {
-      const userId = process.env.USER_ID || 'JoshuaFrancis';
+      const REACT_APP_USER_ID = process.env.REACT_APP_USER_ID;
       const response = await axios.get(
-        `http://localhost:5001/api/locations?userId=${userId}`
+        `${REACT_APP_API_URL}/api/locations?userId=${REACT_APP_USER_ID}`
       );
       const locationData = response.data;
 
@@ -21,7 +23,7 @@ const Homepage = () => {
           if (location.isFavorite) {
             try {
               const weatherResponse = await axios.get(
-                `http://localhost:5001/api/weather?lat=${location.latitude}&lon=${location.longitude}`
+                `${REACT_APP_API_URL}/api/weather?lat=${location.latitude}&lon=${location.longitude}`
               );
               return { ...location, weather: weatherResponse.data };
             } catch (error) {
@@ -53,12 +55,15 @@ const Homepage = () => {
 
   const handleToggleFavorite = async (location) => {
     try {
-      const userId = process.env.USER_ID || 'JoshuaFrancis';
-      await axios.post('http://localhost:5001/api/locations/favorite', {
-        userId,
-        latitude: location.latitude,
-        longitude: location.longitude,
-      });
+      const REACT_APP_USER_ID = process.env.REACT_APP_USER_ID;
+      await axios.post(
+        `${REACT_APP_API_URL}http://localhost:5001/api/locations/favorite`,
+        {
+          userId: REACT_APP_USER_ID,
+          latitude: location.latitude,
+          longitude: location.longitude,
+        }
+      );
       fetchLocations();
     } catch (error) {
       console.error('Error toggling favorite:', error);

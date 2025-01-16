@@ -23,6 +23,9 @@ import 'maplibre-gl/dist/maplibre-gl.css';
 import './map.css';
 import axios from 'axios';
 
+const REACT_APP_API_URL = process.env.REACT_APP_API_URL;
+const REACT_APP_USER_ID = process.env.REACT_APP_USER_ID;
+
 const Weather = () => {
   const mapContainer = useRef(null);
   const map = useRef(null);
@@ -35,14 +38,13 @@ const Weather = () => {
   const [isFavorite, setIsFavorite] = useState(false);
   const [savedLocations, setSavedLocations] = useState([]);
   const [coordinates, setCoordinates] = useState({ lat: '', lng: '' });
-  const USER_ID = 'JoshuaFrancis';
 
   useEffect(() => {
     if (!mapContainer.current) return;
 
     map.current = new maplibregl.Map({
       container: mapContainer.current,
-      style: `https://api.maptiler.com/maps/6fc667a0-09bd-4b69-bd77-1ce5af52e91b/style.json?key=${process.env.MAPTILER_API_KEY}`,
+      style: `https://api.maptiler.com/maps/6fc667a0-09bd-4b69-bd77-1ce5af52e91b/style.json?key=${process.env.REACT_APP_MAPTILER_API_KEY}`,
       center: [-94.68554, 37.51718],
       zoom: 3.7,
       terrain: true,
@@ -66,7 +68,7 @@ const Weather = () => {
   const loadSavedLocations = async () => {
     try {
       const response = await axios.get(
-        `http://localhost:5001/api/locations?userId=${USER_ID}`
+        `${REACT_APP_API_URL}/api/locations?userId=${REACT_APP_USER_ID}`
       );
       setSavedLocations(response.data);
       response.data.forEach((loc) => {
@@ -105,7 +107,7 @@ const Weather = () => {
 
     try {
       const response = await fetch(
-        `http://localhost:5001/api/weather?lat=${lat}&lon=${lng}`
+        `${REACT_APP_API_URL}/api/weather?lat=${lat}&lon=${lng}`
       );
       if (!response.ok) {
         throw new Error('Weather data fetch failed');
@@ -129,9 +131,9 @@ const Weather = () => {
 
   const handleDeleteLocation = async (location) => {
     try {
-      await axios.delete(`http://localhost:5001/api/locations`, {
+      await axios.delete(`${REACT_APP_API_URL}/api/locations`, {
         data: {
-          userId: USER_ID,
+          userId: REACT_APP_USER_ID,
           latitude: location.latitude,
           longitude: location.longitude,
         },
@@ -160,8 +162,8 @@ const Weather = () => {
     }
 
     try {
-      await axios.post('http://localhost:5001/api/locations', {
-        userId: USER_ID,
+      await axios.post(`${REACT_APP_API_URL}/api/locations`, {
+        userId: REACT_APP_USER_ID,
         name: locationName,
         latitude: lat,
         longitude: lng,
