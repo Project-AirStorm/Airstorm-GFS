@@ -3,7 +3,7 @@ import axios from 'axios';
 import WeatherDashboard from '../components/WeatherDashboard';
 import GraphCastForecast from '../components/GraphCastForecast';
 
-const API_URL = process.env.BACKEND_API_URL;
+const REACT_APP_API_URL = process.env.REACT_APP_API_URL;
 
 const Homepage = () => {
   const [locations, setLocations] = useState([]);
@@ -12,9 +12,10 @@ const Homepage = () => {
 
   const fetchLocations = async () => {
     try {
-      const userId = process.env.USER_ID || 'JoshuaFrancis';
+      const REACT_APP_USER_ID =
+        process.env.REACT_APP_USER_ID || 'JoshuaFrancis';
       const response = await axios.get(
-        `${API_URL}/api/locations?userId=${userId}`
+        `${REACT_APP_API_URL}/api/locations?userId=${REACT_APP_USER_ID}`
       );
       const locationData = response.data;
 
@@ -23,7 +24,7 @@ const Homepage = () => {
           if (location.isFavorite) {
             try {
               const weatherResponse = await axios.get(
-                `${API_URL}/api/weather?lat=${location.latitude}&lon=${location.longitude}`
+                `${REACT_APP_API_URL}/api/weather?lat=${location.latitude}&lon=${location.longitude}`
               );
               return { ...location, weather: weatherResponse.data };
             } catch (error) {
@@ -55,11 +56,11 @@ const Homepage = () => {
 
   const handleToggleFavorite = async (location) => {
     try {
-      const userId = process.env.USER_ID || 'JoshuaFrancis';
+      const REACT_APP_USER_ID = process.env.REACT_APP_USER_ID;
       await axios.post(
-        `${API_URL}http://localhost:5001/api/locations/favorite`,
+        `${REACT_APP_API_URL}http://localhost:5001/api/locations/favorite`,
         {
-          userId,
+          userId: REACT_APP_USER_ID,
           latitude: location.latitude,
           longitude: location.longitude,
         }

@@ -7,10 +7,10 @@ import ActionButtons from '../../components/specific/ActionButtons/ActionButtons
 import OverviewSwitch from '../../components/specific/OverviewSwitch/OverviewSwitch';
 import './Dashboard.css';
 
-const API_URL = process.env.BACKEND_API_URL;
+const REACT_APP_API_URL = process.env.REACT_APP_API_URL;
 
-const USER_ID = process.env.USER_ID || 'JoshuaFrancis';
-const API_BASE_URL = `${API_URL}/api`;
+const REACT_APP_USER_ID = process.env.REACT_APP_USER_ID || 'JoshuaFrancis';
+const API_BASE_URL = `${REACT_APP_API_URL}/api`;
 
 const Dashboard = ({ setCurrentPage }) => {
   const [activeView, setActiveView] = useState('overview');
@@ -21,7 +21,7 @@ const Dashboard = ({ setCurrentPage }) => {
   const fetchLocations = async () => {
     try {
       const response = await axios.get(`${API_BASE_URL}/locations`, {
-        params: { userId: USER_ID },
+        params: { userId: REACT_APP_USER_ID },
       });
 
       // Add background colors to locations
@@ -48,7 +48,7 @@ const Dashboard = ({ setCurrentPage }) => {
     try {
       await axios.delete(`${API_BASE_URL}/locations`, {
         data: {
-          userId: USER_ID,
+          userId: REACT_APP_USER_ID,
           latitude,
           longitude,
         },
@@ -63,7 +63,7 @@ const Dashboard = ({ setCurrentPage }) => {
   const handleToggleFavorite = async (latitude, longitude) => {
     try {
       await axios.post(`${API_BASE_URL}/locations/favorite`, {
-        userId: USER_ID,
+        userId: REACT_APP_USER_ID,
         latitude,
         longitude,
       });

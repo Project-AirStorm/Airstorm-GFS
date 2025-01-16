@@ -20,7 +20,7 @@ CORS(app)
 
 # Initialize services
 location_service = LocationService()
-GOOGLE_MAPS_API_KEY = os.getenv('GOOGLE_MAPS_API_KEY')
+BACKEND_GOOGLE_MAPS_API_KEY = os.getenv('BACKEND_GOOGLE_MAPS_API_KEY')
 
 # Logging setup
 logging.basicConfig(level=logging.DEBUG)
@@ -132,7 +132,7 @@ def get_location_info():
         if lat is None or lon is None:
             return jsonify({"error": "Latitude and Longitude are required"}), 400
 
-        if not GOOGLE_MAPS_API_KEY:
+        if not BACKEND_GOOGLE_MAPS_API_KEY:
             logger.error("Google Maps API key not configured")
             return jsonify({
                 "error": "Geocoding service not configured",
@@ -143,7 +143,7 @@ def get_location_info():
         url = "https://maps.googleapis.com/maps/api/geocode/json"
         params = {
             "latlng": f"{lat},{lon}",
-            "key": GOOGLE_MAPS_API_KEY,
+            "key": BACKEND_GOOGLE_MAPS_API_KEY,
             "language": "en"
         }
 
