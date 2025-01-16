@@ -4,7 +4,7 @@ services:
       - .env
     build: ./backend
     ports:
-      - "80:5000"
+      - "5001:5000"
     volumes:
       - ./backend:/app
     environment:
