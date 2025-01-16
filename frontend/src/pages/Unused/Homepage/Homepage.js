@@ -3,6 +3,8 @@ import axios from 'axios';
 import WeatherDashboard from '../components/WeatherDashboard';
 import GraphCastForecast from '../components/GraphCastForecast';
 
+const API_URL = process.env.BACKEND_API_URL;
+
 const Homepage = () => {
   const [locations, setLocations] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -12,7 +14,7 @@ const Homepage = () => {
     try {
       const userId = process.env.USER_ID || 'JoshuaFrancis';
       const response = await axios.get(
-        `http://localhost:5001/api/locations?userId=${userId}`
+        `${API_URL}/api/locations?userId=${userId}`
       );
       const locationData = response.data;
 
@@ -21,7 +23,7 @@ const Homepage = () => {
           if (location.isFavorite) {
             try {
               const weatherResponse = await axios.get(
-                `http://localhost:5001/api/weather?lat=${location.latitude}&lon=${location.longitude}`
+                `${API_URL}/api/weather?lat=${location.latitude}&lon=${location.longitude}`
               );
               return { ...location, weather: weatherResponse.data };
             } catch (error) {
@@ -54,11 +56,14 @@ const Homepage = () => {
   const handleToggleFavorite = async (location) => {
     try {
       const userId = process.env.USER_ID || 'JoshuaFrancis';
-      await axios.post('http://localhost:5001/api/locations/favorite', {
-        userId,
-        latitude: location.latitude,
-        longitude: location.longitude,
-      });
+      await axios.post(
+        `${API_URL}http://localhost:5001/api/locations/favorite`,
+        {
+          userId,
+          latitude: location.latitude,
+          longitude: location.longitude,
+        }
+      );
       fetchLocations();
     } catch (error) {
       console.error('Error toggling favorite:', error);

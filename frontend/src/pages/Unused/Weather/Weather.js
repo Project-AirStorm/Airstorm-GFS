@@ -23,6 +23,8 @@ import 'maplibre-gl/dist/maplibre-gl.css';
 import './map.css';
 import axios from 'axios';
 
+const API_URL = process.env.BACKEND_API_URL;
+
 const Weather = () => {
   const mapContainer = useRef(null);
   const map = useRef(null);
@@ -66,7 +68,7 @@ const Weather = () => {
   const loadSavedLocations = async () => {
     try {
       const response = await axios.get(
-        `http://localhost:5001/api/locations?userId=${USER_ID}`
+        `${API_URL}/api/locations?userId=${USER_ID}`
       );
       setSavedLocations(response.data);
       response.data.forEach((loc) => {
@@ -105,7 +107,7 @@ const Weather = () => {
 
     try {
       const response = await fetch(
-        `http://localhost:5001/api/weather?lat=${lat}&lon=${lng}`
+        `${API_URL}/api/weather?lat=${lat}&lon=${lng}`
       );
       if (!response.ok) {
         throw new Error('Weather data fetch failed');
@@ -129,7 +131,7 @@ const Weather = () => {
 
   const handleDeleteLocation = async (location) => {
     try {
-      await axios.delete(`http://localhost:5001/api/locations`, {
+      await axios.delete(`${API_URL}/api/locations`, {
         data: {
           userId: USER_ID,
           latitude: location.latitude,
@@ -160,7 +162,7 @@ const Weather = () => {
     }
 
     try {
-      await axios.post('http://localhost:5001/api/locations', {
+      await axios.post(`${API_URL}/api/locations`, {
         userId: USER_ID,
         name: locationName,
         latitude: lat,

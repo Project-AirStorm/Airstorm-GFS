@@ -7,8 +7,10 @@ import ActionButtons from '../../components/specific/ActionButtons/ActionButtons
 import OverviewSwitch from '../../components/specific/OverviewSwitch/OverviewSwitch';
 import './Dashboard.css';
 
+const API_URL = process.env.BACKEND_API_URL;
+
 const USER_ID = process.env.USER_ID || 'JoshuaFrancis';
-const API_BASE_URL = 'http://localhost:5001/api';
+const API_BASE_URL = `${API_URL}/api`;
 
 const Dashboard = ({ setCurrentPage }) => {
   const [activeView, setActiveView] = useState('overview');

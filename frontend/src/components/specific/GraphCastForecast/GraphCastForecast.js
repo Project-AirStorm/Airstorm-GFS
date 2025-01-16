@@ -85,9 +85,11 @@ const GraphCastForecast = () => {
             const averagedData = Object.values(dailyData).map((day) => ({
               time: day.time,
               temperature:
-                day.temperature.reduce((a, b) => a + b) / day.temperature.length,
+                day.temperature.reduce((a, b) => a + b) /
+                day.temperature.length,
               precipitationProb:
-                day.precipitationProb.reduce((a, b) => a + b) / day.precipitationProb.length,
+                day.precipitationProb.reduce((a, b) => a + b) /
+                day.precipitationProb.length,
               cloudCover:
                 day.cloudCover.reduce((a, b) => a + b) / day.cloudCover.length,
             }));
@@ -187,9 +189,9 @@ const GraphCastForecast = () => {
             margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
           >
             <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-            <XAxis 
-              dataKey="time" 
-              stroke="#6b7280" 
+            <XAxis
+              dataKey="time"
+              stroke="#6b7280"
               tick={{ fill: '#6b7280' }}
               style={{ fontSize: '12px' }}
             />
