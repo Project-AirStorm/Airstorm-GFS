@@ -1,27 +1,21 @@
 ---
-name: Bug report
-about: Create a report to help us improve
-title: 'Bug: [Title]'
-labels: bug, documentation
+name: Request template
+about: 'Request template '
+title: 'Request:'
+labels: request
 assignees: ''
 
 ---
 
-# [Bug Title]
+# [Request Title]
 
 ## Description
-A detailed description of the bug
+A detailed description of the request
 
 ## Environment
 - Branch: [Branch Name]
 - OS: [e.g., iOS, Windows 10, MacOS]
 - Browser: [e.g., Chrome 120.0]
-
-## Steps to Reproduce
-1. Go to '...'
-2. Click on '....'
-3. Scroll down to '....'
-4. See error
 
 ## Expected Behavior
 A clear description of what you expected to happen.
@@ -32,17 +26,12 @@ What actually happened. Include screenshots of bug with descriptions
 ### Screenshots
 [Attach images here]
 
-## Error message(s)
-```
-// Add error messages here
-```
-
-## Code Causing Error
+## Code Related to Request
 ```
 // Add code here
 ```
 
-## Code for Fix
+## Code for Suggested Change
 ```
 // Add code here
 ```
