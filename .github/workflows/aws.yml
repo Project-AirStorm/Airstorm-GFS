@@ -1,29 +1,25 @@
 name: Deploy to AWS EC2
-
 on:
   push:
     branches: ['main']
-
 env:
   AWS_REGION: us-east-1
-
 jobs:
   deploy:
     name: Deploy
     runs-on: ubuntu-latest
     environment: production
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-
+      
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ env.AWS_REGION }}
-
+      
       - name: Deploy to EC2
         uses: appleboy/ssh-action@master
         with:
@@ -35,10 +31,23 @@ jobs:
             # Stop and remove all running containers
             docker stop $(docker ps -a -q) || true
             docker rm $(docker ps -a -q) || true
-
             # Remove all images except the latest one
             docker image prune -af
-
+            
             cd ~/production/Airstorm-GFS
             git pull
+            
+            # Create .env file from GitHub Secrets
+            cat > .env << EOL
+            BACKEND_GOOGLE_MAPS_API_KEY=${{ secrets.BACKEND_GOOGLE_MAPS_API_KEY }}
+            BACKEND_METEOMATICS_USERNAME=${{ secrets.BACKEND_METEOMATICS_USERNAME }}
+            BACKEND_METEOMATICS_PASSWORD=${{ secrets.BACKEND_METEOMATICS_PASSWORD }}
+            REACT_APP_API_URL=${{ secrets.REACT_APP_API_URL }}
+            REACT_APP_MAPTILER_KEY=${{ secrets.REACT_APP_MAPTILER_KEY }}
+            REACT_APP_MAPTILER_API_KEY=${{ secrets.REACT_APP_MAPTILER_API_KEY }}
+            REACT_APP_USER_ID=${{ secrets.REACT_APP_USER_ID }}
+            REACT_APP_GOOGLE_MAPS_API_KEY=${{ secrets.REACT_APP_GOOGLE_MAPS_API_KEY }}
+            EOL
+            
+            # Start containers with the new .env file
             docker-compose up -d --build
