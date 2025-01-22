@@ -6,7 +6,7 @@ services:
     ports:
       - "5001:5000"
     volumes:
-      - ./backend:/backend # Maps the entire backend directory on your host machine to the /backend directory in the container
+      - ./backend:/backend            # Maps the entire backend directory on your host machine to the /backend directory in the container
       - ./backend/data:/backend/data  # Mounts SQLite database
     environment:
       - FLASK_ENV=production

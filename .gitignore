@@ -42,3 +42,13 @@ dist/
 *.class
 coverage/
 .cache/
+
+# Ignore Sqlite files 
+*.sqlite
+*.sqlite3
+*.db
+
+# Ignore SQLite temporary files
+*.db-journal
+*.sqlite-journal
+*.sqlite3-journal

@@ -1,25 +1,22 @@
 import sqlite3
-import os
 import logging
+import os 
 
-class DatabaseService:
-    def __init__(self, db_path="data/app.db"):
+class DatabaseInitializer:
+    def __init__(self, db_path="data/app.sqlite"):
         self.db_path = db_path
-        self._ensure_data_directory()
         self._initialize_database()
 
-    def _ensure_data_directory(self):
-        """Ensure that the data directory exists."""
+    def _initialize_database(self):
+        """Ensure the database and required tables are initialized."""
         directory = os.path.dirname(self.db_path)
         if not os.path.exists(directory):
-            logging.info(f"Creating data directory at {directory}")
             os.makedirs(directory, exist_ok=True)
+            logging.info(f"Created data directory at {directory}")
 
-    def _initialize_database(self):
-        """Initialize the SQLite database and tables if they don't exist."""
-        logging.info(f"Initializing database at {self.db_path}")
         with sqlite3.connect(self.db_path) as conn:
             cursor = conn.cursor()
+            logging.info(f"Initializing database at {self.db_path}")
 
             # Create Users table
             cursor.execute("""
@@ -43,5 +40,4 @@ class DatabaseService:
                 );
             """)
 
-            conn.commit()
             logging.info("Database and tables initialized.")
