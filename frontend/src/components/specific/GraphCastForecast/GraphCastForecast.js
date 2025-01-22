@@ -29,10 +29,10 @@ const GraphCastForecast = () => {
       const response = await axios.get(
         `https://api.open-meteo.com/v1/forecast`,
         {
-          params: {
-            latitude,
-            longitude,
-            current: [
+          params: { //beginning of the api call string
+            latitude, //gets coordinates from user accepting allow location tracking
+            longitude, //gets coordinates from user accepting allow location tracking
+            current: [ //current variables
               'temperature_2m',
               'relative_humidity_2m',
               'precipitation',
@@ -40,10 +40,14 @@ const GraphCastForecast = () => {
             ],
             hourly: [
               'temperature_2m',
+              'precipitaion',
               'precipitation_probability',
               'cloud_cover',
             ],
-            temperature_unit: 'fahrenheit',
+           /* daily:[
+              'precipation_sum' // adds the daily variable precipation_sum to the string to make a call to the api 
+            ],*/
+            temperature_unit: 'fahrenheit', // string to set units for api call
             wind_speed_unit: 'mph',
             precipitation_unit: 'inch',
             forecast_days: 10,
@@ -53,12 +57,16 @@ const GraphCastForecast = () => {
       );
 
       const hourlyData = response.data.hourly;
+      //const testResponseDailyData = response.data.daily; //testing the response from the daily data for precipitation_sum for processing in to graph
       const processedData = hourlyData.time.map((time, index) => ({
         time: new Date(time).toLocaleDateString(),
         temperature: hourlyData.temperature_2m[index],
+        precipitation: hourlyData.precipitation[index],
+        //precipitation_sum: testResponseDailyData.precipitation_sum[index],
         precipitationProb: hourlyData.precipitation_probability[index],
         cloudCover: hourlyData.cloud_cover[index],
       }));
+      
 
       const dailyData = processedData.reduce((acc, curr) => {
         const date = curr.time;
@@ -66,11 +74,13 @@ const GraphCastForecast = () => {
           acc[date] = {
             time: date,
             temperature: [],
+            precipitation: [],
             precipitationProb: [],
             cloudCover: [],
           };
         }
         acc[date].temperature.push(curr.temperature);
+        acc[date].precipitation.push(curr.precipitation_sum);
         acc[date].precipitationProb.push(curr.precipitationProb);
         acc[date].cloudCover.push(curr.cloudCover);
         return acc;
@@ -80,6 +90,8 @@ const GraphCastForecast = () => {
         time: day.time,
         temperature:
           day.temperature.reduce((a, b) => a + b) / day.temperature.length,
+        precipitation:
+          day.precipitation.reduce((a, b) => a + b) /day.precipitation.length,
         precipitationProb:
           day.precipitationProb.reduce((a, b) => a + b) /
           day.precipitationProb.length,
@@ -99,6 +111,7 @@ const GraphCastForecast = () => {
     }
   };
 
+  // broswer permissions for location tracking
   const getLocation = () => {
     if ('geolocation' in navigator) {
       setLoading(true);
@@ -260,7 +273,7 @@ const GraphCastForecast = () => {
             <Line
               yAxisId="right"
               type="monotone"
-              dataKey="precipitationProb"
+              dataKey="precipitation" //might need to be changed to 'precipitation'
               stroke="#60a5fa"
               name="Precipitation"
               unit="%"
