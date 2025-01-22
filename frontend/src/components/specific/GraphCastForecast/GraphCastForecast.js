@@ -24,154 +24,93 @@ const GraphCastForecast = () => {
   const [error, setError] = useState(null);
   const [userLocation, setUserLocation] = useState(null);
 
-  const fetchWeatherData = async (latitude, longitude) => {
-    try {
-      const response = await axios.get(
-        `https://api.open-meteo.com/v1/forecast`,
-        {
-          params: { //beginning of the api call string
-            latitude, //gets coordinates from user accepting allow location tracking
-            longitude, //gets coordinates from user accepting allow location tracking
-            current: [ //current variables
-              'temperature_2m',
-              'relative_humidity_2m',
-              'precipitation',
-              'cloud_cover',
-            ],
-            hourly: [
-              'temperature_2m',
-              'precipitaion',
-              'precipitation_probability',
-              'cloud_cover',
-            ],
-           /* daily:[
-              'precipation_sum' // adds the daily variable precipation_sum to the string to make a call to the api 
-            ],*/
-            temperature_unit: 'fahrenheit', // string to set units for api call
-            wind_speed_unit: 'mph',
-            precipitation_unit: 'inch',
-            forecast_days: 10,
-            models: 'gfs_graphcast025',
-          },
-        }
-      );
-
-      const hourlyData = response.data.hourly;
-      //const testResponseDailyData = response.data.daily; //testing the response from the daily data for precipitation_sum for processing in to graph
-      const processedData = hourlyData.time.map((time, index) => ({
-        time: new Date(time).toLocaleDateString(),
-        temperature: hourlyData.temperature_2m[index],
-        precipitation: hourlyData.precipitation[index],
-        //precipitation_sum: testResponseDailyData.precipitation_sum[index],
-        precipitationProb: hourlyData.precipitation_probability[index],
-        cloudCover: hourlyData.cloud_cover[index],
-      }));
-      
-
-      const dailyData = processedData.reduce((acc, curr) => {
-        const date = curr.time;
-        if (!acc[date]) {
-          acc[date] = {
-            time: date,
-            temperature: [],
-            precipitation: [],
-            precipitationProb: [],
-            cloudCover: [],
-          };
-        }
-        acc[date].temperature.push(curr.temperature);
-        acc[date].precipitation.push(curr.precipitation_sum);
-        acc[date].precipitationProb.push(curr.precipitationProb);
-        acc[date].cloudCover.push(curr.cloudCover);
-        return acc;
-      }, {});
-
-      const averagedData = Object.values(dailyData).map((day) => ({
-        time: day.time,
-        temperature:
-          day.temperature.reduce((a, b) => a + b) / day.temperature.length,
-        precipitation:
-          day.precipitation.reduce((a, b) => a + b) /day.precipitation.length,
-        precipitationProb:
-          day.precipitationProb.reduce((a, b) => a + b) /
-          day.precipitationProb.length,
-        cloudCover:
-          day.cloudCover.reduce((a, b) => a + b) / day.cloudCover.length,
-      }));
-
-      setForecast({
-        current: response.data.current,
-        daily: averagedData,
-      });
-      setLoading(false);
-    } catch (err) {
-      console.error('Error fetching weather:', err);
-      setError('Failed to fetch weather data. Please try again later.');
-      setLoading(false);
-    }
-  };
-
-  // broswer permissions for location tracking
-  const getLocation = () => {
-    if ('geolocation' in navigator) {
-      setLoading(true);
-      setError(null);
-
-      navigator.permissions.query({ name: 'geolocation' }).then((result) => {
-        if (result.state === 'granted' || result.state === 'prompt') {
-          navigator.geolocation.getCurrentPosition(
-            (position) => {
-              const { latitude, longitude } = position.coords;
-              setUserLocation({ latitude, longitude });
-              fetchWeatherData(latitude, longitude);
-            },
-            (error) => {
-              console.error('Geolocation error:', error);
-              // Default to New York City
-              const defaultLat = 40.7128;
-              const defaultLon = -74.006;
-              setUserLocation({ latitude: defaultLat, longitude: defaultLon });
-              setError(
-                'Unable to get your location. Showing weather for New York City.'
-              );
-              fetchWeatherData(defaultLat, defaultLon);
-            },
-            {
-              enableHighAccuracy: true,
-              timeout: 5000,
-              maximumAge: 0,
-            }
-          );
-        } else {
-          // Permission denied, use default location
-          const defaultLat = 40.7128;
-          const defaultLon = -74.006;
-          setUserLocation({ latitude: defaultLat, longitude: defaultLon });
-          setError(
-            'Location access denied. Showing weather for New York City.'
-          );
-          fetchWeatherData(defaultLat, defaultLon);
-        }
-      });
-    } else {
-      const defaultLat = 40.7128;
-      const defaultLon = -74.006;
-      setUserLocation({ latitude: defaultLat, longitude: defaultLon });
-      setError(
-        'Geolocation is not supported by your browser. Showing weather for New York City.'
-      );
-      fetchWeatherData(defaultLat, defaultLon);
-    }
-  };
-
   useEffect(() => {
-    getLocation();
+    if ('geolocation' in navigator) {
+      navigator.geolocation.getCurrentPosition(
+        async (position) => {
+          const { latitude, longitude } = position.coords;
+          setUserLocation({ latitude, longitude });
+
+          try {
+            const response = await axios.get(
+              `https://api.open-meteo.com/v1/forecast`,
+              {
+                params: {
+                  latitude,
+                  longitude,
+                  current: [
+                    'temperature_2m',
+                    'relative_humidity_2m',
+                    'precipitation',
+                    'cloud_cover',
+                  ],
+                  daily: [
+                    'temperature_2m_max',
+                    'temperature_2m_min',
+                    'precipitation_sum',
+                    'precipitation_probability_max',
+                    'cloud_cover_mean',
+                    'weather_code',
+                  ],
+                  temperature_unit: 'fahrenheit',
+                  precipitation_unit: 'inch',
+                  forecast_days: 16,
+                  timezone: 'auto',
+                  models: 'best_match',
+                },
+              }
+            );
+
+            const dailyData = response.data.daily.time.map((time, index) => ({
+              time: new Date(time).toLocaleDateString('en-US', {
+                month: 'short',
+                day: 'numeric',
+              }),
+              temperature: Math.round(
+                (response.data.daily.temperature_2m_max[index] +
+                  response.data.daily.temperature_2m_min[index]) /
+                  2
+              ),
+              precipitationProb:
+                response.data.daily.precipitation_probability_max[index],
+              precipitationSum: response.data.daily.precipitation_sum[index],
+              cloudCover: response.data.daily.cloud_cover_mean[index],
+              weatherCode: response.data.daily.weather_code[index],
+            }));
+
+            setForecast({
+              current: response.data.current,
+              daily: dailyData,
+            });
+            setLoading(false);
+          } catch (err) {
+            setError('Failed to fetch weather data');
+            setLoading(false);
+          }
+        },
+        () => {
+          setError('Unable to access location');
+          setLoading(false);
+        }
+      );
+    } else {
+      setError('Geolocation is not supported by your browser');
+      setLoading(false);
+    }
   }, []);
 
   if (loading) {
     return (
       <div className="loading-state">
         <div>Loading forecast data...</div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="error-state">
+        <div>{error}</div>
       </div>
     );
   }
@@ -185,7 +124,14 @@ const GraphCastForecast = () => {
           <p className="tooltip-label">{label}</p>
           {payload.map((entry, index) => (
             <p key={index} className="tooltip-value">
-              {entry.name}: {entry.value.toFixed(1)} {entry.unit}
+              {entry.name}: {entry.value}
+              {entry.unit === '°F'
+                ? '°F'
+                : entry.unit === 'in'
+                ? '"'
+                : entry.unit === '%'
+                ? '%'
+                : ''}
             </p>
           ))}
         </div>
@@ -198,16 +144,13 @@ const GraphCastForecast = () => {
     <div className="graphcast-container">
       <div className="graphcast-header">
         <div>
-          <h2 className="graphcast-title">10-Day GraphCast Forecast</h2>
+          <h2 className="graphcast-title">16-Day Weather Forecast</h2>
           <div className="graphcast-location">
             <IoLocationOutline className="mr-1" />
             <span>
               {userLocation?.latitude.toFixed(2)}°N,{' '}
               {userLocation?.longitude.toFixed(2)}°W
             </span>
-            {error && (
-              <div className="text-yellow-500 text-sm mt-1">{error}</div>
-            )}
           </div>
         </div>
         <div className="current-weather">
@@ -231,64 +174,85 @@ const GraphCastForecast = () => {
       </div>
 
       <div className="chart-container">
-        <ResponsiveContainer width="100%" height="100%">
+        <ResponsiveContainer width="100%" height={400}>
           <LineChart
             data={forecast.daily}
-            margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+            margin={{ top: 20, right: 30, left: 20, bottom: 10 }}
           >
             <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
             <XAxis
               dataKey="time"
               stroke="#6b7280"
-              tick={{ fill: '#6b7280' }}
-              style={{ fontSize: '12px' }}
+              tick={{ fill: '#6b7280', fontSize: 12 }}
             />
             <YAxis
               yAxisId="left"
               stroke="#6b7280"
-              tick={{ fill: '#6b7280' }}
-              domain={['auto', 'auto']}
-              style={{ fontSize: '12px' }}
+              tick={{ fill: '#6b7280', fontSize: 12 }}
+              label={{
+                value: 'Temperature (°F)',
+                angle: -90,
+                position: 'insideLeft',
+                fill: '#6b7280',
+              }}
             />
             <YAxis
               yAxisId="right"
               orientation="right"
               stroke="#6b7280"
-              tick={{ fill: '#6b7280' }}
-              domain={[0, 100]}
-              style={{ fontSize: '12px' }}
+              tick={{ fill: '#6b7280', fontSize: 12 }}
+              label={{
+                value: 'Probability (%) / Precipitation (in)',
+                angle: 90,
+                position: 'insideRight',
+                fill: '#6b7280',
+              }}
             />
             <Tooltip content={<CustomTooltip />} />
-            <Legend />
+            <Legend wrapperStyle={{ paddingTop: '20px' }} />
+
             <Line
               yAxisId="left"
               type="monotone"
               dataKey="temperature"
+              name="Avg Temperature"
               stroke="#A1A7FF"
-              name="Temperature"
-              unit="°F"
               strokeWidth={2}
               dot={{ fill: '#A1A7FF', r: 4 }}
+              unit="°F"
             />
+
             <Line
               yAxisId="right"
               type="monotone"
-              dataKey="precipitation" //might need to be changed to 'precipitation'
+              dataKey="precipitationProb"
+              name="Precipitation Chance"
               stroke="#60a5fa"
-              name="Precipitation"
-              unit="%"
               strokeWidth={2}
               dot={{ fill: '#60a5fa', r: 4 }}
+              unit="%"
             />
+
+            <Line
+              yAxisId="right"
+              type="monotone"
+              dataKey="precipitationSum"
+              name="Precipitation Amount"
+              stroke="#48bb78"
+              strokeWidth={2}
+              dot={{ fill: '#48bb78', r: 4 }}
+              unit="in"
+            />
+
             <Line
               yAxisId="right"
               type="monotone"
               dataKey="cloudCover"
-              stroke="#94a3b8"
               name="Cloud Cover"
-              unit="%"
+              stroke="#94a3b8"
               strokeWidth={2}
               dot={{ fill: '#94a3b8', r: 4 }}
+              unit="%"
             />
           </LineChart>
         </ResponsiveContainer>
