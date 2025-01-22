@@ -32,7 +32,7 @@ const WeatherCard = ({
       try {
         console.log(`Fetching data for ${city} at ${latitude}, ${longitude}`);
 
-        // First try to fetch weather data
+        // This fetches the latitude and longitutde from the the Flask API as JSON data 
         const weatherResponse = await axios.get(
           `${REACT_APP_API_URL}/api/weather`,
           {

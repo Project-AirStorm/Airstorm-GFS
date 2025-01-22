@@ -5,6 +5,7 @@ from flask import jsonify
 
 class LocationService:
     def __init__(self):
+        #loads in the CSV 
         self.locations_file = 'data/locations.csv'
         self._ensure_data_directory()
         self._initialize_csv()
