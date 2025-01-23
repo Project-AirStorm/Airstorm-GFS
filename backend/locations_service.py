@@ -1,119 +1,130 @@
-import csv
-import os
-from flask import jsonify
-
+import sqlite3
+import logging
 
 class LocationService:
-    def __init__(self):
-        self.locations_file = 'data/locations.csv'
-        self._ensure_data_directory()
-        self._initialize_csv()
+    """
+    The LocationService class provides an interface for interacting with the Locations table
+    in an SQLite database. This is our data that is being used to save 
 
-    def _ensure_data_directory(self):
-        os.makedirs('data', exist_ok=True)
-
-    def _initialize_csv(self):
-        if not os.path.exists(self.locations_file):
-            with open(self.locations_file, 'w', newline='') as file:
-                writer = csv.writer(file)
-                writer.writerow(['user_id', 'name', 'latitude',
-                                'longitude', 'is_favorite'])
+    Features:
+    - Add new locations for a user.
+    - Retrieve all locations associated with a specific user.
+    - Toggle the 'is_favorite' status of a location.
+    - Delete a location based on user ID and coordinates.
+    """
+    def __init__(self, db_path='data/app.sqlite'):
+        """
+        Initialize the LocationService with the path to the SQLite database.
+        """
+        self.db_path = db_path
 
     def save_location(self, user_id, name, latitude, longitude, is_favorite=False):
-        with open(self.locations_file, 'a', newline='') as file:
-            writer = csv.writer(file)
-            writer.writerow([user_id, name, latitude, longitude, is_favorite])
-        return True
+        """
+        Inserts a new location record in the database.
+        """
+        try:
+            with sqlite3.connect(self.db_path) as conn:
+                cursor = conn.cursor()
+                cursor.execute("""
+                    INSERT INTO Locations (user_id, location, latitude, longitude, is_favorite)
+                    VALUES (?, ?, ?, ?, ?)
+                """, (
+                    user_id,
+                    name,
+                    latitude,
+                    longitude,
+                    1 if is_favorite else 0
+                ))
+                conn.commit()
+            return True
+        except Exception as e:
+            logging.error(f"Error saving location: {e}")
+            return False
 
     def get_user_locations(self, user_id):
+        """
+        Fetches all locations for a specific user_id.
+        Returns a list of dict objects.
+        """
         locations = []
         try:
-            with open(self.locations_file, 'r') as file:
-                reader = csv.DictReader(file)
-                for row in reader:
-                    if row['user_id'] == user_id:
-                        locations.append({
-                            'name': row['name'],
-                            'latitude': float(row['latitude']),
-                            'longitude': float(row['longitude']),
-                            # Changed to match frontend
-                            'isFavorite': row['is_favorite'].lower() == 'true'
-                        })
-        except FileNotFoundError:
-            return []
+            with sqlite3.connect(self.db_path) as conn:
+                conn.row_factory = sqlite3.Row
+                cursor = conn.cursor()
+                cursor.execute("""
+                    SELECT location, latitude, longitude, is_favorite
+                    FROM Locations
+                    WHERE user_id = ?
+                """, (user_id,))
+                rows = cursor.fetchall()
+
+                for row in rows:
+                    locations.append({
+                        'name': row['location'],
+                        'latitude': float(row['latitude']),
+                        'longitude': float(row['longitude']),
+                        'isFavorite': bool(row['is_favorite'])
+                    })
+        except Exception as e:
+            logging.error(f"Error fetching user locations: {e}")
+
         return locations
 
     def toggle_favorite(self, user_id, latitude, longitude):
-        locations = []
+        """
+        Finds a location for the user based on lat/long,
+        flips its 'is_favorite' boolean, and saves back to the DB.
+        """
         updated = False
+        try:
+            with sqlite3.connect(self.db_path) as conn:
+                cursor = conn.cursor()
 
-        with open(self.locations_file, 'r') as file:
-            reader = csv.DictReader(file)
-            locations = list(reader)
+                # Fetch the current record
+                cursor.execute("""
+                    SELECT id, is_favorite
+                    FROM Locations
+                    WHERE user_id = ?
+                      AND ABS(latitude - ?) < 0.0001
+                      AND ABS(longitude - ?) < 0.0001
+                    LIMIT 1
+                """, (user_id, latitude, longitude))
+                row = cursor.fetchone()
 
-        for location in locations:
-            if (location['user_id'] == user_id and
-                float(location['latitude']) == latitude and
-                    float(location['longitude']) == longitude):
-                location['is_favorite'] = str(
-                    not location['is_favorite'].lower() == 'true')
-                updated = True
-                break
+                if row:
+                    new_value = 0 if row[1] else 1
+                    # Update record
+                    cursor.execute("""
+                        UPDATE Locations
+                        SET is_favorite = ?
+                        WHERE id = ?
+                    """, (new_value, row[0]))
+                    conn.commit()
+                    updated = (cursor.rowcount > 0)
 
-        if updated:
-            with open(self.locations_file, 'w', newline='') as file:
-                writer = csv.DictWriter(
-                    file, fieldnames=['user_id', 'name', 'latitude', 'longitude', 'is_favorite'])
-                writer.writeheader()
-                writer.writerows(locations)
+        except Exception as e:
+            logging.error(f"Error toggling favorite: {e}")
 
         return updated
 
     def delete_location(self, user_id, latitude, longitude):
         """
         Delete a location for a specific user based on coordinates.
-
-        Args:
-            user_id (str): The ID of the user
-            latitude (float): The latitude of the location
-            longitude (float): The longitude of the location
-
-        Returns:
-            bool: True if location was deleted, False otherwise
+        Returns True if a location was deleted, False otherwise.
         """
-        locations = []
-        location_deleted = False
-
-        # Read all locations
+        deleted = False
         try:
-            with open(self.locations_file, 'r') as file:
-                reader = csv.DictReader(file)
-                locations = list(reader)
-        except FileNotFoundError:
-            return False
+            with sqlite3.connect(self.db_path) as conn:
+                cursor = conn.cursor()
+                cursor.execute("""
+                    DELETE FROM Locations
+                    WHERE user_id = ?
+                      AND ABS(latitude - ?) < 0.0001
+                      AND ABS(longitude - ?) < 0.0001
+                """, (user_id, latitude, longitude))
+                conn.commit()
+                deleted = (cursor.rowcount > 0)
+        except Exception as e:
+            logging.error(f"Error deleting location: {e}")
 
-        # Filter out the location to be deleted
-        filtered_locations = [
-            loc for loc in locations
-            if not (
-                loc['user_id'] == user_id and
-                # Using small epsilon for float comparison
-                abs(float(loc['latitude']) - latitude) < 0.0001 and
-                abs(float(loc['longitude']) - longitude) < 0.0001
-            )
-        ]
-
-        location_deleted = len(filtered_locations) < len(locations)
-
-        if location_deleted:
-            # Write back the remaining locations
-            with open(self.locations_file, 'w', newline='') as file:
-                writer = csv.DictWriter(
-                    file,
-                    fieldnames=['user_id', 'name', 'latitude',
-                                'longitude', 'is_favorite']
-                )
-                writer.writeheader()
-                writer.writerows(filtered_locations)
-
-        return location_deleted
+        return deleted

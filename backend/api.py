@@ -11,6 +11,17 @@ import requests
 import logging
 import os
 from dotenv import load_dotenv
+import logging
+from database_initializer import DatabaseInitializer
+
+# Initialize the database service with the correct path
+db_service = DatabaseInitializer(db_path="data/app.sqlite")
+# TEMPORARY: Suppress DEBUG logs from `watchdog` and other libraries
+#logging.getLogger("watchdog").setLevel(logging.WARNNG)
+#logging.getLogger("watchdog.observers.inotify_buffer").setLevel(logging.WARNING)
+
+# logging.getLogger("watchdog").setLevel(logging.ERROR)
+# logging.getLogger("watchdog.observers.inotify_buffer").setLevel(logging.ERROR)
 
 # Load environment variables from .env file
 load_dotenv()
@@ -63,13 +74,13 @@ def calculate_air_quality(current):
     # For demo purposes, return a random number between 50-80
     return randint(50, 80)
 
-
+# Gets the current User_ID
 @app.route('/api/locations', methods=['GET'])
 def get_locations():
     user_id = request.args.get('userId')
     if not user_id:
         return jsonify({"error": "User ID is required"}), 400
-
+    #reads in from user_id from CSV file in locations_service.py 
     locations = location_service.get_user_locations(user_id)
     return jsonify(locations)
 
@@ -90,7 +101,7 @@ def save_location():
 
     return jsonify({"success": success})
 
-
+# Deletes locations from React WeatherCard 
 @app.route('/api/locations', methods=['DELETE'])
 def delete_location():
     data = request.json
@@ -120,7 +131,7 @@ def toggle_favorite():
 
     return jsonify({"success": success})
 
-
+# Returns the city or location based upon the provided coordinates
 @app.route('/api/geocode', methods=['GET'])
 def get_location_info():
     try:

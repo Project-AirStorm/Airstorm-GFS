@@ -6,11 +6,12 @@ services:
     ports:
       - "5001:5000"
     volumes:
-      - ./backend:/app
+      - ./backend:/backend            # Maps the entire backend directory on your host machine to the /backend directory in the container
+      - ./backend/data:/backend/data  # Mounts SQLite database
     environment:
       - FLASK_ENV=production
       - FLASK_DEBUG=0
-      - FLASK_APP=app.py
+      - FLASK_APP=api.py
       - BACKEND_GOOGLE_MAPS_API_KEY=${BACKEND_GOOGLE_MAPS_API_KEY}
       - BACKEND_METEOMATICS_USERNAME=${BACKEND_METEOMATICS_USERNAME}
       - BACKEND_METEOMATICS_PASSWORD=${BACKEND_METEOMATICS_PASSWORD}
