@@ -67,28 +67,36 @@ const Layout = ({ children }) => {
 function App() {
   return (
     <Router>
-      <Layout>
-        <Routes>
-          {/* Redirect root to dashboard */}
-          <Route
-            path="/"
-            element={<Navigate to={ROUTES.dashboard.path} replace />}
-          />
+      <Routes>
+        {/* Routes without Layout */}
+        <Route path="/login" element={<ROUTES.Login.element />} />
 
-          {/* Generate routes from configuration */}
-          {Object.values(ROUTES).map(({ path, element: Element }) => (
-            <Route key={path} path={path} element={<Element />} />
-          ))}
-
-          {/* Catch all unmatched routes and redirect to dashboard */}
-          <Route
-            path="*"
-            element={<Navigate to={ROUTES.dashboard.path} replace />}
-          />
-        </Routes>
-      </Layout>
+        {/* Routes with Layout */}
+        <Route
+          path="/*"
+          element={
+            <Layout>
+              <Routes>
+                {/* Redirect root to dashboard */}
+                <Route path="/" element={<Navigate to={ROUTES.dashboard.path} replace />} />
+                
+                {/* Dynamically generate routes */}
+                {Object.values(ROUTES)
+                  .filter((route) => route.path !== '/login') // Excludes /login page 
+                  .map(({ path, element: Element }) => (
+                    <Route key={path} path={path} element={<Element />} />
+                  ))}
+                
+                {/* Catch-all route */}
+                <Route path="*" element={<Navigate to={ROUTES.dashboard.path} replace />} />
+              </Routes>
+            </Layout>
+          }
+        />
+      </Routes>
     </Router>
   );
 }
+
 
 export default App;
