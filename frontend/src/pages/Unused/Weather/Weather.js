@@ -18,18 +18,16 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from 'recharts';
-import maplibregl from 'maplibre-gl';
-import 'maplibre-gl/dist/maplibre-gl.css';
-import './map.css';
 import axios from 'axios';
+import './map.css';
 
 const REACT_APP_API_URL = process.env.REACT_APP_API_URL;
 const REACT_APP_USER_ID = process.env.REACT_APP_USER_ID;
 
 const Weather = () => {
   const mapContainer = useRef(null);
-  const map = useRef(null);
-  const marker = useRef(null);
+  const mapRef = useRef(null);
+  const markerRef = useRef(null);
   const [weatherData, setWeatherData] = useState(null);
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isLocationPanelCollapsed, setIsLocationPanelCollapsed] =
@@ -38,94 +36,136 @@ const Weather = () => {
   const [isFavorite, setIsFavorite] = useState(false);
   const [savedLocations, setSavedLocations] = useState([]);
   const [coordinates, setCoordinates] = useState({ lat: '', lng: '' });
+  const [savedMarkers, setSavedMarkers] = useState([]);
+  const [selectedVariable, setSelectedVariable] = useState('temperature');
+  const [weatherVariables, setWeatherVariables] = useState([
+    { value: 'temperature', label: 'Temperature' },
+    { value: 'feels_like_temperature', label: 'Feels Like Temperature' },
+    { value: 'clouds', label: 'Clouds' },
+    { value: 'precipitation', label: 'Precipitation' },
+    { value: 'wind_speed', label: 'Wind Speed' },
+    { value: 'wind_gust', label: 'Wind Gust' },
+    { value: 'pressure', label: 'Pressure' },
+    { value: 'humidity', label: 'Humidity' },
+    { value: 'wave_height', label: 'Wave Height' },
+    { value: 'wave_period', label: 'Wave Period' },
+    { value: 'air_quality', label: 'Air Quality' },
+    { value: 'ozone_surface', label: 'Ozone Surface' },
+    { value: 'ozone_total', label: 'Ozone Total' },
+    { value: 'no2', label: 'NO2' },
+    { value: 'pm2.5', label: 'PM2.5' },
+  ]);
 
-  useEffect(() => {
-    if (!mapContainer.current) return;
-
-    map.current = new maplibregl.Map({
-      container: mapContainer.current,
-      style: `https://api.maptiler.com/maps/6fc667a0-09bd-4b69-bd77-1ce5af52e91b/style.json?key=${process.env.REACT_APP_MAPTILER_API_KEY}`,
-      center: [-94.68554, 37.51718],
-      zoom: 3.7,
-      terrain: true,
-      terrainControl: true,
-    });
-
-    marker.current = new maplibregl.Marker({
-      color: '#FF0000',
-    });
-
-    map.current.on('click', handleMapClick);
-    loadSavedLocations();
-
-    return () => {
-      if (map.current) {
-        map.current.remove();
-      }
-    };
-  }, []);
-
+  // Load and display saved locations
   const loadSavedLocations = async () => {
     try {
       const response = await axios.get(
         `${REACT_APP_API_URL}/api/locations?userId=${REACT_APP_USER_ID}`
       );
-      setSavedLocations(response.data);
-      response.data.forEach((loc) => {
-        const markerElement = new maplibregl.Marker({
-          color: loc.isFavorite ? '#FFD700' : '#4A90E2',
-        })
-          .setLngLat([loc.longitude, loc.latitude])
-          .addTo(map.current);
-
-        markerElement.getElement().addEventListener('mouseenter', () => {
-          const popup = new maplibregl.Popup({ closeButton: false })
-            .setLngLat([loc.longitude, loc.latitude])
-            .setHTML(
-              `<div class="p-2"><strong>${
-                loc.name
-              }</strong><br>${loc.latitude.toFixed(
-                4
-              )}°N, ${loc.longitude.toFixed(4)}°E</div>`
-            )
-            .addTo(map.current);
-
-          markerElement.getElement().addEventListener('mouseleave', () => {
-            popup.remove();
-          });
-        });
-      });
+      const locations = response.data.map((loc) => ({
+        ...loc,
+        latitude: parseFloat(loc.latitude),
+        longitude: parseFloat(loc.longitude),
+      }));
+      setSavedLocations(locations);
     } catch (error) {
       console.error('Error loading locations:', error);
     }
   };
 
-  const handleMapClick = async (e) => {
-    const { lng, lat } = e.lngLat;
-    marker.current.setLngLat([lng, lat]).addTo(map.current);
-    setCoordinates({ lat: lat.toFixed(4), lng: lng.toFixed(4) });
+  // Handle saved location markers
+  useEffect(() => {
+    if (mapRef.current && savedLocations.length > 0) {
+      savedMarkers.forEach((marker) => marker.setMap(null));
+
+      const newMarkers = savedLocations.map((location) => {
+        const marker = new window.google.maps.Marker({
+          position: { lat: location.latitude, lng: location.longitude },
+          map: mapRef.current,
+          icon: {
+            path: window.google.maps.SymbolPath.CIRCLE,
+            fillColor: location.isFavorite ? '#FFD700' : '#4A90E2',
+            fillOpacity: 0.9,
+            strokeWeight: 0,
+            scale: 8,
+          },
+        });
+
+        let infoWindow = null;
+        marker.addListener('mouseover', () => {
+          infoWindow = new window.google.maps.InfoWindow({
+            content: `
+              <div class="info-window-content">
+                <div class="info-window-title">${location.name}</div>
+                <div class="info-window-coords">
+                  ${location.latitude.toFixed(4)}°N<br>
+                  ${location.longitude.toFixed(4)}°E
+                </div>
+              </div>
+            `,
+          });
+          infoWindow.open(mapRef.current, marker);
+        });
+
+        marker.addListener('mouseout', () => {
+          if (infoWindow) infoWindow.close();
+        });
+
+        return marker;
+      });
+
+      setSavedMarkers(newMarkers);
+    }
+  }, [savedLocations, mapRef.current]);
+
+  // Cleanup markers
+  useEffect(() => {
+    return () => {
+      savedMarkers.forEach((marker) => marker.setMap(null));
+    };
+  }, [savedMarkers]);
+
+  const handleCoordinateInput = (e, type) => {
+    const value = e.target.value;
+    if (/^-?\d*\.?\d*$/.test(value)) {
+      setCoordinates((prev) => ({
+        ...prev,
+        [type]: value,
+      }));
+    }
+  };
+
+  const handleSaveLocation = async () => {
+    if (!locationName) return;
+
+    let lat, lng;
+    if (coordinates.lat && coordinates.lng) {
+      lat = parseFloat(coordinates.lat);
+      lng = parseFloat(coordinates.lng);
+    } else if (markerRef.current?.getPosition()) {
+      const position = markerRef.current.getPosition();
+      lat = position.lat();
+      lng = position.lng();
+    } else {
+      return;
+    }
 
     try {
-      const response = await fetch(
-        `${REACT_APP_API_URL}/api/weather?lat=${lat}&lon=${lng}`
-      );
-      if (!response.ok) {
-        throw new Error('Weather data fetch failed');
-      }
-      const data = await response.json();
-
-      setWeatherData({
-        current_temperature: data.current_temperature,
-        latitude: data.latitude,
-        longitude: data.longitude,
-        elevation: data.elevation,
-        chartData: data.times.map((time, index) => ({
-          time,
-          temperature: data.temperatures[index],
-        })),
+      await axios.post(`${REACT_APP_API_URL}/api/locations`, {
+        userId: REACT_APP_USER_ID,
+        name: locationName,
+        latitude: lat,
+        longitude: lng,
+        isFavorite,
       });
+
+      await loadSavedLocations();
+      setLocationName('');
+      setIsFavorite(false);
+      setCoordinates({ lat: '', lng: '' });
+      setIsLocationPanelCollapsed(true);
     } catch (error) {
-      console.error('Error fetching weather data:', error);
+      console.error('Error saving location:', error);
     }
   };
 
@@ -138,66 +178,144 @@ const Weather = () => {
           longitude: location.longitude,
         },
       });
-      loadSavedLocations();
+      await loadSavedLocations();
     } catch (error) {
       console.error('Error deleting location:', error);
     }
   };
 
-  const handleSaveLocation = async () => {
-    if (!locationName) return;
+  useEffect(() => {
+    const loadGoogleMaps = async () => {
+      try {
+        const response = await axios.get(
+          `${REACT_APP_API_URL}/api/google-maps-init`
+        );
+        const { googleMapsKey } = response.data;
 
-    let lat, lng;
-    if (coordinates.lat && coordinates.lng) {
-      // Use manually entered coordinates
-      lat = parseFloat(coordinates.lat);
-      lng = parseFloat(coordinates.lng);
-    } else if (marker.current) {
-      // Use marker coordinates
-      const markerCoords = marker.current.getLngLat();
-      lat = markerCoords.lat;
-      lng = markerCoords.lng;
-    } else {
-      return; // No coordinates available
+        const script = document.createElement('script');
+        script.src = `https://maps.googleapis.com/maps/api/js?key=${googleMapsKey}&callback=initMap&v=weekly`;
+        script.async = true;
+        script.defer = true;
+        document.head.appendChild(script);
+
+        window.initMap = () => {
+          const mapInstance = new window.google.maps.Map(mapContainer.current, {
+            center: { lat: 51.5, lng: 0 },
+            zoom: 6,
+          });
+
+          markerRef.current = new window.google.maps.Marker({
+            map: mapInstance,
+            position: null,
+            icon: {
+              path: window.google.maps.SymbolPath.CIRCLE,
+              fillColor: '#FF0000',
+              fillOpacity: 1,
+              strokeWeight: 0,
+              scale: 8,
+            },
+            visible: false,
+          });
+
+          const meteosourceOverlay = new window.google.maps.ImageMapType({
+            getTileUrl: (coord, zoom) => {
+              return `${REACT_APP_API_URL}/api/meteosource/tile?x=${coord.x}&y=${coord.y}&zoom=${zoom}`;
+            },
+            tileSize: new window.google.maps.Size(256, 256),
+            name: 'Temperature',
+          });
+
+          mapInstance.overlayMapTypes.push(meteosourceOverlay);
+          mapRef.current = mapInstance;
+          mapInstance.addListener('click', handleMapClick);
+        };
+
+        loadSavedLocations();
+      } catch (error) {
+        console.error('Error initializing map:', error);
+      }
+    };
+
+    if (!window.google?.maps) {
+      loadGoogleMaps();
     }
 
-    try {
-      await axios.post(`${REACT_APP_API_URL}/api/locations`, {
-        userId: REACT_APP_USER_ID,
-        name: locationName,
-        latitude: lat,
-        longitude: lng,
-        isFavorite,
+    return () => {
+      if (markerRef.current) markerRef.current.setMap(null);
+      if (window.google?.maps && mapRef.current) {
+        window.google.maps.event.clearInstanceListeners(mapRef.current);
+      }
+    };
+  }, []);
+
+  // Update map overlay when variable changes
+  useEffect(() => {
+    if (mapRef.current) {
+      mapRef.current.overlayMapTypes.clear();
+
+      const meteosourceOverlay = new window.google.maps.ImageMapType({
+        getTileUrl: (coord, zoom) => {
+          return `${REACT_APP_API_URL}/api/meteosource/tile?x=${coord.x}&y=${coord.y}&zoom=${zoom}&variable=${selectedVariable}`;
+        },
+        tileSize: new window.google.maps.Size(256, 256),
+        name: 'Weather Data',
       });
 
-      loadSavedLocations();
-      setLocationName('');
-      setIsFavorite(false);
-      setCoordinates({ lat: '', lng: '' });
-      setIsLocationPanelCollapsed(true);
+      mapRef.current.overlayMapTypes.push(meteosourceOverlay);
+    }
+  }, [selectedVariable]);
+
+  const handleMapClick = async (e) => {
+    if (!markerRef.current) return;
+
+    const lat = e.latLng.lat();
+    const lng = e.latLng.lng();
+
+    markerRef.current.setPosition(e.latLng);
+    markerRef.current.setVisible(true);
+    setCoordinates({ lat: lat.toFixed(4), lng: lng.toFixed(4) });
+
+    try {
+      const response = await axios.get(`${REACT_APP_API_URL}/api/weather`, {
+        params: { lat, lon: lng },
+      });
+
+      setWeatherData({
+        current_temperature: response.data.current_temperature,
+        latitude: response.data.latitude,
+        longitude: response.data.longitude,
+        elevation: response.data.elevation,
+        chartData: response.data.times.map((time, index) => ({
+          time,
+          temperature: response.data.temperatures[index],
+        })),
+      });
     } catch (error) {
-      console.error('Error saving location:', error);
+      console.error('Error fetching weather data:', error);
     }
   };
-
-  const handleCoordinateInput = (e, type) => {
-    const value = e.target.value;
-    // Allow only numbers, decimal point, and minus sign
-    if (/^-?\d*\.?\d*$/.test(value)) {
-      setCoordinates((prev) => ({
-        ...prev,
-        [type]: value,
-      }));
-    }
-  };
-
   return (
     <div className="h-screen w-screen relative">
-      <div ref={mapContainer} className="h-full w-full" />
+      {/* Variable Selection Dropdown */}
+      <div className="map-controls">
+        <select
+          value={selectedVariable}
+          onChange={(e) => setSelectedVariable(e.target.value)}
+          className="map-type-selector"
+        >
+          {weatherVariables.map((option) => (
+            <option key={option.value} value={option.value}>
+              {option.label}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      <div ref={mapContainer} className="h-full w-full" id="map" />
 
       {/* Location Save Panel */}
       <div
-        className={`absolute top-8 right-0 transition-transform duration-300 ${
+        className={`absolute top-8 right-0 transition-transform duration-300 location-panel ${
           isLocationPanelCollapsed ? 'translate-x-full' : 'translate-x-0'
         }`}
       >
@@ -219,7 +337,6 @@ const Weather = () => {
               className="w-full px-3 py-2 border rounded"
             />
 
-            {/* Coordinate inputs */}
             <div className="space-y-2">
               <input
                 type="text"
@@ -256,14 +373,13 @@ const Weather = () => {
               Save Location
             </button>
 
-            {/* All Saved Locations List */}
             <div className="mt-6">
               <h3 className="text-lg font-semibold mb-2">Saved Locations</h3>
               <div className="space-y-2 max-h-96 overflow-y-auto">
                 {savedLocations.map((location) => (
                   <div
                     key={`${location.latitude}-${location.longitude}`}
-                    className="flex items-center justify-between p-2 hover:bg-gray-100 rounded group"
+                    className="saved-location-item flex items-center justify-between p-2 rounded group transition-all"
                   >
                     <div className="flex items-center gap-2">
                       {location.isFavorite ? (
@@ -287,9 +403,9 @@ const Weather = () => {
         </div>
       </div>
 
-      {/* Weather Sidebar - unchanged */}
+      {/* Weather Sidebar */}
       <div
-        className={`absolute bottom-8 right-0 transition-transform duration-300 ${
+        className={`absolute bottom-8 right-0 transition-transform duration-300 weather-panel ${
           isCollapsed ? 'translate-x-full' : 'translate-x-0'
         }`}
       >
