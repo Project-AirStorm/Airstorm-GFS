@@ -14,6 +14,8 @@ import os
 from dotenv import load_dotenv
 import logging
 from database_initializer import DatabaseInitializer
+from email.utils import parsedate_to_datetime
+from datetime import datetime
 
 # Initialize the database service with the correct path
 db_service = DatabaseInitializer(db_path="data/app.sqlite")
@@ -123,7 +125,29 @@ def meteosource_tile():
 
         response = requests.get(url)
         response.raise_for_status()
-        return Response(response.content, content_type=response.headers['Content-Type'])
+
+        # Prepare response headers with caching
+        headers = {'Content-Type': response.headers.get('Content-Type', '')}
+        expires = response.headers.get('Expires')
+
+        if expires:
+            try:
+                # Parse expiration time and calculate max-age
+                expires_dt = parsedate_to_datetime(expires)
+                now = datetime.now(expires_dt.tzinfo)
+                max_age = int((expires_dt - now).total_seconds())
+                max_age = max(max_age, 0)  # Prevent negative values
+                headers['Cache-Control'] = f'public, max-age={max_age}'
+                headers['Expires'] = expires
+            except Exception as e:
+                logger.error(f"Error processing Expires header: {str(e)}")
+                # Fallback to 1 hour cache
+                headers['Cache-Control'] = 'public, max-age=3600'
+        else:
+            # Default cache if no Expires header
+            headers['Cache-Control'] = 'public, max-age=3600'
+
+        return Response(response.content, headers=headers)
 
     except Exception as e:
         logger.error(f"Unexpected tile error: {e}")
