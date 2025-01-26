@@ -58,7 +58,7 @@ const Weather = () => {
   const [coordinates, setCoordinates] = useState({ lat: '', lng: '' });
   const [savedMarkers, setSavedMarkers] = useState([]);
   const [selectedVariable, setSelectedVariable] = useState('temperature');
-  const [timeOffset, setTimeOffset] = useState('0hours'); // Start at current time
+  const [timeOffset, setTimeOffset] = useState('now'); // Start at current time
 
   const weatherVariables = [
     { value: 'temperature', label: 'Temperature' },
@@ -241,7 +241,8 @@ const Weather = () => {
 
           const meteosourceOverlay = new window.google.maps.ImageMapType({
             getTileUrl: (coord, zoom) => {
-              return `${REACT_APP_API_URL}/api/meteosource/tile?x=${coord.x}&y=${coord.y}&zoom=${zoom}&variable=${selectedVariable}&datetime=${timeOffset}`;
+              const timeParam = timeOffset === 'now' ? 'now' : timeOffset;
+              return `${REACT_APP_API_URL}/api/meteosource/tile?x=${coord.x}&y=${coord.y}&zoom=${zoom}&variable=${selectedVariable}&datetime=${timeParam}`;
             },
             tileSize: new window.google.maps.Size(256, 256),
             name: 'Weather Data',
@@ -277,7 +278,8 @@ const Weather = () => {
 
       const meteosourceOverlay = new window.google.maps.ImageMapType({
         getTileUrl: (coord, zoom) => {
-          return `${REACT_APP_API_URL}/api/meteosource/tile?x=${coord.x}&y=${coord.y}&zoom=${zoom}&variable=${selectedVariable}&datetime=${timeOffset}`;
+          const timeParam = timeOffset === 'now' ? 'now' : timeOffset;
+          return `${REACT_APP_API_URL}/api/meteosource/tile?x=${coord.x}&y=${coord.y}&zoom=${zoom}&variable=${selectedVariable}&datetime=${timeParam}`;
         },
         tileSize: new window.google.maps.Size(256, 256),
         name: 'Weather Data',
@@ -318,7 +320,8 @@ const Weather = () => {
   };
 
   const handleTimeChange = (offset) => {
-    setTimeOffset(offset);
+    // If offset is 'now', set timeOffset to 'now'; otherwise, use the offset
+    setTimeOffset(offset === 'now' ? 'now' : offset);
   };
 
   return (
