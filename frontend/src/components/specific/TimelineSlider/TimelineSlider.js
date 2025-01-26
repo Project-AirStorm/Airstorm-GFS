@@ -19,12 +19,8 @@ const TimelineSlider = ({ onTimeChange }) => {
     const offset = parseInt(e.target.value);
     setTimeOffset(offset);
 
-    // Calculate the new time based on the offset
-    const newTime = new Date(currentTime);
-    newTime.setHours(newTime.getHours() + offset);
-
-    // Pass the offset in the format: +<hours> or -<hours>
-    const offsetString = offset >= 0 ? `+${offset}hours` : `${offset}hours`;
+    // Pass the offset in the format: +<hours>
+    const offsetString = `+${offset}hours`;
     onTimeChange(offsetString);
   };
 
@@ -32,17 +28,17 @@ const TimelineSlider = ({ onTimeChange }) => {
   const generateTimeLabels = () => {
     const labels = [];
     const now = new Date(currentTime);
-    const maxOffset = 16 * 24; // 16 days in hours
+    const maxOffset = 7 * 24; // 7 days in hours
     const step = 24; // Show labels every 24 hours (1 day)
 
-    for (let i = -maxOffset; i <= maxOffset; i += step) {
+    for (let i = 0; i <= maxOffset; i += step) {
       const time = new Date(now);
       time.setHours(time.getHours() + i);
 
       labels.push({
         offset: i,
-        label: i === 0 ? 'Now' : `${i >= 0 ? '+' : ''}${i / 24} days`,
-        position: ((i + maxOffset) / (2 * maxOffset)) * 100,
+        label: i === 0 ? 'Now' : `+${i / 24} days`,
+        position: (i / maxOffset) * 100, // Position as a percentage
       });
     }
 
@@ -65,8 +61,8 @@ const TimelineSlider = ({ onTimeChange }) => {
       </div>
       <input
         type="range"
-        min={-16 * 24} // -16 days in hours
-        max={16 * 24} // +16 days in hours
+        min={0} // Start at now
+        max={7 * 24} // +7 days in hours
         value={timeOffset}
         onChange={handleTimeChange}
         className="timeline-slider"
