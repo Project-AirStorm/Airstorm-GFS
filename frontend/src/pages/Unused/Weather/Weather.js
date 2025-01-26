@@ -20,9 +20,29 @@ import {
 } from 'recharts';
 import axios from 'axios';
 import './map.css';
+import WeatherGraph from '../../../components/specific/WeatherGraph/WeatherGraph';
+import TimelineSlider from '../../../components/specific/TimelineSlider/TimelineSlider';
 
 const REACT_APP_API_URL = process.env.REACT_APP_API_URL;
 const REACT_APP_USER_ID = process.env.REACT_APP_USER_ID;
+
+const units = {
+  temperature: '°C',
+  feels_like_temperature: '°C',
+  clouds: '%',
+  precipitation: 'mm/h',
+  wind_speed: 'm/s',
+  wind_gust: 'm/s',
+  pressure: 'hPa',
+  humidity: '%',
+  wave_height: 'm',
+  wave_period: 's',
+  air_quality: 'Index',
+  ozone_surface: 'µg/m³',
+  ozone_total: 'Dobson',
+  no2: 'µg/m³',
+  'pm2.5': 'µg/m³',
+};
 
 const Weather = () => {
   const mapContainer = useRef(null);
@@ -38,10 +58,12 @@ const Weather = () => {
   const [coordinates, setCoordinates] = useState({ lat: '', lng: '' });
   const [savedMarkers, setSavedMarkers] = useState([]);
   const [selectedVariable, setSelectedVariable] = useState('temperature');
-  const [weatherVariables, setWeatherVariables] = useState([
+  const [timeOffset, setTimeOffset] = useState('0hours'); // Start at current time
+
+  const weatherVariables = [
     { value: 'temperature', label: 'Temperature' },
-    { value: 'feels_like_temperature', label: 'Feels Like Temperature' },
-    { value: 'clouds', label: 'Clouds' },
+    { value: 'feels_like_temperature', label: 'Feels Like' },
+    { value: 'clouds', label: 'Cloud Cover' },
     { value: 'precipitation', label: 'Precipitation' },
     { value: 'wind_speed', label: 'Wind Speed' },
     { value: 'wind_gust', label: 'Wind Gust' },
@@ -50,13 +72,13 @@ const Weather = () => {
     { value: 'wave_height', label: 'Wave Height' },
     { value: 'wave_period', label: 'Wave Period' },
     { value: 'air_quality', label: 'Air Quality' },
-    { value: 'ozone_surface', label: 'Ozone Surface' },
-    { value: 'ozone_total', label: 'Ozone Total' },
-    { value: 'no2', label: 'NO2' },
-    { value: 'pm2.5', label: 'PM2.5' },
-  ]);
+    { value: 'ozone_surface', label: 'Surface Ozone' },
+    { value: 'ozone_total', label: 'Total Ozone' },
+    { value: 'no2', label: 'NO₂' },
+    { value: 'pm2.5', label: 'PM₂.₅' },
+  ];
 
-  // Load and display saved locations
+  // Load saved locations
   const loadSavedLocations = async () => {
     try {
       const response = await axios.get(
@@ -219,10 +241,10 @@ const Weather = () => {
 
           const meteosourceOverlay = new window.google.maps.ImageMapType({
             getTileUrl: (coord, zoom) => {
-              return `${REACT_APP_API_URL}/api/meteosource/tile?x=${coord.x}&y=${coord.y}&zoom=${zoom}`;
+              return `${REACT_APP_API_URL}/api/meteosource/tile?x=${coord.x}&y=${coord.y}&zoom=${zoom}&variable=${selectedVariable}&datetime=${timeOffset}`;
             },
             tileSize: new window.google.maps.Size(256, 256),
-            name: 'Temperature',
+            name: 'Weather Data',
           });
 
           mapInstance.overlayMapTypes.push(meteosourceOverlay);
@@ -248,14 +270,14 @@ const Weather = () => {
     };
   }, []);
 
-  // Update map overlay when variable changes
+  // Update map overlay when variable or time changes
   useEffect(() => {
     if (mapRef.current) {
       mapRef.current.overlayMapTypes.clear();
 
       const meteosourceOverlay = new window.google.maps.ImageMapType({
         getTileUrl: (coord, zoom) => {
-          return `${REACT_APP_API_URL}/api/meteosource/tile?x=${coord.x}&y=${coord.y}&zoom=${zoom}&variable=${selectedVariable}`;
+          return `${REACT_APP_API_URL}/api/meteosource/tile?x=${coord.x}&y=${coord.y}&zoom=${zoom}&variable=${selectedVariable}&datetime=${timeOffset}`;
         },
         tileSize: new window.google.maps.Size(256, 256),
         name: 'Weather Data',
@@ -263,7 +285,7 @@ const Weather = () => {
 
       mapRef.current.overlayMapTypes.push(meteosourceOverlay);
     }
-  }, [selectedVariable]);
+  }, [selectedVariable, timeOffset]);
 
   const handleMapClick = async (e) => {
     if (!markerRef.current) return;
@@ -294,6 +316,11 @@ const Weather = () => {
       console.error('Error fetching weather data:', error);
     }
   };
+
+  const handleTimeChange = (offset) => {
+    setTimeOffset(offset);
+  };
+
   return (
     <div className="h-screen w-screen relative">
       {/* Variable Selection Dropdown */}
@@ -305,7 +332,7 @@ const Weather = () => {
         >
           {weatherVariables.map((option) => (
             <option key={option.value} value={option.value}>
-              {option.label}
+              {option.label} ({units[option.value]})
             </option>
           ))}
         </select>
@@ -461,6 +488,14 @@ const Weather = () => {
           )}
         </div>
       </div>
+
+      {/* Weather Graph Container */}
+      <div className="weather-graph-container">
+        <WeatherGraph weatherType={selectedVariable} />
+      </div>
+
+      {/* Timeline Slider */}
+      <TimelineSlider onTimeChange={handleTimeChange} />
     </div>
   );
 };
