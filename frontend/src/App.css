@@ -1,9 +1,11 @@
 /* App.css */
 
-/* Root variables */
+/* Root variables for consistent sizing and spacing */
 :root {
   --sidebar-width: 16rem;
   --header-height: 77px;
+  --primary-bg: rgb(249 250 251);
+  --border-color: rgb(229 231 235);
 }
 
 /* Main layout structure */
@@ -12,7 +14,7 @@
   min-height: 100vh;
 }
 
-/* Main content wrapper */
+/* Main content wrapper with sidebar margin */
 .main-content-wrapper {
   flex: 1;
   display: flex;
@@ -24,16 +26,18 @@
 /* Common layout styles for all pages */
 .dashboard-container {
   min-height: 100vh;
-  background-color: rgb(249 250 251);
-  overflow-x: auto;
-  min-width: 1200px;
+  background-color: var(--primary-bg);
+  overflow-x: hidden; /* Change from auto to hidden */
+  width: 100%; /* Remove min-width: 1200px */
 }
 
+/* Main content padding and width */
 .main-content {
   width: 100%;
   padding: 1.5rem;
 }
 
+/* Controls container for action buttons and switches */
 .controls-container {
   display: flex;
   align-items: center;
@@ -43,27 +47,22 @@
   width: 100%;
 }
 
-/* Content area */
+/* Content area with header offset */
 .content-area {
   flex: 1;
   padding-top: var(--header-height);
-  background-color: #f9fafb;
+  background-color: var(--primary-bg);
   width: 100%;
   min-height: calc(100vh - var(--header-height));
 }
 
-/* Responsive Design */
+/* Responsive breakpoints */
 @media screen and (max-width: 768px) {
   .main-content-wrapper {
     margin-left: 0;
   }
-
+  
   .main-content {
     padding: 1rem;
-  }
-
-  .controls-container {
-    flex-direction: column;
-    align-items: stretch;
   }
 }

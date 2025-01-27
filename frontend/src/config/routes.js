@@ -1,33 +1,22 @@
 import Dashboard from '../pages/Dashboard/Dashboard';
 import Maps from '../pages/Maps/Maps';
+import Forecasts from '../pages/Forecasts/Forecasts';
 import Weather from '../pages/Unused/Weather/Weather';
-import MeteogramPbp from '../components/specific/MeteogramPbp/MeteogramPbp';
-import SkewTPbp from '../components/specific/SkewTPbp/SkewTPbp';
-
+import Login from '../pages/Login/Login'
 /**
  * Application route configuration
  * Contains all route definitions and their associated metadata
  */
 export const ROUTES = {
+  Login:{
+    path: '/login',
+    title: 'Login',
+    element: Login,
+  },
   dashboard: {
     path: '/dashboard',
     title: 'Dashboard',
     element: Dashboard,
-  },
-  meteogramPbp: {
-    path: '/meteogram-pbp',
-    title: 'Meteogram PBP',
-    element: MeteogramPbp,
-  },
-  skewTPbp: {
-    path: '/skewt-pbp',
-    title: 'SkewT PBP',
-    element: SkewTPbp,
-  },
-  weather: {
-    path: '/weather',
-    title: 'Weather',
-    element: Weather,
   },
   maps: {
     path: '/maps',
@@ -37,11 +26,16 @@ export const ROUTES = {
   forecasts: {
     path: '/forecasts',
     title: 'Forecasts',
-    element: Weather,
+    element: Forecasts,
   },
   alerts: {
     path: '/alerts',
     title: 'Alerts',
+    element: Weather,
+  },
+  weather: {
+    path: '/weather',
+    title: 'Weather',
     element: Weather,
   },
   analysis: {

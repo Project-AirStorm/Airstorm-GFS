@@ -59,17 +59,6 @@ const Sidebar = () => {
       label: 'Dashboard',
       page: '/dashboard',
     },
-    { icon: <Map className="w-4 h-4" />, label: 'Maps', page: '/maps' },
-    {
-      icon: <BarChart2 className="w-4 h-4" />,
-      label: 'Meteogram PBP',
-      page: '/meteogram-pbp',
-    },
-    {
-      icon: <FileText className="w-4 h-4" />,
-      label: 'SkewT PBP',
-      page: '/skewt-pbp',
-    },
     {
       icon: <BarChart2 className="w-4 h-4" />,
       label: 'Forecasts',
@@ -91,7 +80,9 @@ const Sidebar = () => {
       label: 'Settings',
       page: '/settings',
     },
-    { icon: <FileText className="w-4 h-4" />, label: 'Logs', page: '/logs' },
+    { icon: <FileText className="w-4 h-4" />, 
+      label: 'Logs', 
+      page: '/logs' },
   ];
 
   return (

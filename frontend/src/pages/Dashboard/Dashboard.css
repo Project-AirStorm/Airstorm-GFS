@@ -1,6 +1,6 @@
 /* Dashboard.css */
 
-/* Weather Grid */
+/* Weather Grid Layout */
 .weather-grid {
   display: flex;
   gap: 1.5rem;
@@ -34,19 +34,17 @@
 
 /* Make weather cards maintain width */
 .weather-grid > * {
-  min-width: calc(
-    (100% - 3rem) / 3
-  ); /* 3rem accounts for the two gaps between cards */
+  min-width: calc((100% - 3rem) / 3);
   max-width: calc((100% - 3rem) / 3);
   flex: 0 0 auto;
 }
 
-/* Chart Section */
+/* Chart Section Styles */
 .chart-section {
   background-color: white;
   padding: 1.5rem;
   border-radius: 0.5rem;
-  border: 1px solid rgb(229 231 235);
+  border: 1px solid var(--border-color);
   margin-bottom: 1.5rem;
   width: 100%;
 }
@@ -63,7 +61,7 @@
   margin-bottom: 1rem;
 }
 
-/* Bottom Grid */
+/* Bottom Grid Layout */
 .bottom-grid {
   display: grid;
   grid-template-columns: 2fr 1fr;
@@ -75,7 +73,7 @@
   background-color: white;
   padding: 1.5rem;
   border-radius: 0.5rem;
-  border: 1px solid rgb(229 231 235);
+  border: 1px solid var(--border-color);
 }
 
 .card-title {
@@ -102,7 +100,7 @@
   padding: 2rem;
   background-color: white;
   border-radius: 0.5rem;
-  border: 1px solid rgb(229 231 235);
+  border: 1px solid var(--border-color);
   margin-bottom: 1.5rem;
 }
 
@@ -110,28 +108,27 @@
   color: rgb(239 68 68);
 }
 
-/* Responsive Design - maintain 3 cards view */
-@media screen and (min-width: 1201px) {
-  .weather-grid > * {
-    min-width: calc((100% - 3rem) / 3);
-    max-width: calc((100% - 3rem) / 3);
-  }
-}
-
+/* Responsive adjustments */
 @media screen and (max-width: 1200px) {
   .weather-grid > * {
-    min-width: calc((100% - 3rem) / 3);
-    max-width: calc((100% - 3rem) / 3);
-  }
-
-  .bottom-grid {
-    grid-template-columns: 1fr;
+    max-width: calc(50% - 0.75rem);
   }
 }
 
 @media screen and (max-width: 768px) {
   .weather-grid > * {
-    min-width: calc((100% - 3rem) / 3);
-    max-width: calc((100% - 3rem) / 3);
+    max-width: 100%;
+  }
+  
+  .bottom-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .chart-section {
+    padding: 1rem;
+  }
+  
+  .bottom-card {
+    padding: 1rem;
   }
 }
