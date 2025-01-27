@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { ClerkProvider, SignIn } from '@clerk/clerk-react';
 import {
   BrowserRouter as Router,
   Routes,
@@ -11,6 +12,14 @@ import Header from './components/common/header/Header';
 import Sidebar from './components/common/sidebar/Sidebar';
 import { ROUTES, getPageTitle } from './config/routes';
 import './App.css';
+
+
+// Pull in the publishable key from your .env
+const PUBLISHABLE_KEY = process.env.REACT_APP_VITE_CLERK_PUBLISHABLE_KEY;
+if (!PUBLISHABLE_KEY) {
+  throw new Error("Missing Clerk Publishable Key");
+}
+
 
 /**
  * Layout component that wraps the main content and handles mobile menu state
@@ -66,35 +75,51 @@ const Layout = ({ children }) => {
  */
 function App() {
   return (
-    <Router>
-      <Routes>
-        {/* Routes without Layout */}
-        <Route path="/login" element={<ROUTES.Login.element />} />
+    // 3️⃣ Wrap your entire app in the ClerkProvider
+    <ClerkProvider publishableKey={PUBLISHABLE_KEY}>
+      <Router>
+        <Routes>
+          {/* 4️⃣ Replace /login route with Clerk’s SignIn component */}
+          <Route
+            path="/login"
+            element={
+              <SignIn
+                routing="path"
+                path="/login"
+                /* Optionally configure appearance, afterSignInUrl, etc. */
+              />
+            }
+          />
 
-        {/* Routes with Layout */}
-        <Route
-          path="/*"
-          element={
-            <Layout>
-              <Routes>
-                {/* Redirect root to dashboard */}
-                <Route path="/" element={<Navigate to={ROUTES.dashboard.path} replace />} />
-                
-                {/* Dynamically generate routes */}
-                {Object.values(ROUTES)
-                  .filter((route) => route.path !== '/login') // Excludes /login page 
-                  .map(({ path, element: Element }) => (
-                    <Route key={path} path={path} element={<Element />} />
-                  ))}
-                
-                {/* Catch-all route */}
-                <Route path="*" element={<Navigate to={ROUTES.dashboard.path} replace />} />
-              </Routes>
-            </Layout>
-          }
-        />
-      </Routes>
-    </Router>
+          {/* All other routes with your standard Layout */}
+          <Route
+            path="/*"
+            element={
+              <Layout>
+                <Routes>
+                  <Route
+                    path="/"
+                    element={<Navigate to={ROUTES.dashboard.path} replace />}
+                  />
+
+                  {Object.values(ROUTES)
+                    .filter((route) => route.path !== '/login') 
+                    .map(({ path, element: Element }) => (
+                      <Route key={path} path={path} element={<Element />} />
+                    ))}
+
+                  {/* Catch-all route */}
+                  <Route
+                    path="*"
+                    element={<Navigate to={ROUTES.dashboard.path} replace />}
+                  />
+                </Routes>
+              </Layout>
+            }
+          />
+        </Routes>
+      </Router>
+    </ClerkProvider>
   );
 }
 
