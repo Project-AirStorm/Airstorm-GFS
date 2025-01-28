@@ -1,6 +1,7 @@
 import sqlite3
 import logging
 
+
 class LocationService:
     """
     The LocationService class provides an interface for interacting with the Locations table
@@ -12,6 +13,7 @@ class LocationService:
     - Toggle the 'is_favorite' status of a location.
     - Delete a location based on user ID and coordinates.
     """
+
     def __init__(self, db_path='data/app.sqlite'):
         """
         Initialize the LocationService with the path to the SQLite database.

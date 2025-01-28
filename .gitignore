@@ -47,7 +47,7 @@ coverage/
 .cache/
 
 # Ignore SQLite databases and temporary files
-*.sqlite
+# *.sqlite
 *.sqlite3
 *.db
 *.db-journal
