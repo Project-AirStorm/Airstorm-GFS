@@ -59,6 +59,9 @@ const Sidebar = () => {
       label: 'Dashboard',
       page: '/dashboard',
     },
+    { icon: <Map className="w-4 h-4" />, 
+      label: 'Maps', 
+      page: '/maps' },
     {
       icon: <BarChart2 className="w-4 h-4" />,
       label: 'Forecasts',

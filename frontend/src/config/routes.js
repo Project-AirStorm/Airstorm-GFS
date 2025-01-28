@@ -1,8 +1,12 @@
 import Dashboard from '../pages/Dashboard/Dashboard';
-import Maps from '../pages/Maps/Maps';
 import Forecasts from '../pages/Forecasts/Forecasts';
-import Weather from '../pages/Unused/Weather/Weather';
+import Maps from '../pages/Maps/Maps';
+import Alerts from '../pages/Alerts/Alerts';
+import Analysis from '../pages/Analysis/Analysis';
+import Logs from '../pages/Logs/Logs';
+import Settings from '../pages/Settings/Settings';
 import Login from '../pages/Login/Login'
+
 /**
  * Application route configuration
  * Contains all route definitions and their associated metadata
@@ -31,27 +35,22 @@ export const ROUTES = {
   alerts: {
     path: '/alerts',
     title: 'Alerts',
-    element: Weather,
-  },
-  weather: {
-    path: '/weather',
-    title: 'Weather',
-    element: Weather,
+    element: Alerts,
   },
   analysis: {
     path: '/analysis',
     title: 'Analysis',
-    element: Weather,
+    element: Analysis,
   },
   settings: {
     path: '/settings',
     title: 'Settings',
-    element: Weather,
+    element: Settings,
   },
   logs: {
     path: '/logs',
     title: 'Logs',
-    element: Weather,
+    element: Logs,
   },
 };
 
