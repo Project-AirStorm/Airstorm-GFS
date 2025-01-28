@@ -29,12 +29,16 @@ const WeatherCard = ({
   React.useEffect(() => {
     const fetchData = async () => {
       try {
-        console.log(`Fetching weather data for ${city} (${latitude}, ${longitude})`);
-        
-        const weatherResponse = await axios.get(`${API_BASE_URL}/api/weather`, {
-          params: { lat: latitude, lon: longitude }
-        });
-        console.log('Weather API response:', weatherResponse.data);
+        console.log(`Fetching data for ${city} at ${latitude}, ${longitude}`);
+
+        // This fetches the latitude and longitutde from the the Flask API as JSON data 
+        const weatherResponse = await axios.get(
+          `${REACT_APP_API_URL}/api/weather`,
+          {
+            params: { lat: latitude, lon: longitude },
+          }
+        );
+        console.log('Weather response:', weatherResponse.data);
         setWeatherData(weatherResponse.data);
 
         const locationResponse = await axios.get(`${API_BASE_URL}/api/geocode`, {

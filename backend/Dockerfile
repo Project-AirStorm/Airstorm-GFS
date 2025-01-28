@@ -2,7 +2,7 @@
 FROM python:3.9-slim
 
 # Sets the working directory in the docker container
-WORKDIR /app
+WORKDIR /backend
 
 # Copy the requirements file (the dependencies) to the container
 COPY requirements.txt ./
@@ -21,13 +21,17 @@ RUN pip install openmeteo-requests requests-cache retry-requests numpy pandas
 RUN pip install requests
 RUN pip install python-dotenv
 
+# Ensure the data directory exists
+RUN mkdir -p data
+
+# Install SQLite explicitly
+RUN apt-get update && apt-get install -y sqlite3 && apt-get clean
+
 # Copies the rest of the application code to the container
 COPY . .
 
 # Exposes port 5000 for Flask
 EXPOSE 5001
 
-# a tiny change
-
 # Run the flask application
-CMD ["flask", "--app", "app.py", "run", "--host=0.0.0.0", "--debug"]
+CMD ["flask", "--app", "api.py", "run", "--host=0.0.0.0", "--debug"]
