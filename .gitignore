@@ -4,7 +4,6 @@ __pycache__/
 *.pyo
 *.pyd
 *.venv/
-*.cache.sqlite
 venv/
 ENV/
 env/
@@ -16,9 +15,15 @@ yarn-debug.log*
 yarn-error.log*
 
 # Ignore Docker files
-*.env
 docker-compose.override.yml
 *.pid
+
+# Ignore environment files
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
 
 # Ignore editor/IDE files
 .vscode/
@@ -26,19 +31,29 @@ docker-compose.override.yml
 *.sublime-project
 *.sublime-workspace
 
-# Ignore logs
-logs/
-*.log
-
-# Ignore OS files
+# Ignore OS-generated files
 .DS_Store
 Thumbs.db
 
-# Ignore build outputs
+# Ignore build outputs and binaries
 build/
 dist/
 *.out
 *.o
 *.class
+
+# Ignore coverage reports and caches
 coverage/
 .cache/
+
+# Ignore SQLite databases and temporary files
+# *.sqlite
+*.sqlite3
+*.db
+*.db-journal
+*.sqlite-journal
+*.sqlite3-journal
+
+# Ignore npm/yarn and IDE files
+.pnp
+.pnp.js

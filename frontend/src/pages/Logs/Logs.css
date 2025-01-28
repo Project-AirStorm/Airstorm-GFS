@@ -1,0 +1,226 @@
+/* Logs.css */
+.logs-body {
+    background-color: white;
+    padding: 1.5rem;
+    border-radius: 0.5rem;
+    border: 1px solid rgb(229 231 235);
+    margin-bottom: 1.5rem;
+    width: 100%;
+  }
+  
+  .logs-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 2rem;
+  }
+  
+  .logs-title-section {
+    flex-grow: 1;
+  }
+  
+  .logs-actions {
+    display: flex;
+    gap: 1rem;
+  }
+  
+  .export-button {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    background-color: rgb(37 99 235);
+    color: white;
+    border: none;
+    border-radius: 0.375rem;
+    font-size: 0.875rem;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+  }
+  
+  .export-button:hover {
+    background-color: rgb(29 78 216);
+  }
+  
+  .button-icon {
+    width: 1rem;
+    height: 1rem;
+  }
+  
+  .logs-controls {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+  }
+  
+  .search-bar {
+    flex-grow: 1;
+    min-width: 250px;
+    position: relative;
+  }
+  
+  .search-icon {
+    position: absolute;
+    left: 0.75rem;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 1rem;
+    height: 1rem;
+    color: rgb(156 163 175);
+  }
+  
+  .search-input {
+    width: 100%;
+    padding: 0.5rem 1rem 0.5rem 2.5rem;
+    border: 1px solid rgb(209 213 219);
+    border-radius: 0.375rem;
+    font-size: 0.875rem;
+  }
+  
+  .search-input:focus {
+    outline: none;
+    border-color: rgb(37 99 235);
+    box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.1);
+  }
+  
+  .filters-section {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+  
+  .filter-icon {
+    width: 1rem;
+    height: 1rem;
+    color: rgb(156 163 175);
+  }
+  
+  .filter-select {
+    padding: 0.5rem 2rem 0.5rem 0.75rem;
+    border: 1px solid rgb(209 213 219);
+    border-radius: 0.375rem;
+    font-size: 0.875rem;
+    background-color: white;
+    cursor: pointer;
+  }
+  
+  .filter-select:focus {
+    outline: none;
+    border-color: rgb(37 99 235);
+    box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.1);
+  }
+  
+  /* Table Styles */
+  .logs-table {
+    overflow-x: auto;
+  }
+  
+  table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  
+  th {
+    background-color: rgb(249 250 251);
+    padding: 0.75rem 1rem;
+    text-align: left;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: rgb(31 41 55);
+    border-bottom: 2px solid rgb(229 231 235);
+  }
+  
+  td {
+    padding: 0.75rem 1rem;
+    font-size: 0.875rem;
+    color: rgb(75 85 99);
+    border-bottom: 1px solid rgb(229 231 235);
+  }
+  
+  /* Log Type Badges */
+  .log-type {
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.25rem;
+    font-size: 0.75rem;
+    font-weight: 500;
+    text-transform: capitalize;
+  }
+  
+  .log-type.system {
+    background-color: rgb(243 244 246);
+    color: rgb(75 85 99);
+  }
+  
+  .log-type.weather {
+    background-color: rgb(219 234 254);
+    color: rgb(37 99 235);
+  }
+  
+  .log-type.user {
+    background-color: rgb(236 253 245);
+    color: rgb(16 185 129);
+  }
+  
+  /* Severity Badges */
+  .severity-badge {
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.25rem;
+    font-size: 0.75rem;
+    font-weight: 500;
+    text-transform: capitalize;
+  }
+  
+  .severity-badge.info {
+    background-color: rgb(219 234 254);
+    color: rgb(37 99 235);
+  }
+  
+  .severity-badge.warning {
+    background-color: rgb(254 243 199);
+    color: rgb(217 119 6);
+  }
+  
+  .severity-badge.error {
+    background-color: rgb(254 226 226);
+    color: rgb(239 68 68);
+  }
+  
+  /* Row Highlight */
+  tr.severity-error {
+    background-color: rgb(254 242 242);
+  }
+  
+  tr.severity-warning {
+    background-color: rgb(255 251 235);
+  }
+  
+  /* Responsive Design */
+  @media screen and (max-width: 768px) {
+    .logs-body {
+      padding: 1rem;
+    }
+  
+    .logs-header {
+      flex-direction: column;
+      gap: 1rem;
+    }
+  
+    .logs-controls {
+      flex-direction: column;
+    }
+  
+    .filters-section {
+      flex-wrap: wrap;
+    }
+  
+    .filter-select {
+      flex-grow: 1;
+    }
+  
+    /* Make table scrollable horizontally */
+    .logs-table {
+      margin: 0 -1rem;
+      padding: 0 1rem;
+    }
+  }
