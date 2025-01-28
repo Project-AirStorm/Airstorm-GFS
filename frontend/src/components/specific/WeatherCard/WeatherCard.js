@@ -9,17 +9,17 @@ import {
 } from 'react-icons/io5';
 import './WeatherCard.css';
 
-const API_BASE_URL = process.env.REACT_APP_API_URL;
+const REACT_APP_API_URL = process.env.REACT_APP_API_URL;
 
-const WeatherCard = ({ 
-  city, 
+const WeatherCard = ({
+  city,
   state, // Now optional
-  latitude, 
-  longitude, 
+  latitude,
+  longitude,
   backgroundColor,
   isFavorite,
   onDelete,
-  onToggleFavorite 
+  onToggleFavorite,
 }) => {
   const [weatherData, setWeatherData] = React.useState(null);
   const [locationInfo, setLocationInfo] = React.useState(null);
@@ -31,7 +31,7 @@ const WeatherCard = ({
       try {
         console.log(`Fetching data for ${city} at ${latitude}, ${longitude}`);
 
-        // This fetches the latitude and longitutde from the the Flask API as JSON data 
+        // This fetches the latitude and longitutde from the the Flask API as JSON data
         const weatherResponse = await axios.get(
           `${REACT_APP_API_URL}/api/weather`,
           {
@@ -41,21 +41,26 @@ const WeatherCard = ({
         console.log('Weather response:', weatherResponse.data);
         setWeatherData(weatherResponse.data);
 
-        const locationResponse = await axios.get(`${API_BASE_URL}/api/geocode`, {
-          params: { lat: latitude, lon: longitude }
-        });
+        const locationResponse = await axios.get(
+          `${REACT_APP_API_URL}/api/geocode`,
+          {
+            params: { lat: latitude, lon: longitude },
+          }
+        );
         console.log('Geocoding API response:', locationResponse.data);
         setLocationInfo(locationResponse.data);
-        
+
         setLoading(false);
       } catch (err) {
         console.error('Error fetching data:', {
           city,
           latitude,
           longitude,
-          error: err.message
+          error: err.message,
         });
-        setError(`Unable to load weather data for ${city} (${latitude}, ${longitude})`);
+        setError(
+          `Unable to load weather data for ${city} (${latitude}, ${longitude})`
+        );
         setLoading(false);
       }
     };
@@ -66,7 +71,7 @@ const WeatherCard = ({
   // Loading state with animation
   if (loading) {
     return (
-      <div 
+      <div
         className="weather-card weather-card--loading"
         style={{ backgroundColor }}
         aria-busy="true"
@@ -75,7 +80,7 @@ const WeatherCard = ({
         <div className="loading-line loading-line--subtitle"></div>
         <div className="loading-line loading-line--text"></div>
         <div className="loading-line loading-line--full"></div>
-        
+
         <div className="weather-stats-grid">
           {[1, 2, 3].map((index) => (
             <div key={index} className="stat-box stat-box--loading">
@@ -91,11 +96,7 @@ const WeatherCard = ({
   // Error state with details
   if (error) {
     return (
-      <div 
-        className="weather-card"
-        style={{ backgroundColor }}
-        role="alert"
-      >
+      <div className="weather-card" style={{ backgroundColor }} role="alert">
         <div className="error-container">
           <p className="error-title">Unable to Load Weather</p>
           <p className="error-message">{error}</p>
@@ -105,7 +106,7 @@ const WeatherCard = ({
   }
 
   return (
-    <div 
+    <div
       className="weather-card"
       style={{ backgroundColor }}
       role="region"
@@ -118,7 +119,10 @@ const WeatherCard = ({
             <>
               <div className="location-secondary">
                 <IoLocationOutline className="inline-icon" />
-                <span>{locationInfo.components.city}, {locationInfo.components.state_code}</span>
+                <span>
+                  {locationInfo.components.city},{' '}
+                  {locationInfo.components.state_code}
+                </span>
               </div>
               <div className="location-details">
                 <span>
@@ -134,8 +138,16 @@ const WeatherCard = ({
           <button
             onClick={onToggleFavorite}
             className="action-button"
-            title={isFavorite ? 'Remove from monitored locations' : 'Add to monitored locations'}
-            aria-label={isFavorite ? 'Remove from monitored locations' : 'Add to monitored locations'}
+            title={
+              isFavorite
+                ? 'Remove from monitored locations'
+                : 'Add to monitored locations'
+            }
+            aria-label={
+              isFavorite
+                ? 'Remove from monitored locations'
+                : 'Add to monitored locations'
+            }
           >
             {isFavorite ? (
               <IoStarSharp className="action-icon" />
@@ -155,24 +167,21 @@ const WeatherCard = ({
       </div>
 
       <p className="weather-description">
-        It's {weatherData.current_temperature.toFixed(0)}° and {weatherData.condition}.
+        It's {weatherData.current_temperature.toFixed(0)}° and{' '}
+        {weatherData.condition}.
       </p>
-      
+
       <div className="weather-stats-grid">
-        <WeatherStat 
-          label="Humidity" 
-          value={weatherData.humidity} 
-          unit="%" 
+        <WeatherStat label="Humidity" value={weatherData.humidity} unit="%" />
+        <WeatherStat
+          label="Wind"
+          value={weatherData.wind_speed.toFixed(0)}
+          unit="mph"
         />
-        <WeatherStat 
-          label="Wind" 
-          value={weatherData.wind_speed.toFixed(0)} 
-          unit="mph" 
-        />
-        <WeatherStat 
-          label="Air Quality" 
-          value={weatherData.air_quality} 
-          description="(Moderate)" 
+        <WeatherStat
+          label="Air Quality"
+          value={weatherData.air_quality}
+          description="(Moderate)"
         />
       </div>
     </div>
