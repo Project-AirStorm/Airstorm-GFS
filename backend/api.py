@@ -8,7 +8,6 @@ import openmeteo_requests
 from flask_cors import CORS
 from flask import Flask, jsonify, request
 import requests
-import logging
 import os
 from dotenv import load_dotenv
 import logging
