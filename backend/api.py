@@ -8,9 +8,9 @@ import openmeteo_requests
 from flask_cors import CORS
 from flask import Flask, jsonify, request
 import requests
+import logging
 import os
 from dotenv import load_dotenv
-import logging
 from database_initializer import DatabaseInitializer
 
 # Initialize the database service with the correct path
@@ -21,7 +21,6 @@ db_service = DatabaseInitializer(db_path="data/app.sqlite")
 
 # logging.getLogger("watchdog").setLevel(logging.ERROR)
 # logging.getLogger("watchdog.observers.inotify_buffer").setLevel(logging.ERROR)
-
 # Load environment variables from .env file
 load_dotenv()
 
@@ -79,6 +78,7 @@ def get_locations():
     user_id = request.args.get('userId')
     if not user_id:
         return jsonify({"error": "User ID is required"}), 400
+
     #reads in from user_id from CSV file in locations_service.py 
     locations = location_service.get_user_locations(user_id)
     return jsonify(locations)
