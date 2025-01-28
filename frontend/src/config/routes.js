@@ -5,14 +5,15 @@ import Alerts from '../pages/Alerts/Alerts';
 import Analysis from '../pages/Analysis/Analysis';
 import Logs from '../pages/Logs/Logs';
 import Settings from '../pages/Settings/Settings';
-import Login from '../pages/Login/Login'
+import Login from '../pages/Login/Login';
+import Weather from '../pages/Unused/Weather/Weather.js';
 
 /**
  * Application route configuration
  * Contains all route definitions and their associated metadata
  */
 export const ROUTES = {
-  Login:{
+  Login: {
     path: '/login',
     title: 'Login',
     element: Login,
@@ -25,7 +26,7 @@ export const ROUTES = {
   maps: {
     path: '/maps',
     title: 'Maps',
-    element: Maps,
+    element: Weather,
   },
   forecasts: {
     path: '/forecasts',
