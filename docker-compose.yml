@@ -28,7 +28,6 @@ services:
     volumes:
       - ./frontend:/app
       - /app/node_modules
-      - frontend-cache:/app/node_modules/.cache  # Added named volume for cache
     environment:
       - REACT_APP_API_URL=${REACT_APP_API_URL}
       - CHOKIDAR_USEPOLLING=true
@@ -37,6 +36,3 @@ services:
       - REACT_APP_MAPTILER_API_KEY=${REACT_APP_MAPTILER_API_KEY}
       - REACT_APP_USER_ID=${REACT_APP_USER_ID}
       - REACT_APP_GOOGLE_MAPS_API_KEY=${REACT_APP_GOOGLE_MAPS_API_KEY}
-
-volumes:
-  frontend-cache:  # Define the named volume

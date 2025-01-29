@@ -18,9 +18,8 @@ RUN npm cache clean --force && \
     npm install --save maplibre-gl && \
     npm install --save axios
 
-# Create cache directory with proper permissions
-RUN mkdir -p /app/node_modules/.cache && \
-    chmod -R 777 /app/node_modules/.cache
+# Hotfix ESLINT error
+RUN mkdir -p node_modules/.cache && chmod -R 777 node_modules/.cache
 
 # Copy the rest of the application code
 COPY . .
