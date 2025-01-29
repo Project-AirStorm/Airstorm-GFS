@@ -53,7 +53,7 @@ coverage/
 *.db-journal
 *.sqlite-journal
 *.sqlite3-journal
-
+*.cache.sqlite
 # Ignore npm/yarn and IDE files
 .pnp
 .pnp.js
