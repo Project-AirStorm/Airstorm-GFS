@@ -9,13 +9,17 @@ services:
       - ./backend:/backend              # Maps the entire backend directory on your host machine to the /backend directory in the container
       - ./backend/data:/backend/data:rw # Mounts SQLite database with read/write permissions
     environment:
-      - FLASK_ENV=production
       - FLASK_DEBUG=0
       - FLASK_APP=api.py
+      - FLASK_ENV=production
       - BACKEND_GOOGLE_MAPS_API_KEY=${BACKEND_GOOGLE_MAPS_API_KEY}
       - BACKEND_METEOMATICS_USERNAME=${BACKEND_METEOMATICS_USERNAME}
       - BACKEND_METEOMATICS_PASSWORD=${BACKEND_METEOMATICS_PASSWORD}
-      
+      # Github Variables for Backend Page
+      - BACKEND_GITHUB_ACCESS_TOKEN=${BACKEND_GITHUB_ACCESS_TOKEN}
+      - BACKEND_GITHUB_OWNER=${BACKEND_GITHUB_OWNER}
+      - BACKEND_ITHUB_REPO=${BACKEND_GITHUB_REPO}
+
   frontend:
     env_file: 
       - .env
@@ -27,9 +31,9 @@ services:
       - /app/node_modules
     environment:
       - REACT_APP_API_URL=${REACT_APP_API_URL}
+      - NODE_ENV=production
       - CHOKIDAR_USEPOLLING=true
       - WDS_SOCKET_PORT=0
-      - NODE_ENV=production
       - REACT_APP_MAPTILER_KEY=${REACT_APP_MAPTILER_KEY}
       - REACT_APP_MAPTILER_API_KEY=${REACT_APP_MAPTILER_API_KEY}
       - REACT_APP_USER_ID=${REACT_APP_USER_ID}
