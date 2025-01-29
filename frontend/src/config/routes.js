@@ -7,6 +7,7 @@ import Logs from '../pages/Logs/Logs';
 import Settings from '../pages/Settings/Settings';
 import Login from '../pages/Login/Login';
 import Weather from '../pages/Unused/Weather/Weather.js';
+import Feedback from '../pages/Feedback/Feedback';
 
 /**
  * Application route configuration
@@ -52,6 +53,11 @@ export const ROUTES = {
     path: '/logs',
     title: 'Logs',
     element: Logs,
+  },
+  feedback: {
+    path: '/feedback',
+    title: 'Feedback',
+    element: Feedback,
   },
 };
 
