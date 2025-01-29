@@ -47,14 +47,13 @@ coverage/
 .cache/
 
 # Ignore SQLite databases and temporary files
-# *.sqlite
+*.sqlite
+*.cache.sqlite
 *.sqlite3
 *.db
 *.db-journal
 *.sqlite-journal
 *.sqlite3-journal
-*.cache.sqlite
-backend/data/app.sqlite
 
 # Ignore npm/yarn and IDE files
 .pnp
