@@ -64,6 +64,7 @@ jobs:
             REACT_APP_MAPTILER_API_KEY=${{ secrets.REACT_APP_MAPTILER_API_KEY }}
             REACT_APP_USER_ID=${{ secrets.REACT_APP_USER_ID }}
             REACT_APP_GOOGLE_MAPS_API_KEY=${{ secrets.REACT_APP_GOOGLE_MAPS_API_KEY }}
+            REACT_APP_VITE_CLERK_PUBLISHABLE_KEY=${{ secrets.REACT_APP_VITE_CLERK_PUBLISHABLE_KEY }}
             EOL
             
             # Verify .env file was created
