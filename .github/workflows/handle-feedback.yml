@@ -2,7 +2,7 @@ name: Handle User Feedback Emails
 
 on:
   issues:
-    types: [opened, edited]
+    types: [opened]
 
 jobs:
   send-confirmation-email:
