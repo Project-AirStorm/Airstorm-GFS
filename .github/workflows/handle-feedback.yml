@@ -88,7 +88,7 @@ jobs:
                   \"Charset\": \"UTF-8\"
                 },
                 \"Text\": {
-                  \"Data\": \"Dear ${{ steps.extract-metadata.outputs.recipient_name }},\n\nThank you for reaching out to Project Airstorm Support. We have received your feedback and our team will review it promptly.\n\nTicket Details:\nReference #: ${{ steps.extract-metadata.outputs.issue_number }}\nSubject: ${{ steps.extract-metadata.outputs.issue_title }}\nSubmitted: ${{ steps.extract-metadata.outputs.submission_date }}\n\nYour Feedback:\n${{ steps.extract-metadata.outputs.feedback_details }}\n\nOur team will evaluate your feedback and respond if additional information is needed. You'll receive a notification when we update your ticket.\n\nBest regards,\nProject Airstorm Support Team\",
+                  \"Data\": \"Dear ${{ steps.extract-metadata.outputs.recipient_name }},\n\nThank you for reaching out to Project Airstorm Support. We have received your feedback and our team will review it promptly.\n\nTicket Details:\nReference #: ${{ steps.extract-metadata.outputs.issue_number }}\nSubject: ${{ steps.extract-metadata.outputs.issue_title }}\nSubmitted: ${{ steps.extract-metadata.outputs.submission_date }}\n\nYour Feedback:\n${{ steps.extract-metadata.outputs.feedback_details }}\n\nOur team will evaluate your feedback and respond if additional information is needed. You'll receive an update via email, and when this ticket is closed.\n\nBest regards,\nProject Airstorm Support Team\",
                   \"Charset\": \"UTF-8\"
                 }
               }
