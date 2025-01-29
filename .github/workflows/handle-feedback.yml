@@ -7,7 +7,6 @@ on:
 jobs:
   send-confirmation-email:
     runs-on: ubuntu-latest
-    # Only run if issue has 'user-feedback' label
     if: contains(github.event.issue.labels.*.name, 'user-feedback')
     
     permissions:
@@ -31,38 +30,66 @@ jobs:
         with:
           script: |
             const issueBody = context.payload.issue.body;
-            
-            // Extract name and email using the specific format
             const nameMatch = issueBody.match(/\*\*Name:\*\* ([^\n]+)/);
             const emailMatch = issueBody.match(/\*\*Email:\*\* ([^\n]+)/);
-            
-            // Extract feedback details
             const feedbackMatch = issueBody.match(/### Feedback Details\n([\s\S]+)$/);
             
             const name = nameMatch ? nameMatch[1].trim() : 'User';
             const email = emailMatch ? emailMatch[1].trim() : '';
             const feedbackDetails = feedbackMatch ? feedbackMatch[1].trim() : issueBody;
             
+            const date = new Date().toLocaleDateString('en-US', {
+              weekday: 'long',
+              year: 'numeric',
+              month: 'long',
+              day: 'numeric'
+            });
+            
             core.setOutput('recipient_email', email);
             core.setOutput('recipient_name', name);
             core.setOutput('issue_title', context.payload.issue.title);
             core.setOutput('issue_number', context.payload.issue.number);
             core.setOutput('feedback_details', feedbackDetails);
+            core.setOutput('submission_date', date);
+
+      - name: Prepare email content
+        id: email-content
+        run: |
+          template=$(cat .github/email-templates/support-confirmation.html)
+          
+          # Replace template variables
+          email_content="${template//\{\{name\}\}/${{ steps.extract-metadata.outputs.recipient_name }}}"
+          email_content="${email_content//\{\{issue_number\}\}/${{ steps.extract-metadata.outputs.issue_number }}}"
+          email_content="${email_content//\{\{issue_title\}\}/${{ steps.extract-metadata.outputs.issue_title }}}"
+          email_content="${email_content//\{\{submission_date\}\}/${{ steps.extract-metadata.outputs.submission_date }}}"
+          email_content="${email_content//\{\{feedback_details\}\}/${{ steps.extract-metadata.outputs.feedback_details }}}"
+          
+          # Save the processed template to a temporary file
+          echo "$email_content" > processed_template.html
+          
+          # Store the content in a way that preserves newlines for the next step
+          echo "EMAIL_CONTENT<<EOF" >> $GITHUB_ENV
+          cat processed_template.html >> $GITHUB_ENV
+          echo "EOF" >> $GITHUB_ENV
 
       - name: Send confirmation email
         run: |
           aws ses send-email \
             --from "support@projectairstorm.com" \
             --destination "ToAddresses=${{ steps.extract-metadata.outputs.recipient_email }}" \
-            --message '{
-              "Subject": {
-                "Data": "[Project AirStorm Support] ${{ steps.extract-metadata.outputs.issue_title }} [Issue: #${{ steps.extract-metadata.outputs.issue_number }}]",
-                "Charset": "UTF-8"
+            --message "{
+              \"Subject\": {
+                \"Data\": \"[Project AirStorm Support] ${{ steps.extract-metadata.outputs.issue_title }} [Issue: #${{ steps.extract-metadata.outputs.issue_number }}]\",
+                \"Charset\": \"UTF-8\"
               },
-              "Body": {
-                "Text": {
-                  "Data": "Dear ${{ steps.extract-metadata.outputs.recipient_name }},\n\nHello! We have received your feedback and will contact you as soon as possible regarding your issue/request/bug!\n\nFeedback Details:\n${{ steps.extract-metadata.outputs.feedback_details }}\n\nBest regards,\nProject AirStorm Support Team",
-                  "Charset": "UTF-8"
+              \"Body\": {
+                \"Html\": {
+                  \"Data\": \"$EMAIL_CONTENT\",
+                  \"Charset\": \"UTF-8\"
+                },
+                \"Text\": {
+                  \"Data\": \"Dear ${{ steps.extract-metadata.outputs.recipient_name }},\n\nThank you for reaching out to Project Airstorm Support. We have received your feedback and our team will review it promptly.\n\nTicket Details:\nReference #: ${{ steps.extract-metadata.outputs.issue_number }}\nSubject: ${{ steps.extract-metadata.outputs.issue_title }}\nSubmitted: ${{ steps.extract-metadata.outputs.submission_date }}\n\nYour Feedback:\n${{ steps.extract-metadata.outputs.feedback_details }}\n\nOur team will evaluate your feedback and respond if additional information is needed. You'll receive a notification when we update your ticket.\n\nBest regards,\nProject Airstorm Support Team\",
+                  \"Charset\": \"UTF-8\"
                 }
               }
-            }'
+            }"
