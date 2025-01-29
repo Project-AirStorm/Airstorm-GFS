@@ -65,10 +65,10 @@ jobs:
             REACT_APP_USER_ID=${{ secrets.REACT_APP_USER_ID }}
             REACT_APP_GOOGLE_MAPS_API_KEY=${{ secrets.REACT_APP_GOOGLE_MAPS_API_KEY }}
             REACT_APP_VITE_CLERK_PUBLISHABLE_KEY=${{ secrets.REACT_APP_VITE_CLERK_PUBLISHABLE_KEY }}
-            EOL
             BACKEND_GITHUB_ACCESS_TOKEN=${{ secrets.BACKEND_GITHUB_ACCESS_TOKEN }}
             BACKEND_GITHUB_OWNER=${{ secrets.BACKEND_GITHUB_OWNER }}
             BACKEND_GITHUB_REPO=${{ secrets.BACKEND_GITHUB_REPO }}
+            EOL
             # Verify .env file was created
             if [ ! -f .env ]; then
               echo "Error: .env file was not created"
