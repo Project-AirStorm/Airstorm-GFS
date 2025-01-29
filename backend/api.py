@@ -12,10 +12,10 @@ import requests
 import logging
 import os
 from dotenv import load_dotenv
-import logging
 from database_initializer import DatabaseInitializer
 from email.utils import parsedate_to_datetime
 from datetime import datetime
+from feedback_routes import feedback_bp  # For Github Feedback Page
 
 # Initialize the database service with the correct path
 db_service = DatabaseInitializer(db_path="data/app.sqlite")
@@ -25,12 +25,14 @@ db_service = DatabaseInitializer(db_path="data/app.sqlite")
 
 # logging.getLogger("watchdog").setLevel(logging.ERROR)
 # logging.getLogger("watchdog.observers.inotify_buffer").setLevel(logging.ERROR)
-
 # Load environment variables from .env file
 load_dotenv()
 
 app = Flask(__name__)
 CORS(app)
+
+# For Github Feedback Page
+app.register_blueprint(feedback_bp)
 
 # Initialize services
 location_service = LocationService()
@@ -172,6 +174,7 @@ def get_locations():
     user_id = request.args.get('userId')
     if not user_id:
         return jsonify({"error": "User ID is required"}), 400
+
     # reads in from user_id from CSV file in locations_service.py
     locations = location_service.get_user_locations(user_id)
     return jsonify(locations)

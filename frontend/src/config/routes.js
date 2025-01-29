@@ -1,63 +1,63 @@
 import Dashboard from '../pages/Dashboard/Dashboard';
+import Forecasts from '../pages/Forecasts/Forecasts';
 import Maps from '../pages/Maps/Maps';
-import Weather from '../pages/Unused/Weather/Weather';
-import MeteogramPbp from '../components/specific/MeteogramPbp/MeteogramPbp';
-import SkewTPbp from '../components/specific/SkewTPbp/SkewTPbp';
+import Alerts from '../pages/Alerts/Alerts';
+import Analysis from '../pages/Analysis/Analysis';
+import Logs from '../pages/Logs/Logs';
+import Settings from '../pages/Settings/Settings';
+import Login from '../pages/Login/Login';
+import Weather from '../pages/Unused/Weather/Weather.js';
+import Feedback from '../pages/Feedback/Feedback';
 
 /**
  * Application route configuration
  * Contains all route definitions and their associated metadata
  */
 export const ROUTES = {
+  Login: {
+    path: '/login',
+    title: 'Login',
+    element: Login,
+  },
   dashboard: {
     path: '/dashboard',
     title: 'Dashboard',
     element: Dashboard,
   },
-  meteogramPbp: {
-    path: '/meteogram-pbp',
-    title: 'Meteogram PBP',
-    element: MeteogramPbp,
-  },
-  skewTPbp: {
-    path: '/skewt-pbp',
-    title: 'SkewT PBP',
-    element: SkewTPbp,
-  },
-  weather: {
-    path: '/weather',
-    title: 'Weather',
-    element: Weather,
-  },
   maps: {
     path: '/maps',
     title: 'Maps',
-    element: Maps,
+    element: Weather,
   },
   forecasts: {
     path: '/forecasts',
     title: 'Forecasts',
-    element: Weather,
+    element: Forecasts,
   },
   alerts: {
     path: '/alerts',
     title: 'Alerts',
-    element: Weather,
+    element: Alerts,
   },
   analysis: {
     path: '/analysis',
     title: 'Analysis',
-    element: Weather,
+    element: Analysis,
   },
   settings: {
     path: '/settings',
     title: 'Settings',
-    element: Weather,
+    element: Settings,
   },
   logs: {
     path: '/logs',
     title: 'Logs',
-    element: Weather,
+    element: Logs,
+  },
+  feedback: {
+    path: '/feedback',
+    title: 'Feedback',
+    element: Feedback,
   },
 };
 
