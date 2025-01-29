@@ -12,6 +12,7 @@ import logging
 import os
 from dotenv import load_dotenv
 from database_initializer import DatabaseInitializer
+from feedback_routes import feedback_bp  # For Github Feedback Page
 
 # Initialize the database service with the correct path
 db_service = DatabaseInitializer(db_path="data/app.sqlite")
@@ -26,6 +27,9 @@ load_dotenv()
 
 app = Flask(__name__)
 CORS(app)
+
+# For Github Feedback Page
+app.register_blueprint(feedback_bp)
 
 # Initialize services
 location_service = LocationService()

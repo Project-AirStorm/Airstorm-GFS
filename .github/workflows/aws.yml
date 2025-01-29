@@ -12,14 +12,14 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-      
+
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ env.AWS_REGION }}
-      
+
       - name: Deploy to EC2
         uses: appleboy/ssh-action@master
         with:
@@ -31,28 +31,28 @@ jobs:
             # Print initial disk space
             echo "Initial disk space:"
             df -h /
-            
+
             # Aggressive Docker cleanup
             echo "Performing Docker cleanup..."
             docker system prune -af --volumes
             docker volume rm $(docker volume ls -q) || true
-            
+
             # Stop and remove all running containers
             echo "Stopping and removing containers..."
             docker stop $(docker ps -a -q) || true
             docker rm $(docker ps -a -q) || true
-            
+
             # Remove all images
             echo "Removing Docker images..."
             docker rmi -f $(docker images -aq) || true
-            
+
             # Print disk space after cleanup
             echo "Disk space after cleanup:"
             df -h /
-            
+
             cd ~/production/Airstorm-GFS
             git pull
-            
+
             # Create .env file from GitHub Secrets
             echo "Creating .env file..."
             cat > .env << EOL
@@ -64,19 +64,22 @@ jobs:
             REACT_APP_MAPTILER_API_KEY=${{ secrets.REACT_APP_MAPTILER_API_KEY }}
             REACT_APP_USER_ID=${{ secrets.REACT_APP_USER_ID }}
             REACT_APP_GOOGLE_MAPS_API_KEY=${{ secrets.REACT_APP_GOOGLE_MAPS_API_KEY }}
+            REACT_APP_VITE_CLERK_PUBLISHABLE_KEY=${{ secrets.REACT_APP_VITE_CLERK_PUBLISHABLE_KEY }}
             EOL
-            
+            BACKEND_GITHUB_ACCESS_TOKEN=${{ secrets.BACKEND_GITHUB_ACCESS_TOKEN }}
+            BACKEND_GITHUB_OWNER=${{ secrets.BACKEND_GITHUB_OWNER }}
+            BACKEND_GITHUB_REPO=${{ secrets.BACKEND_GITHUB_REPO }}
             # Verify .env file was created
             if [ ! -f .env ]; then
               echo "Error: .env file was not created"
               exit 1
             fi
-            
+
             echo "Building and starting containers..."
             docker-compose up -d --build
-            
+
             # Verify containers are running
             echo "Checking container status:"
             docker ps
-            
+
             echo "Deployment complete"

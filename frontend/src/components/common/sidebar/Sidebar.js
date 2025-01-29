@@ -9,6 +9,7 @@ import {
   Bell,
   FileText,
   Grid,
+  Sticker,
 } from 'lucide-react';
 import profilePic from '../../../assets/sample-profile-pic.jpeg';
 import afgscLogo from '../../../assets/afgsc-logo.png';
@@ -59,9 +60,7 @@ const Sidebar = () => {
       label: 'Dashboard',
       page: '/dashboard',
     },
-    { icon: <Map className="w-4 h-4" />, 
-      label: 'Maps', 
-      page: '/maps' },
+    { icon: <Map className="w-4 h-4" />, label: 'Maps', page: '/maps' },
     {
       icon: <BarChart2 className="w-4 h-4" />,
       label: 'Forecasts',
@@ -83,9 +82,12 @@ const Sidebar = () => {
       label: 'Settings',
       page: '/settings',
     },
-    { icon: <FileText className="w-4 h-4" />, 
-      label: 'Logs', 
-      page: '/logs' },
+    { icon: <FileText className="w-4 h-4" />, label: 'Logs', page: '/logs' },
+    {
+      icon: <Sticker className="w-4 h-4" />,
+      label: 'Feedback',
+      page: '/feedback',
+    },
   ];
 
   return (
