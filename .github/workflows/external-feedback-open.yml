@@ -24,7 +24,7 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
 
-      - name: Extract email metadata
+      - name: Extract metadata
         id: extract-metadata
         uses: actions/github-script@v7
         with:
@@ -52,48 +52,45 @@ jobs:
             core.setOutput('feedback_details', feedbackDetails);
             core.setOutput('submission_date', date);
 
-      - name: Prepare email content
-        id: email-content
+      - name: Prepare and send email
         run: |
-          template=$(cat .github/email-templates/external-feedback-open.html)
+          # Read the template
+          if [ ! -f ".github/email-templates/support-confirmation.html" ]; then
+            echo "Error: Template file not found"
+            exit 1
+          fi
           
-          # Replace template variables
+          template=$(cat ".github/email-templates/external-feedback-open.html")
+          
+          # Replace template variables with proper escaping
           email_content="${template//\{\{name\}\}/${{ steps.extract-metadata.outputs.recipient_name }}}"
           email_content="${email_content//\{\{issue_number\}\}/${{ steps.extract-metadata.outputs.issue_number }}}"
           email_content="${email_content//\{\{issue_title\}\}/${{ steps.extract-metadata.outputs.issue_title }}}"
           email_content="${email_content//\{\{submission_date\}\}/${{ steps.extract-metadata.outputs.submission_date }}}"
           email_content="${email_content//\{\{feedback_details\}\}/${{ steps.extract-metadata.outputs.feedback_details }}}"
           
-          # Save the processed template to a temporary file
-          echo "$email_content" > processed_template.html
-          
-          # Store the content in a way that preserves newlines for the next step
-          echo "EMAIL_CONTENT<<EOF" >> $GITHUB_ENV
-          cat processed_template.html >> $GITHUB_ENV
-          echo "EOF" >> $GITHUB_ENV
+          # Create JSON message file with proper escaping
+          cat > message.json << EOF
+          {
+            "Subject": {
+              "Data": "[Project AirStorm Support] ${{ steps.extract-metadata.outputs.issue_title }} [Issue: #${{ steps.extract-metadata.outputs.issue_number }}]",
+              "Charset": "UTF-8"
+            },
+            "Body": {
+              "Html": {
+                "Data": $(echo "$email_content" | jq -R -s .),
+                "Charset": "UTF-8"
+              },
+              "Text": {
+                "Data": "Dear ${{ steps.extract-metadata.outputs.recipient_name }},\n\nThank you for reaching out to Project Airstorm Support. We have received your feedback and our team will review it promptly.\n\nTicket Details:\nReference #: ${{ steps.extract-metadata.outputs.issue_number }}\nSubject: ${{ steps.extract-metadata.outputs.issue_title }}\nSubmitted: ${{ steps.extract-metadata.outputs.submission_date }}\n\nYour Feedback:\n${{ steps.extract-metadata.outputs.feedback_details }}\n\nOur team will evaluate your feedback and respond if additional information is needed. You'll receive an update via email, and when this ticket is closed.\n\nBest regards,\nProject Airstorm Support Team",
+                "Charset": "UTF-8"
+              }
+            }
+          }
+          EOF
 
-      - name: Send confirmation email
-        run: |
-          # First, encode the HTML content to escape special characters
-          ENCODED_HTML=$(echo "$EMAIL_CONTENT" | python3 -c 'import json,sys; print(json.dumps(sys.stdin.read()))')
-          
-          # Create the JSON with the encoded HTML
+          # Send email using the JSON file
           aws ses send-email \
             --from "support@projectairstorm.com" \
             --destination "ToAddresses=${{ steps.extract-metadata.outputs.recipient_email }}" \
-            --message '{
-              "Subject": {
-                "Data": "[Project AirStorm Support] '"${{ steps.extract-metadata.outputs.issue_title }}"' [Issue: #'"${{ steps.extract-metadata.outputs.issue_number }}"']",
-                "Charset": "UTF-8"
-              },
-              "Body": {
-                "Html": {
-                  "Data": '"$ENCODED_HTML"',
-                  "Charset": "UTF-8"
-                },
-                "Text": {
-                  "Data": "Dear '"${{ steps.extract-metadata.outputs.recipient_name }}"',\n\nThank you for reaching out to Project Airstorm Support. We have received your feedback and our team will review it promptly.\n\nTicket Details:\nReference #: '"${{ steps.extract-metadata.outputs.issue_number }}"'\nSubject: '"${{ steps.extract-metadata.outputs.issue_title }}"'\nSubmitted: '"${{ steps.extract-metadata.outputs.submission_date }}"'\n\nYour Feedback:\n'"${{ steps.extract-metadata.outputs.feedback_details }}"'\n\nOur team will evaluate your feedback and respond if additional information is needed. You'\''ll receive an update via email, and when this ticket is closed.\n\nBest regards,\nProject Airstorm Support Team",
-                  "Charset": "UTF-8"
-                }
-              }
-            }'
+            --message "file://message.json"
