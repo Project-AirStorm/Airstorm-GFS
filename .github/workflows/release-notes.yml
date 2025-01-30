@@ -9,6 +9,8 @@ on:
     secrets:
       GEMINI_API_KEY:
         required: true
+      BACKEND_GITHUB_ACCESS_TOKEN:
+        required: true
 
 permissions:
   contents: write
@@ -18,10 +20,12 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout repository
+        uses: actions/checkout@v3
         with:
           fetch-depth: 0
           token: ${{ secrets.BACKEND_GITHUB_ACCESS_TOKEN }}
+          repository: Project-AirStorm/Airstorm-GFS
           
       - name: Setup Node.js
         uses: actions/setup-node@v3
@@ -33,6 +37,8 @@ jobs:
           
       - name: Get commit messages
         id: get_commits
+        env:
+          GITHUB_TOKEN: ${{ secrets.BACKEND_GITHUB_ACCESS_TOKEN }}
         run: |
           # Get all commits since last tag for both frontend and backend
           PREVIOUS_TAG=$(git describe --tags --abbrev=0 "v${{ inputs.version }}^" 2>/dev/null || echo "")
