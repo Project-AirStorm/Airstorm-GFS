@@ -19,6 +19,14 @@ jobs:
         with:
           fetch-depth: 0
           
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      - name: Install dependencies
+        run: npm install axios
+          
       - name: Get commit messages
         id: get_commits
         run: |
@@ -82,4 +90,4 @@ jobs:
           draft: false
           prerelease: false
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.BACKEND_GITHUB_ACCESS_TOKEN }}
