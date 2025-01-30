@@ -58,7 +58,7 @@ jobs:
       - name: Prepare email content
         id: email-content
         run: |
-          template=$(cat .github/email-templates/support-notification.html)
+          template=$(cat .github/email-templates/support-open-notification.html)
           
           # Replace template variables
           email_content="${template//\{\{name\}\}/${{ steps.extract-metadata.outputs.submitter_name }}}"
