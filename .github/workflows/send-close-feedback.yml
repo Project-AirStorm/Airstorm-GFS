@@ -1,0 +1,162 @@
+name: Send Close Feedback
+
+on:
+  issues:
+    types: [closed]
+
+jobs:
+  internal-closure:
+    name: 🏠 Internal Closure Notification
+    runs-on: ubuntu-latest
+    if: contains(github.event.issue.labels.*.name, 'user-feedback')
+    
+    permissions:
+      issues: read
+      contents: read
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Extract closure metadata
+        id: extract-metadata
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const issueBody = context.payload.issue.body;
+            const nameMatch = issueBody.match(/\*\*Name:\*\* ([^\n]+)/);
+            const emailMatch = issueBody.match(/\*\*Email:\*\* ([^\n]+)/);
+            const feedbackMatch = issueBody.match(/### Feedback Details\n([\s\S]+?)(\n\n|$)/);
+            
+            const name = nameMatch ? nameMatch[1].trim() : 'Anonymous User';
+            const email = emailMatch ? emailMatch[1].trim() : 'No email provided';
+            const feedbackDetails = feedbackMatch ? feedbackMatch[1].trim() : issueBody;
+            
+            const submissionDate = new Date(context.payload.issue.created_at);
+            const closureDate = new Date(context.payload.issue.closed_at);
+            const resolutionTime = Math.floor((closureDate - submissionDate) / 3600000);
+            
+            core.setOutput('submitter_name', name);
+            core.setOutput('submitter_email', email);
+            core.setOutput('issue_title', context.payload.issue.title);
+            core.setOutput('issue_number', context.payload.issue.number);
+            core.setOutput('feedback_details', feedbackDetails);
+            core.setOutput('submission_date', submissionDate.toISOString());
+            core.setOutput('closure_date', closureDate.toISOString());
+            core.setOutput('resolution_time', `${resolutionTime} hours`);
+            core.setOutput('issue_url', context.payload.issue.html_url);
+
+      - name: Prepare internal closure email
+        id: prepare-internal-email
+        run: |
+          # Escape all values using jq
+          FEEDBACK=$(echo '${{ steps.extract-metadata.outputs.feedback_details }}' | jq -Rs .)
+          TEMPLATE=$(cat .github/email-templates/internal-close-notification.html | jq -Rs .)
+          
+          echo '{
+            "Subject": {
+              "Data": "[Support Ticket Closed] \(${{ steps.extract-metadata.outputs.issue_title }} | @json) (#\(${{ steps.extract-metadata.outputs.issue_number }}))",
+              "Charset": "UTF-8"
+            },
+            "Body": {
+              "Html": {
+                "Data": '"$TEMPLATE"',
+                "Charset": "UTF-8"
+              }
+            }
+          }' | jq --arg name "$(echo '${{ steps.extract-metadata.outputs.submitter_name }}' | jq -Rs .)" \
+                   --arg email "$(echo '${{ steps.extract-metadata.outputs.submitter_email }}' | jq -Rs .)" \
+                   --arg number "${{ steps.extract-metadata.outputs.issue_number }}" \
+                   --arg title "$(echo '${{ steps.extract-metadata.outputs.issue_title }}' | jq -Rs .)" \
+                   --arg feedback "$FEEDBACK" \
+                   --arg submission "${{ steps.extract-metadata.outputs.submission_date }}" \
+                   --arg closure "${{ steps.extract-metadata.outputs.closure_date }}" \
+                   --arg time "${{ steps.extract-metadata.outputs.resolution_time }}" \
+                   --arg url "${{ steps.extract-metadata.outputs.issue_url }}" \
+                   '.Body.Html.Data |= gsub("{{name}}"; $name) | 
+                    .Body.Html.Data |= gsub("{{email}}"; $email) |
+                    .Body.Html.Data |= gsub("{{issue_number}}"; $number) |
+                    .Body.Html.Data |= gsub("{{issue_title}}"; $title) |
+                    .Body.Html.Data |= gsub("{{feedback_details}}"; $feedback) |
+                    .Body.Html.Data |= gsub("{{submission_date}}"; $submission) |
+                    .Body.Html.Data |= gsub("{{closure_date}}"; $closure) |
+                    .Body.Html.Data |= gsub("{{resolution_time}}"; $time) |
+                    .Body.Html.Data |= gsub("{{issue_url}}"; $url)' > internal-message.json
+
+      - name: Send internal notification
+        run: |
+          aws ses send-email \
+            --from "support@projectairstorm.com" \
+            --destination "ToAddresses=support@projectairstorm.com,francisj24@lsus.edu,mataa98@lsus.edu,gafforde82@lsus.edu,zittrauerc49@lsus.edu,khawaldehd68@lsus.edu,hartlinev49@lsus.edu" \
+            --message file://internal-message.json
+
+  external-closure:
+    name: 📧 Customer Resolution
+    runs-on: ubuntu-latest
+    needs: internal-closure
+    if: contains(github.event.issue.labels.*.name, 'user-feedback')
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Extract customer closure data
+        id: extract-customer
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const issueBody = context.payload.issue.body;
+            const nameMatch = issueBody.match(/\*\*Name:\*\* ([^\n]+)/);
+            const emailMatch = issueBody.match(/\*\*Email:\*\* ([^\n]+)/);
+            
+            core.setOutput('recipient_email', emailMatch ? emailMatch[1].trim() : '');
+            core.setOutput('recipient_name', nameMatch ? nameMatch[1].trim() : 'User');
+            core.setOutput('issue_title', context.payload.issue.title);
+            core.setOutput('issue_number', context.payload.issue.number);
+
+      - name: Prepare closure email
+        id: prepare-closure-email
+        run: |
+          TEMPLATE=$(cat .github/email-templates/external-feedback-close.html | jq -Rs .)
+          RESOLUTION_NOTES=$(echo "This ticket has been reviewed and resolved." | jq -Rs .)
+          
+          echo '{
+            "Subject": {
+              "Data": "[Project AirStorm Support] Ticket Closed: \(${{ steps.extract-customer.outputs.issue_title }} | @json) [Issue: #\(${{ steps.extract-customer.outputs.issue_number }})]",
+              "Charset": "UTF-8"
+            },
+            "Body": {
+              "Html": {
+                "Data": '"$TEMPLATE"',
+                "Charset": "UTF-8"
+              }
+            }
+          }' | jq --arg name "$(echo '${{ steps.extract-customer.outputs.recipient_name }}' | jq -Rs .)" \
+                   --arg number "${{ steps.extract-customer.outputs.issue_number }}" \
+                   --arg title "$(echo '${{ steps.extract-customer.outputs.issue_title }}' | jq -Rs .)" \
+                   --arg resolution "$RESOLUTION_NOTES" \
+                   '.Body.Html.Data |= gsub("{{name}}"; $name) |
+                    .Body.Html.Data |= gsub("{{issue_number}}"; $number) |
+                    .Body.Html.Data |= gsub("{{issue_title}}"; $title) |
+                    .Body.Html.Data |= gsub("{{resolution_comment}}"; $resolution)' > closure-message.json
+
+      - name: Send closure email
+        run: |
+          aws ses send-email \
+            --from "support@projectairstorm.com" \
+            --destination "ToAddresses=${{ steps.extract-customer.outputs.recipient_email }}" \
+            --message file://closure-message.json
