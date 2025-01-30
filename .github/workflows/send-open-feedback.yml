@@ -1,215 +1,157 @@
-name: Build, Release and Deploy
+name: Send Open Feedback
+
 on:
-  push:
-    branches:
-      - main
-permissions:
-  contents: write
-  actions: write
+  issues:
+    types: [opened]
 
 jobs:
-  version-bump:
+  internal-notification:
+    name: 🏠 Internal Team Notification
     runs-on: ubuntu-latest
-    if: "!contains(github.event.head_commit.message, '[skip ci]')"
+    if: contains(github.event.issue.labels.*.name, 'user-feedback')
     
-    outputs:
-      new_version: ${{ steps.bump_version.outputs.new_version }}
-      
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
-          token: ${{ secrets.BACKEND_GITHUB_ACCESS_TOKEN }}
-          repository: Project-AirStorm/Airstorm-GFS
-          
-      - name: Get latest version
-        id: get_version
-        env:
-          GITHUB_TOKEN: ${{ secrets.BACKEND_GITHUB_ACCESS_TOKEN }}
-        run: |
-          LATEST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "0.0")
-          echo "LATEST_TAG=${LATEST_TAG}" >> $GITHUB_ENV
-          
-      - name: Bump version
-        id: bump_version
-        run: |
-          CURRENT_VERSION=${LATEST_TAG#v}
-          IFS='.' read -r -a version_parts <<< "$CURRENT_VERSION"
-          MINOR=$((${version_parts[1]} + 1))
-          NEW_VERSION="0.${MINOR}"
-          echo "new_version=${NEW_VERSION}" >> $GITHUB_OUTPUT
-          echo "NEW_VERSION=${NEW_VERSION}" >> $GITHUB_ENV
-
-      - name: Create tag
-        env:
-          GITHUB_TOKEN: ${{ secrets.BACKEND_GITHUB_ACCESS_TOKEN }}
-        run: |
-          git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git config --local user.name "github-actions[bot]"
-          git tag -a "v${NEW_VERSION}" -m "Release version ${NEW_VERSION}"
-          git push origin "v${NEW_VERSION}"
-
-  generate-notes:
-    needs: version-bump
-    runs-on: ubuntu-latest
     permissions:
-      contents: write
+      issues: read
+      contents: read
     
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
-          token: ${{ secrets.BACKEND_GITHUB_ACCESS_TOKEN }}
-          repository: Project-AirStorm/Airstorm-GFS
-          
-      - name: Setup Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: '18'
-
-      - name: Install dependencies
-        run: npm install axios
-          
-      - name: Get commit messages
-        id: get_commits
-        env:
-          GITHUB_TOKEN: ${{ secrets.BACKEND_GITHUB_ACCESS_TOKEN }}
-        run: |
-          # Get all commits since last tag for both frontend and backend
-          PREVIOUS_TAG=$(git describe --tags --abbrev=0 "v${{ needs.version-bump.outputs.new_version }}^" 2>/dev/null || echo "")
-          
-          echo "Frontend changes:" > changes.txt
-          git log ${PREVIOUS_TAG}..HEAD --oneline -- frontend >> changes.txt
-          
-          echo -e "\nBackend changes:" >> changes.txt
-          git log ${PREVIOUS_TAG}..HEAD --oneline -- backend >> changes.txt
-          
-          # Escape content for JSON
-          CHANGES=$(cat changes.txt | jq -sRr @json)
-          echo "changes=${CHANGES}" >> $GITHUB_OUTPUT
-
-      - name: Generate release notes
-        id: generate_notes
-        uses: actions/github-script@v6
-        env:
-          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-          COMMITS: ${{ steps.get_commits.outputs.changes }}
-        with:
-          script: |
-            const axios = require('axios');
-            
-            const prompt = `You are a technical writer creating release notes. 
-            Please analyze these git commits and create professional, well-organized release notes.
-            Group changes by frontend and backend, and within those by feature additions, improvements, and bug fixes.
-            Use clear, concise language and proper markdown formatting.
-            
-            Here are the commits:
-            ${process.env.COMMITS}`;
-            
-            const response = await axios.post('https://generativelanguage.googleapis.com/v1/models/gemini-pro:generateContent', {
-              contents: [{
-                parts: [{
-                  text: prompt
-                }]
-              }],
-              generationConfig: {
-                maxOutputTokens: 1024,
-                temperature: 0.7
-              }
-            }, {
-              headers: {
-                'Content-Type': 'application/json',
-                'x-goog-api-key': process.env.GEMINI_API_KEY
-              }
-            });
-            
-            const releaseNotes = response.data.candidates[0].content.parts[0].text;
-            core.setOutput('notes', releaseNotes);
-
-      - name: Create GitHub Release
-        uses: softprops/action-gh-release@v1
-        with:
-          tag_name: v${{ needs.version-bump.outputs.new_version }}
-          name: Release v${{ needs.version-bump.outputs.new_version }}
-          body: ${{ steps.generate_notes.outputs.notes }}
-          draft: false
-          prerelease: false
-        env:
-          GITHUB_TOKEN: ${{ secrets.BACKEND_GITHUB_ACCESS_TOKEN }}
-          GH_TOKEN: ${{ secrets.BACKEND_GITHUB_ACCESS_TOKEN }}
-
-  deploy:
-    needs: [version-bump, generate-notes]
-    name: Deploy
-    runs-on: ubuntu-latest
-    environment: production
-    env:
-      AWS_REGION: us-east-1
-    
-    steps:
-      - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Configure AWS credentials
+      - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ env.AWS_REGION }}
+          aws-region: ${{ secrets.AWS_REGION }}
 
-      - name: Deploy to EC2
-        uses: appleboy/ssh-action@master
+      - name: Extract metadata
+        id: extract-metadata
+        uses: actions/github-script@v7
         with:
-          host: ${{ secrets.EC2_HOST }}
-          username: ${{ secrets.EC2_USERNAME }}
-          key: ${{ secrets.AWS_SSH_KEY }}
-          debug: true
           script: |
-            # Print initial disk space
-            echo "Initial disk space:"
-            df -h /
-            # Aggressive Docker cleanup
-            echo "Performing Docker cleanup..."
-            docker system prune -af --volumes
-            docker volume rm $(docker volume ls -q) || true
-            # Stop and remove all running containers
-            echo "Stopping and removing containers..."
-            docker stop $(docker ps -a -q) || true
-            docker rm $(docker ps -a -q) || true
-            # Remove all images
-            echo "Removing Docker images..."
-            docker rmi -f $(docker images -aq) || true
-            # Print disk space after cleanup
-            echo "Disk space after cleanup:"
-            df -h /
-            cd ~/production/Airstorm-GFS
-            git pull
-            # Create .env file from GitHub Secrets
-            echo "Creating .env file..."
-            cat > .env << EOL
-            BACKEND_GOOGLE_MAPS_API_KEY=${{ secrets.BACKEND_GOOGLE_MAPS_API_KEY }}
-            BACKEND_METEOMATICS_USERNAME=${{ secrets.BACKEND_METEOMATICS_USERNAME }}
-            BACKEND_METEOMATICS_PASSWORD=${{ secrets.BACKEND_METEOMATICS_PASSWORD }}
-            REACT_APP_API_URL=${{ secrets.REACT_APP_API_URL }}
-            REACT_APP_MAPTILER_KEY=${{ secrets.REACT_APP_MAPTILER_KEY }}
-            REACT_APP_MAPTILER_API_KEY=${{ secrets.REACT_APP_MAPTILER_API_KEY }}
-            REACT_APP_USER_ID=${{ secrets.REACT_APP_USER_ID }}
-            REACT_APP_GOOGLE_MAPS_API_KEY=${{ secrets.REACT_APP_GOOGLE_MAPS_API_KEY }}
-            REACT_APP_VITE_CLERK_PUBLISHABLE_KEY=${{ secrets.REACT_APP_VITE_CLERK_PUBLISHABLE_KEY }}
-            BACKEND_GITHUB_ACCESS_TOKEN=${{ secrets.BACKEND_GITHUB_ACCESS_TOKEN }}
-            BACKEND_GITHUB_OWNER=${{ secrets.BACKEND_GITHUB_OWNER }}
-            BACKEND_GITHUB_REPO=${{ secrets.BACKEND_GITHUB_REPO }}
-            EOL
-            # Verify .env file was created
-            if [ ! -f .env ]; then
-              echo "Error: .env file was not created"
-              exit 1
-            fi
-            echo "Building and starting containers..."
-            docker-compose up -d --build
-            # Verify containers are running
-            echo "Checking container status:"
-            docker ps
-            echo "Deployment complete"
+            const issueBody = context.payload.issue.body;
+            const nameMatch = issueBody.match(/\*\*Name:\*\* ([^\n]+)/);
+            const emailMatch = issueBody.match(/\*\*Email:\*\* ([^\n]+)/);
+            const feedbackMatch = issueBody.match(/### Feedback Details\n([\s\S]+?)(\n\n|$)/);
+            
+            const name = nameMatch ? nameMatch[1].trim() : 'Anonymous User';
+            const email = emailMatch ? emailMatch[1].trim() : 'No email provided';
+            const feedbackDetails = feedbackMatch ? feedbackMatch[1].trim() : issueBody;
+            
+            core.setOutput('submitter_name', name);
+            core.setOutput('submitter_email', email);
+            core.setOutput('issue_title', context.payload.issue.title);
+            core.setOutput('issue_number', context.payload.issue.number);
+            core.setOutput('feedback_details', feedbackDetails);
+            core.setOutput('issue_url', context.payload.issue.html_url);
+
+      - name: Prepare internal email
+        id: prepare-internal-email
+        run: |
+          # Escape all values using jq
+          SUBJECT_NAME=$(echo '${{ steps.extract-metadata.outputs.submitter_name }}' | jq -Rs .)
+          SUBJECT_EMAIL=$(echo '${{ steps.extract-metadata.outputs.submitter_email }}' | jq -Rs .)
+          FEEDBACK=$(echo '${{ steps.extract-metadata.outputs.feedback_details }}' | jq -Rs .)
+          
+          # Read and escape template
+          TEMPLATE=$(cat .github/email-templates/internal-open-notification.html | jq -Rs .)
+          
+          # Generate JSON payload
+          echo '{
+            "Subject": {
+              "Data": "[New Support Ticket] \(${{ steps.extract-metadata.outputs.issue_title }} | @json) [Issue: #\(${{ steps.extract-metadata.outputs.issue_number }})]",
+              "Charset": "UTF-8"
+            },
+            "Body": {
+              "Html": {
+                "Data": '"$TEMPLATE"',
+                "Charset": "UTF-8"
+              }
+            }
+          }' | jq --arg name "$SUBJECT_NAME" \
+                   --arg email "$SUBJECT_EMAIL" \
+                   --arg number "${{ steps.extract-metadata.outputs.issue_number }}" \
+                   --arg title "$(echo '${{ steps.extract-metadata.outputs.issue_title }}' | jq -Rs .)" \
+                   --arg feedback "$FEEDBACK" \
+                   --arg url "${{ steps.extract-metadata.outputs.issue_url }}" \
+                   '.Body.Html.Data |= gsub("{{name}}"; $name) | 
+                    .Body.Html.Data |= gsub("{{email}}"; $email) |
+                    .Body.Html.Data |= gsub("{{issue_number}}"; $number) |
+                    .Body.Html.Data |= gsub("{{issue_title}}"; $title) |
+                    .Body.Html.Data |= gsub("{{feedback_details}}"; $feedback) |
+                    .Body.Html.Data |= gsub("{{issue_url}}"; $url)' > message.json
+
+      - name: Send internal notification
+        run: |
+          aws ses send-email \
+            --from "support@projectairstorm.com" \
+            --destination "ToAddresses=support@projectairstorm.com,francisj24@lsus.edu,mataa98@lsus.edu,gafforde82@lsus.edu,zittrauerc49@lsus.edu,khawaldehd68@lsus.edu,hartlinev49@lsus.edu" \
+            --message file://message.json
+
+  external-confirmation:
+    name: 📧 Customer Confirmation
+    runs-on: ubuntu-latest
+    needs: internal-notification
+    if: contains(github.event.issue.labels.*.name, 'user-feedback')
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Extract customer metadata
+        id: extract-customer
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const issueBody = context.payload.issue.body;
+            const nameMatch = issueBody.match(/\*\*Name:\*\* ([^\n]+)/);
+            const emailMatch = issueBody.match(/\*\*Email:\*\* ([^\n]+)/);
+            
+            core.setOutput('recipient_email', emailMatch ? emailMatch[1].trim() : '');
+            core.setOutput('recipient_name', nameMatch ? nameMatch[1].trim() : 'User');
+            core.setOutput('issue_title', context.payload.issue.title);
+            core.setOutput('issue_number', context.payload.issue.number);
+
+      - name: Prepare customer email
+        id: prepare-customer-email
+        run: |
+          # Escape all values
+          CUSTOMER_NAME=$(echo '${{ steps.extract-customer.outputs.recipient_name }}' | jq -Rs .)
+          TEMPLATE=$(cat .github/email-templates/external-feedback-open.html | jq -Rs .)
+          
+          echo '{
+            "Subject": {
+              "Data": "[Project AirStorm Support] \(${{ steps.extract-customer.outputs.issue_title }} | @json) [Issue: #\(${{ steps.extract-customer.outputs.issue_number }})]",
+              "Charset": "UTF-8"
+            },
+            "Body": {
+              "Html": {
+                "Data": '"$TEMPLATE"',
+                "Charset": "UTF-8"
+              },
+              "Text": {
+                "Data": "Dear \($CUSTOMER_NAME),\n\nThank you for your feedback...",
+                "Charset": "UTF-8"
+              }
+            }
+          }' | jq --arg name "$CUSTOMER_NAME" \
+                   --arg number "${{ steps.extract-customer.outputs.issue_number }}" \
+                   --arg title "$(echo '${{ steps.extract-customer.outputs.issue_title }}' | jq -Rs .)" \
+                   '.Body.Html.Data |= gsub("{{name}}"; $name) |
+                    .Body.Html.Data |= gsub("{{issue_number}}"; $number) |
+                    .Body.Html.Data |= gsub("{{issue_title}}"; $title)' > customer-message.json
+
+      - name: Send customer email
+        run: |
+          aws ses send-email \
+            --from "support@projectairstorm.com" \
+            --destination "ToAddresses=${{ steps.extract-customer.outputs.recipient_email }}" \
+            --message file://customer-message.json
