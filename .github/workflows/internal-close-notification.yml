@@ -77,40 +77,44 @@ jobs:
             core.setOutput('resolution_time', resolutionTimeText);
             core.setOutput('issue_url', context.payload.issue.html_url);
 
-      - name: Prepare email content
-        id: email-content
+      - name: Prepare and send email
         run: |
-          template=$(cat .github/email-templates/internal-close-notification.html)
+          # Check if template exists
+          if [ ! -f ".github/email-templates/internal-close-notification.html" ]; then
+            echo "Error: Template file not found"
+            exit 1
+          fi
           
-          # Replace template variables
-          email_content="${template//\{\{name\}\}/${{ steps.extract-metadata.outputs.submitter_name }}}"
-          email_content="${email_content//\{\{email\}\}/${{ steps.extract-metadata.outputs.submitter_email }}}"
-          email_content="${email_content//\{\{issue_number\}\}/${{ steps.extract-metadata.outputs.issue_number }}}"
-          email_content="${email_content//\{\{issue_title\}\}/${{ steps.extract-metadata.outputs.issue_title }}}"
-          email_content="${email_content//\{\{submission_date\}\}/${{ steps.extract-metadata.outputs.submission_date }}}"
-          email_content="${email_content//\{\{closure_date\}\}/${{ steps.extract-metadata.outputs.closure_date }}}"
-          email_content="${email_content//\{\{resolution_time\}\}/${{ steps.extract-metadata.outputs.resolution_time }}}"
-          email_content="${email_content//\{\{feedback_details\}\}/${{ steps.extract-metadata.outputs.feedback_details }}}"
-          email_content="${email_content//\{\{issue_url\}\}/${{ steps.extract-metadata.outputs.issue_url }}}"
+          template=$(cat ".github/email-templates/support-closure-notification.html")
           
-          # Escape content for JSON
-          email_content_escaped=$(echo "$email_content" | jq -aRs .)
-          echo "EMAIL_CONTENT=$email_content_escaped" >> $GITHUB_ENV
+          # Create temporary message file with variables replaced and proper escaping
+          cat > message.json << EOF
+          {
+            "Subject": {
+              "Data": "[Support Ticket Closed] ${{ steps.extract-metadata.outputs.issue_title }} (#${{ steps.extract-metadata.outputs.issue_number }})",
+              "Charset": "UTF-8"
+            },
+            "Body": {
+              "Html": {
+                "Data": $(echo "$template" \
+                  | sed "s/{{name}}/${{ steps.extract-metadata.outputs.submitter_name }}/g" \
+                  | sed "s/{{email}}/${{ steps.extract-metadata.outputs.submitter_email }}/g" \
+                  | sed "s/{{issue_number}}/${{ steps.extract-metadata.outputs.issue_number }}/g" \
+                  | sed "s/{{issue_title}}/${{ steps.extract-metadata.outputs.issue_title }}/g" \
+                  | sed "s/{{submission_date}}/${{ steps.extract-metadata.outputs.submission_date }}/g" \
+                  | sed "s/{{closure_date}}/${{ steps.extract-metadata.outputs.closure_date }}/g" \
+                  | sed "s/{{resolution_time}}/${{ steps.extract-metadata.outputs.resolution_time }}/g" \
+                  | sed "s/{{feedback_details}}/${{ steps.extract-metadata.outputs.feedback_details }}/g" \
+                  | sed "s/{{issue_url}}/${{ steps.extract-metadata.outputs.issue_url }}/g" \
+                  | jq -Rs .),
+                "Charset": "UTF-8"
+              }
+            }
+          }
+          EOF
 
-      - name: Send internal closure notification
-        run: |
+          # Send email using the JSON file
           aws ses send-email \
             --from "support@projectairstorm.com" \
             --destination "ToAddresses=support@projectairstorm.com,francisj24@lsus.edu,mataa98@lsus.edu,gafforde82@lsus.edu,zittrauerc49@lsus.edu,khawaldehd68@lsus.edu,hartlinev49@lsus.edu" \
-            --message "{
-              \"Subject\": {
-                \"Data\": \"[Support Ticket Closed] ${{ steps.extract-metadata.outputs.issue_title }} (#${{ steps.extract-metadata.outputs.issue_number }})\",
-                \"Charset\": \"UTF-8\"
-              },
-              \"Body\": {
-                \"Html\": {
-                  \"Data\": $EMAIL_CONTENT,
-                  \"Charset\": \"UTF-8\"
-                }
-              }
-            }"
+            --message "file://message.json"
