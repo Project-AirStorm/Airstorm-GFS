@@ -52,9 +52,9 @@ jobs:
             core.setOutput('feedback_details', feedbackDetails);
             core.setOutput('submission_date', date);
 
-      - name: Prepare email content
-        id: email-content
+      - name: Prepare and send email
         run: |
+          # Read the template
           template=$(cat .github/email-templates/support-confirmation.html)
           
           # Replace template variables
@@ -64,33 +64,28 @@ jobs:
           email_content="${email_content//\{\{submission_date\}\}/${{ steps.extract-metadata.outputs.submission_date }}}"
           email_content="${email_content//\{\{feedback_details\}\}/${{ steps.extract-metadata.outputs.feedback_details }}}"
           
-          # Escape the content for JSON
-          email_content_escaped=$(echo "$email_content" | jq -aRs .)
-          echo "EMAIL_CONTENT=$email_content_escaped" >> $GITHUB_ENV
+          # Create JSON message file with proper escaping
+          cat > message.json << EOF
+          {
+            "Subject": {
+              "Data": "[Project AirStorm Support] ${{ steps.extract-metadata.outputs.issue_title }} [Issue: #${{ steps.extract-metadata.outputs.issue_number }}]",
+              "Charset": "UTF-8"
+            },
+            "Body": {
+              "Html": {
+                "Data": $(echo "$email_content" | jq -R -s .),
+                "Charset": "UTF-8"
+              },
+              "Text": {
+                "Data": "Dear ${{ steps.extract-metadata.outputs.recipient_name }},\n\nThank you for reaching out to Project Airstorm Support. We have received your feedback and our team will review it promptly.\n\nTicket Details:\nReference #: ${{ steps.extract-metadata.outputs.issue_number }}\nSubject: ${{ steps.extract-metadata.outputs.issue_title }}\nSubmitted: ${{ steps.extract-metadata.outputs.submission_date }}\n\nYour Feedback:\n${{ steps.extract-metadata.outputs.feedback_details }}\n\nOur team will evaluate your feedback and respond if additional information is needed. You'll receive an update via email, and when this ticket is closed.\n\nBest regards,\nProject Airstorm Support Team",
+                "Charset": "UTF-8"
+              }
+            }
+          }
+          EOF
 
-          # Prepare text content and escape it
-          text_content="Dear ${{ steps.extract-metadata.outputs.recipient_name }},\n\nThank you for reaching out to Project Airstorm Support. We have received your feedback and our team will review it promptly.\n\nTicket Details:\nReference #: ${{ steps.extract-metadata.outputs.issue_number }}\nSubject: ${{ steps.extract-metadata.outputs.issue_title }}\nSubmitted: ${{ steps.extract-metadata.outputs.submission_date }}\n\nYour Feedback:\n${{ steps.extract-metadata.outputs.feedback_details }}\n\nOur team will evaluate your feedback and respond if additional information is needed. You'll receive an update via email, and when this ticket is closed.\n\nBest regards,\nProject Airstorm Support Team"
-          text_content_escaped=$(echo "$text_content" | jq -aRs .)
-          echo "TEXT_CONTENT=$text_content_escaped" >> $GITHUB_ENV
-
-      - name: Send confirmation email
-        run: |
+          # Send email using the JSON file
           aws ses send-email \
             --from "support@projectairstorm.com" \
             --destination "ToAddresses=${{ steps.extract-metadata.outputs.recipient_email }}" \
-            --message '{
-              "Subject": {
-                "Data": "[Project AirStorm Support] ${{ steps.extract-metadata.outputs.issue_title }} [Issue: #${{ steps.extract-metadata.outputs.issue_number }}]",
-                "Charset": "UTF-8"
-              },
-              "Body": {
-                "Html": {
-                  "Data": '"$EMAIL_CONTENT"',
-                  "Charset": "UTF-8"
-                },
-                "Text": {
-                  "Data": '"$TEXT_CONTENT"',
-                  "Charset": "UTF-8"
-                }
-              }
-            }'
+            --message "file://message.json"
