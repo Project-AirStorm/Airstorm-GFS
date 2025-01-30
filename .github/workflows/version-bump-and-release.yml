@@ -1,0 +1,52 @@
+name: Version Bump and Release
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  version-bump:
+    runs-on: ubuntu-latest
+    # Fixed skip CI syntax with proper quotes and brackets
+    if: "!contains(github.event.head_commit.message, '[skip ci]')"
+    
+    outputs:
+      new_version: ${{ steps.bump_version.outputs.new_version }}
+      
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+          
+      - name: Get latest version
+        id: get_version
+        run: |
+          LATEST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "0.0")
+          echo "LATEST_TAG=${LATEST_TAG}" >> $GITHUB_ENV
+          
+      - name: Bump version
+        id: bump_version
+        run: |
+          CURRENT_VERSION=${LATEST_TAG#v}
+          IFS='.' read -r -a version_parts <<< "$CURRENT_VERSION"
+          MINOR=$((${version_parts[1]} + 1))
+          NEW_VERSION="0.${MINOR}"
+          echo "new_version=${NEW_VERSION}" >> $GITHUB_OUTPUT
+          echo "NEW_VERSION=${NEW_VERSION}" >> $GITHUB_ENV
+
+      - name: Create tag
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git tag -a "v${NEW_VERSION}" -m "Release version ${NEW_VERSION}"
+          git push origin "v${NEW_VERSION}"
+
+  trigger-release-notes:
+    needs: version-bump
+    uses: ./.github/workflows/release-notes.yml
+    with:
+      version: ${{ needs.version-bump.outputs.new_version }}
+    secrets:
+      GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
