@@ -85,7 +85,7 @@ jobs:
             exit 1
           fi
           
-          template=$(cat ".github/email-templates/support-closure-notification.html")
+          template=$(cat ".github/email-templates/internal-close-notification.html")
           
           # Create temporary message file with variables replaced and proper escaping
           cat > message.json << EOF
