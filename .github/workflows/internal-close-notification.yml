@@ -1,0 +1,116 @@
+name: Internal Support Team Closure Notification
+
+on:
+  issues:
+    types: [closed]
+
+jobs:
+  send-team-closure-notification:
+    runs-on: ubuntu-latest
+    if: contains(github.event.issue.labels.*.name, 'user-feedback')
+    
+    permissions:
+      issues: read
+      contents: read
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Extract ticket metadata
+        id: extract-metadata
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const issueBody = context.payload.issue.body;
+            const nameMatch = issueBody.match(/\*\*Name:\*\* ([^\n]+)/);
+            const emailMatch = issueBody.match(/\*\*Email:\*\* ([^\n]+)/);
+            const feedbackMatch = issueBody.match(/### Feedback Details\n([\s\S]+)$/);
+            
+            const name = nameMatch ? nameMatch[1].trim() : 'Anonymous User';
+            const email = emailMatch ? emailMatch[1].trim() : 'No email provided';
+            const feedbackDetails = feedbackMatch ? feedbackMatch[1].trim() : 'No details provided';
+            
+            // Calculate submission and closure dates
+            const submissionDate = new Date(context.payload.issue.created_at);
+            const closureDate = new Date(context.payload.issue.closed_at);
+            
+            // Calculate resolution time
+            const resolutionTime = Math.floor((closureDate - submissionDate) / (1000 * 60 * 60)); // hours
+            let resolutionTimeText;
+            if (resolutionTime < 24) {
+                resolutionTimeText = `${resolutionTime} hours`;
+            } else {
+                const days = Math.floor(resolutionTime / 24);
+                const remainingHours = resolutionTime % 24;
+                resolutionTimeText = `${days} days, ${remainingHours} hours`;
+            }
+            
+            core.setOutput('submitter_name', name);
+            core.setOutput('submitter_email', email);
+            core.setOutput('issue_title', context.payload.issue.title);
+            core.setOutput('issue_number', context.payload.issue.number);
+            core.setOutput('feedback_details', feedbackDetails);
+            core.setOutput('submission_date', submissionDate.toLocaleDateString('en-US', {
+              weekday: 'long',
+              year: 'numeric',
+              month: 'long',
+              day: 'numeric',
+              hour: '2-digit',
+              minute: '2-digit'
+            }));
+            core.setOutput('closure_date', closureDate.toLocaleDateString('en-US', {
+              weekday: 'long',
+              year: 'numeric',
+              month: 'long',
+              day: 'numeric',
+              hour: '2-digit',
+              minute: '2-digit'
+            }));
+            core.setOutput('resolution_time', resolutionTimeText);
+            core.setOutput('issue_url', context.payload.issue.html_url);
+
+      - name: Prepare email content
+        id: email-content
+        run: |
+          template=$(cat .github/email-templates/support-close-notification.html)
+          
+          # Replace template variables
+          email_content="${template//\{\{name\}\}/${{ steps.extract-metadata.outputs.submitter_name }}}"
+          email_content="${email_content//\{\{email\}\}/${{ steps.extract-metadata.outputs.submitter_email }}}"
+          email_content="${email_content//\{\{issue_number\}\}/${{ steps.extract-metadata.outputs.issue_number }}}"
+          email_content="${email_content//\{\{issue_title\}\}/${{ steps.extract-metadata.outputs.issue_title }}}"
+          email_content="${email_content//\{\{submission_date\}\}/${{ steps.extract-metadata.outputs.submission_date }}}"
+          email_content="${email_content//\{\{closure_date\}\}/${{ steps.extract-metadata.outputs.closure_date }}}"
+          email_content="${email_content//\{\{resolution_time\}\}/${{ steps.extract-metadata.outputs.resolution_time }}}"
+          email_content="${email_content//\{\{feedback_details\}\}/${{ steps.extract-metadata.outputs.feedback_details }}}"
+          email_content="${email_content//\{\{issue_url\}\}/${{ steps.extract-metadata.outputs.issue_url }}}"
+          
+          # Escape content for JSON
+          email_content_escaped=$(echo "$email_content" | jq -aRs .)
+          echo "EMAIL_CONTENT=$email_content_escaped" >> $GITHUB_ENV
+
+      - name: Send internal closure notification
+        run: |
+          aws ses send-email \
+            --from "support@projectairstorm.com" \
+            --destination "ToAddresses=support@projectairstorm.com" \
+            --message "{
+              \"Subject\": {
+                \"Data\": \"[Support Ticket Closed] ${{ steps.extract-metadata.outputs.issue_title }} (#${{ steps.extract-metadata.outputs.issue_number }})\",
+                \"Charset\": \"UTF-8\"
+              },
+              \"Body\": {
+                \"Html\": {
+                  \"Data\": $EMAIL_CONTENT,
+                  \"Charset\": \"UTF-8\"
+                }
+              }
+            }"
