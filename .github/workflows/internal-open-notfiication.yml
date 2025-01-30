@@ -77,7 +77,7 @@ jobs:
         run: |
           aws ses send-email \
             --from "support@projectairstorm.com" \
-            --destination "ToAddresses=support@projectairstorm.com" \
+            --destination "ToAddresses=support@projectairstorm.com,francisj24@lsus.edu,mataa98@lsus.edu,gafforde82@lsus.edu,zittrauerc49@lsus.edu,khawaldehd68@lsus.edu,hartlinev49@lsus.edu" \
             --message "{
               \"Subject\": {
                 \"Data\": \"[New Support Ticket] ${{ steps.extract-metadata.outputs.issue_title }} (#${{ steps.extract-metadata.outputs.issue_number }})\",
