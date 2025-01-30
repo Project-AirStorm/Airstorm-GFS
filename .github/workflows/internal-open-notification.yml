@@ -60,14 +60,14 @@ jobs:
         run: |
           template=$(cat .github/email-templates/internal-open-notification.html)
           
-          # Replace template variables
-          email_content="${template//\{\{name\}\}/${{ steps.extract-metadata.outputs.submitter_name }}}"
-          email_content="${email_content//\{\{email\}\}/${{ steps.extract-metadata.outputs.submitter_email }}}"
-          email_content="${email_content//\{\{issue_number\}\}/${{ steps.extract-metadata.outputs.issue_number }}}"
-          email_content="${email_content//\{\{issue_title\}\}/${{ steps.extract-metadata.outputs.issue_title }}}"
-          email_content="${email_content//\{\{submission_date\}\}/${{ steps.extract-metadata.outputs.submission_date }}}"
-          email_content="${email_content//\{\{feedback_details\}\}/${{ steps.extract-metadata.outputs.feedback_details }}}"
-          email_content="${email_content//\{\{issue_url\}\}/${{ steps.extract-metadata.outputs.issue_url }}}"
+          # Replace template variables with proper quoting
+          email_content="${template//\{\{name\}\}/'${{ steps.extract-metadata.outputs.submitter_name }}'}"
+          email_content="${email_content//\{\{email\}\}/'${{ steps.extract-metadata.outputs.submitter_email }}'}"
+          email_content="${email_content//\{\{issue_number\}\}/'${{ steps.extract-metadata.outputs.issue_number }}'}"
+          email_content="${email_content//\{\{issue_title\}\}/'${{ steps.extract-metadata.outputs.issue_title }}'}"
+          email_content="${email_content//\{\{submission_date\}\}/'${{ steps.extract-metadata.outputs.submission_date }}'}"
+          email_content="${email_content//\{\{feedback_details\}\}/'${{ steps.extract-metadata.outputs.feedback_details }}'}"
+          email_content="${email_content//\{\{issue_url\}\}/'${{ steps.extract-metadata.outputs.issue_url }}'}"
           
           # Escape content for JSON
           email_content_escaped=$(echo "$email_content" | jq -aRs .)
