@@ -74,32 +74,26 @@ jobs:
 
       - name: Send confirmation email
         run: |
-          # Escape the HTML content for JSON
-          EMAIL_CONTENT_ESCAPED=$(echo "$EMAIL_CONTENT" | jq -R -s '.')
+          # First, encode the HTML content to escape special characters
+          ENCODED_HTML=$(echo "$EMAIL_CONTENT" | python3 -c 'import json,sys; print(json.dumps(sys.stdin.read()))')
           
-          # Create the message JSON with escaped content
-          MESSAGE_JSON=$(cat << EOF
-          {
-            "Subject": {
-              "Data": "[Project AirStorm Support] ${{ steps.extract-metadata.outputs.issue_title }} [Issue: #${{ steps.extract-metadata.outputs.issue_number }}]",
-              "Charset": "UTF-8"
-            },
-            "Body": {
-              "Html": {
-                "Data": ${EMAIL_CONTENT_ESCAPED},
-                "Charset": "UTF-8"
-              },
-              "Text": {
-                "Data": "Dear ${{ steps.extract-metadata.outputs.recipient_name }},\n\nThank you for reaching out to Project Airstorm Support. We have received your feedback and our team will review it promptly.\n\nTicket Details:\nReference #: ${{ steps.extract-metadata.outputs.issue_number }}\nSubject: ${{ steps.extract-metadata.outputs.issue_title }}\nSubmitted: ${{ steps.extract-metadata.outputs.submission_date }}\n\nYour Feedback:\n${{ steps.extract-metadata.outputs.feedback_details }}\n\nOur team will evaluate your feedback and respond if additional information is needed. You'll receive an update via email, and when this ticket is closed.\n\nBest regards,\nProject Airstorm Support Team",
-                "Charset": "UTF-8"
-              }
-            }
-          }
-          EOF
-          )
-
-          # Send the email using the properly escaped JSON
+          # Create the JSON with the encoded HTML
           aws ses send-email \
             --from "support@projectairstorm.com" \
             --destination "ToAddresses=${{ steps.extract-metadata.outputs.recipient_email }}" \
-            --message "$MESSAGE_JSON"
+            --message '{
+              "Subject": {
+                "Data": "[Project AirStorm Support] '"${{ steps.extract-metadata.outputs.issue_title }}"' [Issue: #'"${{ steps.extract-metadata.outputs.issue_number }}"']",
+                "Charset": "UTF-8"
+              },
+              "Body": {
+                "Html": {
+                  "Data": '"$ENCODED_HTML"',
+                  "Charset": "UTF-8"
+                },
+                "Text": {
+                  "Data": "Dear '"${{ steps.extract-metadata.outputs.recipient_name }}"',\n\nThank you for reaching out to Project Airstorm Support. We have received your feedback and our team will review it promptly.\n\nTicket Details:\nReference #: '"${{ steps.extract-metadata.outputs.issue_number }}"'\nSubject: '"${{ steps.extract-metadata.outputs.issue_title }}"'\nSubmitted: '"${{ steps.extract-metadata.outputs.submission_date }}"'\n\nYour Feedback:\n'"${{ steps.extract-metadata.outputs.feedback_details }}"'\n\nOur team will evaluate your feedback and respond if additional information is needed. You'\''ll receive an update via email, and when this ticket is closed.\n\nBest regards,\nProject Airstorm Support Team",
+                  "Charset": "UTF-8"
+                }
+              }
+            }'
