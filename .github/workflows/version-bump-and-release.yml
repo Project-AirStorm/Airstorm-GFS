@@ -18,13 +18,17 @@ jobs:
       new_version: ${{ steps.bump_version.outputs.new_version }}
       
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout repository
+        uses: actions/checkout@v3
         with:
           fetch-depth: 0
           token: ${{ secrets.BACKEND_GITHUB_ACCESS_TOKEN }}
+          repository: Project-AirStorm/Airstorm-GFS
           
       - name: Get latest version
         id: get_version
+        env:
+          GITHUB_TOKEN: ${{ secrets.BACKEND_GITHUB_ACCESS_TOKEN }}
         run: |
           LATEST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "0.0")
           echo "LATEST_TAG=${LATEST_TAG}" >> $GITHUB_ENV
@@ -40,6 +44,8 @@ jobs:
           echo "NEW_VERSION=${NEW_VERSION}" >> $GITHUB_ENV
 
       - name: Create tag
+        env:
+          GITHUB_TOKEN: ${{ secrets.BACKEND_GITHUB_ACCESS_TOKEN }}
         run: |
           git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
@@ -55,3 +61,4 @@ jobs:
       version: ${{ needs.version-bump.outputs.new_version }}
     secrets:
       GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+      BACKEND_GITHUB_ACCESS_TOKEN: ${{ secrets.BACKEND_GITHUB_ACCESS_TOKEN }}
