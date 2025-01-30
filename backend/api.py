@@ -17,15 +17,6 @@ from email.utils import parsedate_to_datetime
 from datetime import datetime
 from feedback_routes import feedback_bp  # For Github Feedback Page
 
-# Initialize the database service with the correct path
-db_service = DatabaseInitializer(db_path="data/app.sqlite")
-# TEMPORARY: Suppress DEBUG logs from `watchdog` and other libraries
-# logging.getLogger("watchdog").setLevel(logging.WARNNG)
-# logging.getLogger("watchdog.observers.inotify_buffer").setLevel(logging.WARNING)
-
-# logging.getLogger("watchdog").setLevel(logging.ERROR)
-# logging.getLogger("watchdog.observers.inotify_buffer").setLevel(logging.ERROR)
-# Load environment variables from .env file
 load_dotenv()
 
 app = Flask(__name__)

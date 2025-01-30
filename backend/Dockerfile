@@ -16,9 +16,6 @@ RUN pip install watchdog
 # Ensure the data directory exists
 RUN mkdir -p data
 
-# Install SQLite explicitly
-RUN apt-get update && apt-get install -y sqlite3 && apt-get clean
-
 # Copies the rest of the application code to the container
 COPY . .
 
