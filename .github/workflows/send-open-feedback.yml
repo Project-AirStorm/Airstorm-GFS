@@ -1,23 +1,16 @@
-name: Send Open Feedback
+# File: send-open-feedback.yml
+name: Handle User Feedback Emails (Open)
 
 on:
   issues:
     types: [opened]
 
 jobs:
-  internal-notification:
-    name: 🏠 Internal Team Notification
+  send-internal-notification:
     runs-on: ubuntu-latest
     if: contains(github.event.issue.labels.*.name, 'user-feedback')
-    
-    permissions:
-      issues: read
-      contents: read
-    
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
+      - uses: actions/checkout@v4
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
@@ -31,56 +24,74 @@ jobs:
         with:
           script: |
             const issueBody = context.payload.issue.body;
-            const nameMatch = issueBody.match(/\*\*Name:\*\* ([^\n]+)/);
-            const emailMatch = issueBody.match(/\*\*Email:\*\* ([^\n]+)/);
-            const feedbackMatch = issueBody.match(/### Feedback Details\n([\s\S]+?)(\n\n|$)/);
+            // Use safer regex patterns with unicode support
+            const nameMatch = issueBody.match(/\*\*Name:\*\*\s*([\s\S]+?)(?=\*\*|$)/u);
+            const emailMatch = issueBody.match(/\*\*Email:\*\*\s*([\s\S]+?)(?=\*\*|$)/u);
+            const feedbackMatch = issueBody.match(/### Feedback Details\s*([\s\S]+)$/u);
             
-            const name = nameMatch ? nameMatch[1].trim() : 'Anonymous User';
-            const email = emailMatch ? emailMatch[1].trim() : 'No email provided';
-            const feedbackDetails = feedbackMatch ? feedbackMatch[1].trim() : issueBody;
+            // Encode the extracted data to handle special characters
+            const name = nameMatch ? Buffer.from(nameMatch[1].trim()).toString('base64') : 'Anonymous User';
+            const email = emailMatch ? Buffer.from(emailMatch[1].trim()).toString('base64') : '';
+            const feedbackDetails = feedbackMatch ? Buffer.from(feedbackMatch[1].trim()).toString('base64') : '';
             
-            core.setOutput('submitter_name', name);
-            core.setOutput('submitter_email', email);
-            core.setOutput('issue_title', context.payload.issue.title);
+            const date = new Date().toLocaleDateString('en-US', {
+              weekday: 'long',
+              year: 'numeric',
+              month: 'long',
+              day: 'numeric'
+            });
+            
+            core.setOutput('recipient_email_base64', email);
+            core.setOutput('recipient_name_base64', name);
+            core.setOutput('issue_title_base64', Buffer.from(context.payload.issue.title).toString('base64'));
             core.setOutput('issue_number', context.payload.issue.number);
-            core.setOutput('feedback_details', feedbackDetails);
-            core.setOutput('issue_url', context.payload.issue.html_url);
+            core.setOutput('feedback_details_base64', feedbackDetails);
+            core.setOutput('submission_date', date);
 
-      - name: Prepare internal email
-        id: prepare-internal-email
+      - name: Decode and prepare email
         run: |
-          # Escape all values using jq
-          SUBJECT_NAME=$(echo '${{ steps.extract-metadata.outputs.submitter_name }}' | jq -Rs .)
-          SUBJECT_EMAIL=$(echo '${{ steps.extract-metadata.outputs.submitter_email }}' | jq -Rs .)
-          FEEDBACK=$(echo '${{ steps.extract-metadata.outputs.feedback_details }}' | jq -Rs .)
+          # Decode base64 encoded values
+          NAME=$(echo "${{ steps.extract-metadata.outputs.recipient_name_base64 }}" | base64 -d)
+          EMAIL=$(echo "${{ steps.extract-metadata.outputs.recipient_email_base64 }}" | base64 -d)
+          TITLE=$(echo "${{ steps.extract-metadata.outputs.issue_title_base64 }}" | base64 -d)
+          FEEDBACK=$(echo "${{ steps.extract-metadata.outputs.feedback_details_base64 }}" | base64 -d)
           
-          # Read and escape template
-          TEMPLATE=$(cat .github/email-templates/internal-open-notification.html | jq -Rs .)
+          # Read and process the template
+          template=$(cat .github/email-templates/external-feedback-open.html)
           
-          # Generate JSON payload
-          echo '{
-            "Subject": {
-              "Data": "[New Support Ticket] \(${{ steps.extract-metadata.outputs.issue_title }} | @json) [Issue: #\(${{ steps.extract-metadata.outputs.issue_number }})]",
-              "Charset": "UTF-8"
-            },
-            "Body": {
-              "Html": {
-                "Data": '"$TEMPLATE"',
+          # Create JSON message with proper escaping and template replacement
+          jq -n \
+            --arg name "$NAME" \
+            --arg email "$EMAIL" \
+            --arg title "$TITLE" \
+            --arg number "${{ steps.extract-metadata.outputs.issue_number }}" \
+            --arg date "${{ steps.extract-metadata.outputs.submission_date }}" \
+            --arg feedback "$FEEDBACK" \
+            --arg template "$template" \
+            '
+            def replace_vars($str):
+              $str | gsub("\\{\\{name\\}\\}"; $name) |
+                    gsub("\\{\\{issue_number\\}\\}"; $number) |
+                    gsub("\\{\\{issue_title\\}\\}"; $title) |
+                    gsub("\\{\\{submission_date\\}\\}"; $date) |
+                    gsub("\\{\\{feedback_details\\}\\}"; $feedback);
+            
+            {
+              "Subject": {
+                "Data": "[Project AirStorm Support] \($title) [Issue: #\($number)]",
                 "Charset": "UTF-8"
+              },
+              "Body": {
+                "Html": {
+                  "Data": replace_vars($template),
+                  "Charset": "UTF-8"
+                },
+                "Text": {
+                  "Data": "Dear \($name),\n\nThank you for reaching out to Project Airstorm Support. We have received your feedback and our team will review it promptly.\n\nTicket Details:\nReference #: \($number)\nSubject: \($title)\nSubmitted: \($date)\n\nYour Feedback:\n\($feedback)\n\nOur team will evaluate your feedback and respond if additional information is needed. You will receive an update via email when this ticket is closed.\n\nBest regards,\nProject Airstorm Support Team",
+                  "Charset": "UTF-8"
+                }
               }
-            }
-          }' | jq --arg name "$SUBJECT_NAME" \
-                   --arg email "$SUBJECT_EMAIL" \
-                   --arg number "${{ steps.extract-metadata.outputs.issue_number }}" \
-                   --arg title "$(echo '${{ steps.extract-metadata.outputs.issue_title }}' | jq -Rs .)" \
-                   --arg feedback "$FEEDBACK" \
-                   --arg url "${{ steps.extract-metadata.outputs.issue_url }}" \
-                   '.Body.Html.Data |= gsub("{{name}}"; $name) | 
-                    .Body.Html.Data |= gsub("{{email}}"; $email) |
-                    .Body.Html.Data |= gsub("{{issue_number}}"; $number) |
-                    .Body.Html.Data |= gsub("{{issue_title}}"; $title) |
-                    .Body.Html.Data |= gsub("{{feedback_details}}"; $feedback) |
-                    .Body.Html.Data |= gsub("{{issue_url}}"; $url)' > message.json
+            }' > message.json
 
       - name: Send internal notification
         run: |
@@ -89,16 +100,12 @@ jobs:
             --destination "ToAddresses=support@projectairstorm.com,francisj24@lsus.edu,mataa98@lsus.edu,gafforde82@lsus.edu,zittrauerc49@lsus.edu,khawaldehd68@lsus.edu,hartlinev49@lsus.edu" \
             --message file://message.json
 
-  external-confirmation:
-    name: 📧 Customer Confirmation
+  send-external-notification:
+    needs: send-internal-notification
     runs-on: ubuntu-latest
-    needs: internal-notification
     if: contains(github.event.issue.labels.*.name, 'user-feedback')
-    
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
+      - uses: actions/checkout@v4
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
@@ -106,52 +113,85 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
 
-      - name: Extract customer metadata
-        id: extract-customer
+      - name: Extract metadata
+        id: extract-metadata
         uses: actions/github-script@v7
         with:
           script: |
             const issueBody = context.payload.issue.body;
-            const nameMatch = issueBody.match(/\*\*Name:\*\* ([^\n]+)/);
-            const emailMatch = issueBody.match(/\*\*Email:\*\* ([^\n]+)/);
+            // Use safer regex patterns with unicode support
+            const nameMatch = issueBody.match(/\*\*Name:\*\*\s*([\s\S]+?)(?=\*\*|$)/u);
+            const emailMatch = issueBody.match(/\*\*Email:\*\*\s*([\s\S]+?)(?=\*\*|$)/u);
+            const feedbackMatch = issueBody.match(/### Feedback Details\s*([\s\S]+)$/u);
             
-            core.setOutput('recipient_email', emailMatch ? emailMatch[1].trim() : '');
-            core.setOutput('recipient_name', nameMatch ? nameMatch[1].trim() : 'User');
-            core.setOutput('issue_title', context.payload.issue.title);
+            // Base64 encode the extracted data
+            const name = nameMatch ? Buffer.from(nameMatch[1].trim()).toString('base64') : 'Anonymous User';
+            const email = emailMatch ? Buffer.from(emailMatch[1].trim()).toString('base64') : '';
+            const feedbackDetails = feedbackMatch ? Buffer.from(feedbackMatch[1].trim()).toString('base64') : '';
+            
+            const date = new Date().toLocaleDateString('en-US', {
+              weekday: 'long',
+              year: 'numeric',
+              month: 'long',
+              day: 'numeric'
+            });
+            
+            core.setOutput('recipient_email_base64', email);
+            core.setOutput('recipient_name_base64', name);
+            core.setOutput('issue_title_base64', Buffer.from(context.payload.issue.title).toString('base64'));
             core.setOutput('issue_number', context.payload.issue.number);
+            core.setOutput('feedback_details_base64', feedbackDetails);
+            core.setOutput('submission_date', date);
 
-      - name: Prepare customer email
-        id: prepare-customer-email
+      - name: Decode and prepare external email
         run: |
-          # Escape all values
-          CUSTOMER_NAME=$(echo '${{ steps.extract-customer.outputs.recipient_name }}' | jq -Rs .)
-          TEMPLATE=$(cat .github/email-templates/external-feedback-open.html | jq -Rs .)
+          # Decode base64 encoded values
+          NAME=$(echo "${{ steps.extract-metadata.outputs.recipient_name_base64 }}" | base64 -d)
+          EMAIL=$(echo "${{ steps.extract-metadata.outputs.recipient_email_base64 }}" | base64 -d)
+          TITLE=$(echo "${{ steps.extract-metadata.outputs.issue_title_base64 }}" | base64 -d)
+          FEEDBACK=$(echo "${{ steps.extract-metadata.outputs.feedback_details_base64 }}" | base64 -d)
           
-          echo '{
-            "Subject": {
-              "Data": "[Project AirStorm Support] \(${{ steps.extract-customer.outputs.issue_title }} | @json) [Issue: #\(${{ steps.extract-customer.outputs.issue_number }})]",
-              "Charset": "UTF-8"
-            },
-            "Body": {
-              "Html": {
-                "Data": '"$TEMPLATE"',
+          # Read and process the template
+          template=$(cat .github/email-templates/external-feedback-open.html)
+          
+          # Create JSON message with proper escaping and template replacement
+          jq -n \
+            --arg name "$NAME" \
+            --arg email "$EMAIL" \
+            --arg title "$TITLE" \
+            --arg number "${{ steps.extract-metadata.outputs.issue_number }}" \
+            --arg date "${{ steps.extract-metadata.outputs.submission_date }}" \
+            --arg feedback "$FEEDBACK" \
+            --arg template "$template" \
+            '
+            def replace_vars($str):
+              $str | gsub("\\{\\{name\\}\\}"; $name) |
+                    gsub("\\{\\{issue_number\\}\\}"; $number) |
+                    gsub("\\{\\{issue_title\\}\\}"; $title) |
+                    gsub("\\{\\{submission_date\\}\\}"; $date) |
+                    gsub("\\{\\{feedback_details\\}\\}"; $feedback);
+            
+            {
+              "Subject": {
+                "Data": "[Project AirStorm Support] \($title) [Issue: #\($number)]",
                 "Charset": "UTF-8"
               },
-              "Text": {
-                "Data": "Dear \($CUSTOMER_NAME),\n\nThank you for your feedback...",
-                "Charset": "UTF-8"
+              "Body": {
+                "Html": {
+                  "Data": replace_vars($template),
+                  "Charset": "UTF-8"
+                },
+                "Text": {
+                  "Data": "Dear \($name),\n\nThank you for reaching out to Project Airstorm Support. We have received your feedback and our team will review it promptly.\n\nTicket Details:\nReference #: \($number)\nSubject: \($title)\nSubmitted: \($date)\n\nYour Feedback:\n\($feedback)\n\nOur team will evaluate your feedback and respond if additional information is needed. You will receive an update via email when this ticket is closed.\n\nBest regards,\nProject Airstorm Support Team",
+                  "Charset": "UTF-8"
+                }
               }
-            }
-          }' | jq --arg name "$CUSTOMER_NAME" \
-                   --arg number "${{ steps.extract-customer.outputs.issue_number }}" \
-                   --arg title "$(echo '${{ steps.extract-customer.outputs.issue_title }}' | jq -Rs .)" \
-                   '.Body.Html.Data |= gsub("{{name}}"; $name) |
-                    .Body.Html.Data |= gsub("{{issue_number}}"; $number) |
-                    .Body.Html.Data |= gsub("{{issue_title}}"; $title)' > customer-message.json
+            }' > message.json
 
-      - name: Send customer email
+      - name: Send external notification
         run: |
+          EMAIL=$(echo "${{ steps.extract-metadata.outputs.recipient_email_base64 }}" | base64 -d)
           aws ses send-email \
             --from "support@projectairstorm.com" \
-            --destination "ToAddresses=${{ steps.extract-customer.outputs.recipient_email }}" \
-            --message file://customer-message.json
+            --destination "ToAddresses=$EMAIL" \
+            --message file://message.json
