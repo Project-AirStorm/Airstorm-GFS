@@ -69,7 +69,7 @@ jobs:
       - name: Prepare email content
         id: email-content
         run: |
-          template=$(cat .github/email-templates/support-closure.html)
+          template=$(cat .github/email-templates/external-feedback-close.html)
           
           # Replace template variables
           email_content="${template//\{\{name\}\}/${{ steps.extract-metadata.outputs.recipient_name }}}"
