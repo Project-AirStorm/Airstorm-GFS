@@ -38,12 +38,10 @@ jobs:
             const email = emailMatch ? emailMatch[1].trim() : 'No email provided';
             const feedbackDetails = feedbackMatch ? feedbackMatch[1].trim() : 'No details provided';
             
-            // Calculate submission and closure dates
             const submissionDate = new Date(context.payload.issue.created_at);
             const closureDate = new Date(context.payload.issue.closed_at);
             
-            // Calculate resolution time
-            const resolutionTime = Math.floor((closureDate - submissionDate) / (1000 * 60 * 60)); // hours
+            const resolutionTime = Math.floor((closureDate - submissionDate) / (1000 * 60 * 60));
             let resolutionTimeText;
             if (resolutionTime < 24) {
                 resolutionTimeText = `${resolutionTime} hours`;
@@ -77,44 +75,60 @@ jobs:
             core.setOutput('resolution_time', resolutionTimeText);
             core.setOutput('issue_url', context.payload.issue.html_url);
 
-      - name: Prepare and send email
+      - name: Prepare email content
+        id: email-content
         run: |
-          # Check if template exists
-          if [ ! -f ".github/email-templates/internal-close-notification.html" ]; then
-            echo "Error: Template file not found"
-            exit 1
-          fi
+          # Read the template file
+          template=$(cat .github/email-templates/internal-close-notification.html)
           
-          template=$(cat ".github/email-templates/internal-close-notification.html")
+          # Create a temporary Python script for safer variable substitution
+          cat > replace.py << 'EOF'
+          import sys
+          import json
           
-          # Create temporary message file with variables replaced and proper escaping
-          cat > message.json << EOF
+          template = sys.stdin.read()
+          variables = json.loads(sys.argv[1])
+          
+          for key, value in variables.items():
+              template = template.replace('{{' + key + '}}', value)
+          
+          print(json.dumps(template))
+          EOF
+          
+          # Create JSON with all variables
+          variables_json=$(cat << EOF
           {
-            "Subject": {
-              "Data": "[Support Ticket Closed] ${{ steps.extract-metadata.outputs.issue_title }} (#${{ steps.extract-metadata.outputs.issue_number }})",
-              "Charset": "UTF-8"
-            },
-            "Body": {
-              "Html": {
-                "Data": $(echo "$template" \
-                  | sed "s/{{name}}/${{ steps.extract-metadata.outputs.submitter_name }}/g" \
-                  | sed "s/{{email}}/${{ steps.extract-metadata.outputs.submitter_email }}/g" \
-                  | sed "s/{{issue_number}}/${{ steps.extract-metadata.outputs.issue_number }}/g" \
-                  | sed "s/{{issue_title}}/${{ steps.extract-metadata.outputs.issue_title }}/g" \
-                  | sed "s/{{submission_date}}/${{ steps.extract-metadata.outputs.submission_date }}/g" \
-                  | sed "s/{{closure_date}}/${{ steps.extract-metadata.outputs.closure_date }}/g" \
-                  | sed "s/{{resolution_time}}/${{ steps.extract-metadata.outputs.resolution_time }}/g" \
-                  | sed "s/{{feedback_details}}/${{ steps.extract-metadata.outputs.feedback_details }}/g" \
-                  | sed "s/{{issue_url}}/${{ steps.extract-metadata.outputs.issue_url }}/g" \
-                  | jq -Rs .),
-                "Charset": "UTF-8"
-              }
-            }
+            "name": "${{ steps.extract-metadata.outputs.submitter_name }}",
+            "email": "${{ steps.extract-metadata.outputs.submitter_email }}",
+            "issue_number": "${{ steps.extract-metadata.outputs.issue_number }}",
+            "issue_title": "${{ steps.extract-metadata.outputs.issue_title }}",
+            "submission_date": "${{ steps.extract-metadata.outputs.submission_date }}",
+            "closure_date": "${{ steps.extract-metadata.outputs.closure_date }}",
+            "resolution_time": "${{ steps.extract-metadata.outputs.resolution_time }}",
+            "feedback_details": "${{ steps.extract-metadata.outputs.feedback_details }}",
+            "issue_url": "${{ steps.extract-metadata.outputs.issue_url }}"
           }
           EOF
+          )
+          
+          # Process the template and store the result
+          EMAIL_CONTENT=$(echo "$template" | python3 replace.py "$variables_json")
+          echo "EMAIL_CONTENT=$EMAIL_CONTENT" >> $GITHUB_ENV
 
-          # Send email using the JSON file
+      - name: Send notification email
+        run: |
           aws ses send-email \
             --from "support@projectairstorm.com" \
             --destination "ToAddresses=support@projectairstorm.com,francisj24@lsus.edu,mataa98@lsus.edu,gafforde82@lsus.edu,zittrauerc49@lsus.edu,khawaldehd68@lsus.edu,hartlinev49@lsus.edu" \
-            --message "file://message.json"
+            --message "{
+              \"Subject\": {
+                \"Data\": \"[Support Ticket Closed] ${{ steps.extract-metadata.outputs.issue_title }} (#${{ steps.extract-metadata.outputs.issue_number }})\",
+                \"Charset\": \"UTF-8\"
+              },
+              \"Body\": {
+                \"Html\": {
+                  \"Data\": $EMAIL_CONTENT,
+                  \"Charset\": \"UTF-8\"
+                }
+              }
+            }"
