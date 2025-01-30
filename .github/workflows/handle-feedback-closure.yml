@@ -89,22 +89,26 @@ jobs:
 
       - name: Send closure email
         run: |
+          # First, encode the HTML content to escape special characters
+          ENCODED_HTML=$(echo "$EMAIL_CONTENT" | python3 -c 'import json,sys; print(json.dumps(sys.stdin.read()))')
+          
+          # Create the JSON with the encoded HTML
           aws ses send-email \
             --from "support@projectairstorm.com" \
             --destination "ToAddresses=${{ steps.extract-metadata.outputs.recipient_email }}" \
-            --message "{
-              \"Subject\": {
-                \"Data\": \"[Project AirStorm Support] Ticket Closed: ${{ steps.extract-metadata.outputs.issue_title }} [Issue: #${{ steps.extract-metadata.outputs.issue_number }}]\",
-                \"Charset\": \"UTF-8\"
+            --message '{
+              "Subject": {
+                "Data": "[Project AirStorm Support] Ticket Closed: '"${{ steps.extract-metadata.outputs.issue_title }}"' [Issue: #'"${{ steps.extract-metadata.outputs.issue_number }}"']",
+                "Charset": "UTF-8"
               },
-              \"Body\": {
-                \"Html\": {
-                  \"Data\": \"$EMAIL_CONTENT\",
-                  \"Charset\": \"UTF-8\"
+              "Body": {
+                "Html": {
+                  "Data": '"$ENCODED_HTML"',
+                  "Charset": "UTF-8"
                 },
-                \"Text\": {
-                  \"Data\": \"Dear ${{ steps.extract-metadata.outputs.recipient_name }},\n\nYour feedback ticket has been resolved and closed. Thank you for helping us improve Project Airstorm!\n\nTicket Summary:\nReference #: ${{ steps.extract-metadata.outputs.issue_number }}\nSubject: ${{ steps.extract-metadata.outputs.issue_title }}\nSubmitted: ${{ steps.extract-metadata.outputs.submission_date }}\nClosed: ${{ steps.extract-metadata.outputs.closure_date }}\n\nResolution Notes:\n${{ steps.extract-metadata.outputs.resolution_comment }}\n\nWe appreciate your input and involvement in making Project Airstorm better. If you have any other feedback or concerns in the future, please don't hesitate to reach out.\n\nBest regards,\nProject Airstorm Support Team\",
-                  \"Charset\": \"UTF-8\"
+                "Text": {
+                  "Data": "Dear '"${{ steps.extract-metadata.outputs.recipient_name }}"',\n\nYour feedback ticket has been resolved and closed. Thank you for helping us improve Project Airstorm!\n\nTicket Summary:\nReference #: '"${{ steps.extract-metadata.outputs.issue_number }}"'\nSubject: '"${{ steps.extract-metadata.outputs.issue_title }}"'\nSubmitted: '"${{ steps.extract-metadata.outputs.submission_date }}"'\nClosed: '"${{ steps.extract-metadata.outputs.closure_date }}"'\n\nResolution Notes:\n'"${{ steps.extract-metadata.outputs.resolution_comment }}"'\n\nWe appreciate your input and involvement in making Project Airstorm better. If you have any other feedback or concerns in the future, please don'\''t hesitate to reach out.\n\nBest regards,\nProject Airstorm Support Team",
+                  "Charset": "UTF-8"
                 }
               }
-            }"
+            }'
