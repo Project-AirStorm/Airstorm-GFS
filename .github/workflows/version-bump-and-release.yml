@@ -21,7 +21,7 @@ jobs:
       - uses: actions/checkout@v3
         with:
           fetch-depth: 0
-          token: ${{ secrets.PAT_TOKEN }}
+          token: ${{ secrets.BACKEND_GITHUB_ACCESS_TOKEN }}
           
       - name: Get latest version
         id: get_version
