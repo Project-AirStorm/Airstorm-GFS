@@ -55,7 +55,7 @@ jobs:
       - name: Prepare and send email
         run: |
           # Read the template
-          if [ ! -f ".github/email-templates/support-confirmation.html" ]; then
+          if [ ! -f ".github/email-templates/external-feedback-open" ]; then
             echo "Error: Template file not found"
             exit 1
           fi
