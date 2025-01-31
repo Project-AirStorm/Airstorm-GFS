@@ -23,4 +23,4 @@ COPY . .
 EXPOSE 5001
 
 # Run the flask application
-CMD ["flask", "--app", "api.py", "run", "--host=0.0.0.0", "--debug"]
+CMD ["flask", "--app", "src/api.py", "run", "--host=0.0.0.0", "--debug"]

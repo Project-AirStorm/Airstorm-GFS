@@ -1,7 +1,6 @@
 import sqlite3
 import logging
-import os
-
+import os 
 
 class DatabaseInitializer:
     def __init__(self, db_path="data/app.sqlite"):

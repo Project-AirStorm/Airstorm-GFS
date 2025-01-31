@@ -2,7 +2,7 @@ import sqlite3
 import logging
 
 
-class LocationService:
+class DatabaseManager:
     """
     The LocationService class provides an interface for interacting with the Locations table
     in an SQLite database. This is our data that is being used to save 
