@@ -1,6 +1,7 @@
 from retry_requests import retry
 import requests_cache
 import openmeteo_requests
+from flask import Response
 from flask_cors import CORS
 from flask import Flask, jsonify, request
 import requests
@@ -11,6 +12,7 @@ import logging
 from db.database_initializer import DatabaseInitializer
 from db.database_manager import DatabaseManager
 from weather_analyzer import WeatherAnalyzer
+from feedback_routes import feedback_bp 
 
 load_dotenv()
 app = Flask(__name__)
@@ -19,6 +21,11 @@ CORS(app)
 db_service = DatabaseInitializer(db_path="data/app.sqlite")
 weather_analyzer = WeatherAnalyzer()
 database_service = DatabaseManager()
+# For Github Feedback Page
+app.register_blueprint(feedback_bp)
+
+# Initialize services
+BACKEND_GOOGLE_MAPS_API_KEY = os.getenv("BACKEND_GOOGLE_MAPS_API_KEY")
 
 # Logging setup
 logging.basicConfig(level=logging.DEBUG)
@@ -33,14 +40,97 @@ for noisy_logger in (
     logging.getLogger(noisy_logger).setLevel(logging.WARNING)
 
 
-# Initialize services
-BACKEND_GOOGLE_MAPS_API_KEY = os.getenv("BACKEND_GOOGLE_MAPS_API_KEY")
-
 # Setup the Open-Meteo API client
 cache_session = requests_cache.CachedSession(".cache", expire_after=3600)
 retry_session = retry(cache_session, retries=5, backoff_factor=0.2)
 openmeteo = openmeteo_requests.Client(session=retry_session)
 
+
+@app.route('/api/meteosource/tile')
+def meteosource_tile():
+    try:
+        variable = request.args.get('variable', 'temperature')
+        valid_variables = [
+            "temperature",
+            "feels_like_temperature",
+            "clouds",
+            "precipitation",
+            "wind_speed",
+            "wind_gust",
+            "pressure",
+            "humidity",
+            "wave_height",
+            "wave_period",
+            "air_quality",
+            "ozone_surface",
+            "ozone_total",
+            "no2",
+            "pm2.5"
+        ]
+        tile_x = request.args.get('x')
+        tile_y = request.args.get('y')
+        tile_zoom = request.args.get('zoom')
+        datetime_param = request.args.get('datetime', '+1hour')
+
+        if variable not in valid_variables:
+            variable = 'temperature'
+
+        api_key = os.getenv('BACKEND_METEOSOURCE_API_KEY')
+        if not api_key:
+            logger.error("Meteosource API key not configured")
+            return jsonify({"error": "Service configuration error"}), 500
+
+        # Corrected URL construction
+        url = (
+            f"https://www.meteosource.com/api/v1/standard/map?"
+            f"key={api_key}&"
+            f"tile_x={tile_x}&"
+            f"tile_y={tile_y}&"
+            f"tile_zoom={tile_zoom}&"
+            f"datetime={datetime_param}&"
+            f"variable={variable}"
+        )
+
+        response = requests.get(url)
+        response.raise_for_status()
+
+        # Prepare response headers with caching
+        headers = {'Content-Type': response.headers.get('Content-Type', '')}
+        expires = response.headers.get('Expires')
+
+        if expires:
+            try:
+                # Parse expiration time and calculate max-age
+                expires_dt = parsedate_to_datetime(expires)
+                now = datetime.now(expires_dt.tzinfo)
+                max_age = int((expires_dt - now).total_seconds())
+                max_age = max(max_age, 0)  # Prevent negative values
+                headers['Cache-Control'] = f'public, max-age={max_age}'
+                headers['Expires'] = expires
+            except Exception as e:
+                logger.error(f"Error processing Expires header: {str(e)}")
+                # Fallback to 1 hour cache
+                headers['Cache-Control'] = 'public, max-age=3600'
+        else:
+            # Default cache if no Expires header
+            headers['Cache-Control'] = 'public, max-age=3600'
+
+        return Response(response.content, headers=headers)
+
+    except Exception as e:
+        logger.error(f"Unexpected tile error: {e}")
+        return jsonify({"error": "Unexpected error occurred"}), 500
+
+
+@app.route('/api/google-maps-init')
+def google_maps_init():
+    try:
+        return jsonify({
+            "googleMapsKey": os.getenv('BACKEND_GOOGLE_MAPS_API_KEY')
+        })
+    except Exception as e:
+        logger.error(f"Google Maps init error: {str(e)}")
+        return jsonify({"error": "Internal server error"}), 500
 
 # Gets the current User_ID
 @app.route("/api/locations", methods=["GET"])
