@@ -9,7 +9,7 @@ services:
       - ./backend:/backend              # Maps the entire backend directory on your host machine to the /backend directory in the container
     environment:
       - FLASK_DEBUG=0
-      - FLASK_APP=api.py
+      - FLASK_APP=src/app.py
       - FLASK_ENV=production
       - BACKEND_GOOGLE_MAPS_API_KEY=${BACKEND_GOOGLE_MAPS_API_KEY}
       - BACKEND_METEOMATICS_USERNAME=${BACKEND_METEOMATICS_USERNAME}
