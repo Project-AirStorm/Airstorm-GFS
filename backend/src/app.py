@@ -2,6 +2,7 @@ from flask import Flask
 from flask_cors import CORS
 from dotenv import load_dotenv
 import logging
+from db.database_initializer import DatabaseInitializer
 
 # Import blueprints correctly
 from api.external_api import external_api_bp
@@ -18,8 +19,11 @@ CORS(app)
 app.register_blueprint(external_api_bp)
 app.register_blueprint(internal_api_bp)
 
+db_initializer = DatabaseInitializer()
+
 # Configure logging
 logging.basicConfig(level=logging.DEBUG)
+logging.getLogger("watchdog").setLevel(logging.ERROR) # Can set this to WARNING or ERROR
 logger = logging.getLogger(__name__)
 
 if __name__ == "__main__":

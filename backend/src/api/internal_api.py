@@ -1,10 +1,8 @@
 from flask import Blueprint, jsonify, request
-from db.database_initializer import DatabaseInitializer
 from db.database_manager import DatabaseManager
 
 internal_api_bp = Blueprint("internal_api", __name__)
 
-db_service = DatabaseInitializer(db_path="data/app.sqlite")
 database_service = DatabaseManager()
 
 # Gets the current User_ID

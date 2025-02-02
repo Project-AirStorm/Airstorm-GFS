@@ -20,6 +20,7 @@ docker-compose.override.yml
 
 # Ignore environment files
 .env
+.env_mysql
 .env.local
 .env.development.local
 .env.test.local

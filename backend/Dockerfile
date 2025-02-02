@@ -13,9 +13,6 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Install watchdog to improve reloading in Docker
 RUN pip install watchdog
 
-# Ensure the data directory exists
-RUN mkdir -p data
-
 # Copies the rest of the application code to the container
 COPY . .
 
