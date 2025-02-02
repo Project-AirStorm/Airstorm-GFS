@@ -24,6 +24,7 @@ docker compose exec backend bash
 docker compose exec frontend bash 
 ```
 ## Command to enter the MySQL server
+```
 docker-compose exec mysql bash
 mysql -u root -p
 ```
