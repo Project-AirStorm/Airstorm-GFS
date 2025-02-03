@@ -4,7 +4,12 @@ import Maps from '../pages/Maps/Maps';
 import Weather from '../pages/Unused/Weather/Weather';
 import MeteogramPbp from '../components/specific/MeteogramPbp/MeteogramPbp';
 import SkewTPbp from '../components/specific/SkewTPbp/SkewTPbp';
-import Login from '../pages/Login/Login'
+import Login from '../pages/Login/Login';
+import Alerts from '../pages/Alerts/Alerts';
+import Analysis from '../pages/Analysis/Analysis';
+import Settings from '../pages/Settings/Settings';
+import Logs from '../pages/Logs/Logs';
+import Feedback from '../pages/Feedback/Feedback'
 /**
  * Application route configuration
  * Contains all route definitions and their associated metadata
