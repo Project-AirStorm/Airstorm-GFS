@@ -1,4 +1,5 @@
 import Dashboard from '../pages/Dashboard/Dashboard';
+import Forecasts from '../pages/Forecasts/Forecasts';
 import Maps from '../pages/Maps/Maps';
 import Weather from '../pages/Unused/Weather/Weather';
 import MeteogramPbp from '../components/specific/MeteogramPbp/MeteogramPbp';
@@ -19,50 +20,40 @@ export const ROUTES = {
     title: 'Dashboard',
     element: Dashboard,
   },
-  meteogramPbp: {
-    path: '/meteogram-pbp',
-    title: 'Meteogram PBP',
-    element: MeteogramPbp,
-  },
-  skewTPbp: {
-    path: '/skewt-pbp',
-    title: 'SkewT PBP',
-    element: SkewTPbp,
-  },
-  weather: {
-    path: '/weather',
-    title: 'Weather',
-    element: Weather,
-  },
   maps: {
     path: '/maps',
     title: 'Maps',
-    element: Maps,
+    element: Weather,
   },
   forecasts: {
     path: '/forecasts',
     title: 'Forecasts',
-    element: Weather,
+    element: Forecasts,
   },
   alerts: {
     path: '/alerts',
     title: 'Alerts',
-    element: Weather,
+    element: Alerts,
   },
   analysis: {
     path: '/analysis',
     title: 'Analysis',
-    element: Weather,
+    element: Analysis,
   },
   settings: {
     path: '/settings',
     title: 'Settings',
-    element: Weather,
+    element: Settings,
   },
   logs: {
     path: '/logs',
     title: 'Logs',
-    element: Weather,
+    element: Logs,
+  },
+  feedback: {
+    path: '/feedback',
+    title: 'Feedback',
+    element: Feedback,
   },
 };
 
