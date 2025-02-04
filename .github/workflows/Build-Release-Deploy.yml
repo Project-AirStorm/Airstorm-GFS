@@ -228,18 +228,31 @@ jobs:
             # Create .env file from GitHub Secrets
             echo "Creating .env file..."
             cat > .env << EOL
-            BACKEND_GOOGLE_MAPS_API_KEY=${{ secrets.BACKEND_GOOGLE_MAPS_API_KEY }}
-            BACKEND_METEOMATICS_USERNAME=${{ secrets.BACKEND_METEOMATICS_USERNAME }}
-            BACKEND_METEOMATICS_PASSWORD=${{ secrets.BACKEND_METEOMATICS_PASSWORD }}
-            REACT_APP_API_URL=${{ secrets.REACT_APP_API_URL }}
-            REACT_APP_MAPTILER_KEY=${{ secrets.REACT_APP_MAPTILER_KEY }}
-            REACT_APP_MAPTILER_API_KEY=${{ secrets.REACT_APP_MAPTILER_API_KEY }}
-            REACT_APP_USER_ID=${{ secrets.REACT_APP_USER_ID }}
-            REACT_APP_GOOGLE_MAPS_API_KEY=${{ secrets.REACT_APP_GOOGLE_MAPS_API_KEY }}
-            REACT_APP_VITE_CLERK_PUBLISHABLE_KEY=${{ secrets.REACT_APP_VITE_CLERK_PUBLISHABLE_KEY }}
+            AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }}
+            AWS_REGION=${{ secrets.AWS_REGION }}
+            AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }}
+            AWS_SSH_KEY=${{ secrets.AWS_SSH_KEY }}
             BACKEND_GITHUB_ACCESS_TOKEN=${{ secrets.BACKEND_GITHUB_ACCESS_TOKEN }}
             BACKEND_GITHUB_OWNER=${{ secrets.BACKEND_GITHUB_OWNER }}
             BACKEND_GITHUB_REPO=${{ secrets.BACKEND_GITHUB_REPO }}
+            BACKEND_GOOGLE_MAPS_API_KEY=${{ secrets.BACKEND_GOOGLE_MAPS_API_KEY }}
+            BACKEND_METEOMATICS_PASSWORD=${{ secrets.BACKEND_METEOMATICS_PASSWORD }}
+            BACKEND_METEOMATICS_USERNAME=${{ secrets.BACKEND_METEOMATICS_USERNAME }}
+            EC2_HOST=${{ secrets.EC2_HOST }}
+            EC2_USERNAME=${{ secrets.EC2_USERNAME }}
+            GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }}
+            MYSQL_DATABASE=${{ secrets.MYSQL_DATABASE }}
+            MYSQL_ENV=${{ secrets.MYSQL_ENV }}
+            MYSQL_HOST=${{ secrets.MYSQL_HOST }}
+            MYSQL_PASSWORD=${{ secrets.MYSQL_PASSWORD }}
+            MYSQL_PORT=${{ secrets.MYSQL_PORT }}
+            MYSQL_USER=${{ secrets.MYSQL_USER }}
+            REACT_APP_API_URL=${{ secrets.REACT_APP_API_URL }}
+            REACT_APP_GOOGLE_MAPS_API_KEY=${{ secrets.REACT_APP_GOOGLE_MAPS_API_KEY }}
+            REACT_APP_MAPTILER_API_KEY=${{ secrets.REACT_APP_MAPTILER_API_KEY }}
+            REACT_APP_MAPTILER_KEY=${{ secrets.REACT_APP_MAPTILER_KEY }}
+            REACT_APP_USER_ID=${{ secrets.REACT_APP_USER_ID }}
+            REACT_APP_VITE_CLERK_PUBLISHABLE_KEY=${{ secrets.REACT_APP_VITE_CLERK_PUBLISHABLE_KEY }}
             EOL
             # Verify .env file was created
             if [ ! -f .env ]; then
