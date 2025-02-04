@@ -1,6 +1,8 @@
 import os
 import logging
+import pymysql
 from db.mysql_connection import get_mysql_connection
+
 
 class DatabaseInitializer:
     def __init__(self):
@@ -10,6 +12,23 @@ class DatabaseInitializer:
     def _initialize_database(self):
         logging.info("Initializing MySQL database schema")
         try:
+            # First connect without database to create it if needed
+            connection = pymysql.connect(
+                host=os.environ.get("MYSQL_HOST"),
+                user=os.environ.get("MYSQL_USER"),
+                password=os.environ.get("MYSQL_PASSWORD"),
+                port=int(os.environ.get("MYSQL_PORT", 3306)),
+                cursorclass=pymysql.cursors.DictCursor,
+                autocommit=True
+            )
+
+            with connection.cursor() as cursor:
+                # Create database if it doesn't exist
+                cursor.execute(
+                    f"CREATE DATABASE IF NOT EXISTS {os.environ.get('MYSQL_DATABASE')}")
+            connection.close()
+
+            # Now connect with database specified and create tables
             with get_mysql_connection() as conn:
                 with conn.cursor() as cursor:
                     # Create Users table
