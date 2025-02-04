@@ -16,7 +16,7 @@ import './App.css';
 // Pull in the publishable key from your .env
 const PUBLISHABLE_KEY = process.env.REACT_APP_VITE_CLERK_PUBLISHABLE_KEY;
 if (!PUBLISHABLE_KEY) {
-  throw new Error("Missing Clerk Publishable Key");
+  throw new Error('Missing Clerk Publishable Key');
 }
 
 /**

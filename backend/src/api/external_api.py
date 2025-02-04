@@ -25,6 +25,8 @@ retry_session = retry(cache_session, retries=5, backoff_factor=0.2)
 openmeteo = openmeteo_requests.Client(session=retry_session)
 
 # ====== Meteosource Tile API ======
+
+
 @external_api_bp.route('/api/meteosource/tile')
 def meteosource_tile():
     try:
@@ -50,7 +52,8 @@ def meteosource_tile():
 
         url = (
             f"https://www.meteosource.com/api/v1/standard/map?"
-            f"key={api_key}&tile_x={tile_x}&tile_y={tile_y}&tile_zoom={tile_zoom}"
+            f"key={api_key}&tile_x={tile_x}&tile_y={
+                tile_y}&tile_zoom={tile_zoom}"
             f"&datetime={datetime_param}&variable={variable}"
         )
 
@@ -125,7 +128,8 @@ def get_location_info():
             },
         }
 
-        result = next((r for r in data["results"] if r.get("address_components")), None)
+        result = next((r for r in data["results"]
+                      if r.get("address_components")), None)
 
         if result:
             location_info["formatted_address"] = result["formatted_address"]
@@ -153,6 +157,7 @@ def get_location_info():
     except Exception as e:
         logger.error(f"Unexpected error in geocoding: {str(e)}")
         return jsonify({"error": "Internal server error", "details": str(e)}), 500
+
 
 @external_api_bp.route('/api/google-maps-init')
 def google_maps_init():
@@ -214,8 +219,10 @@ def get_weather():
         logger.error(f"Error fetching weather data: {str(e)}")
         return jsonify({"error": str(e)}), 500
 
+
 # ====== GitHub Issues API ======
 github_service = GitHubService()
+
 
 @external_api_bp.route('/api/feedback', methods=['POST'])
 def submit_feedback():
