@@ -52,8 +52,8 @@ def meteosource_tile():
 
         url = (
             f"https://www.meteosource.com/api/v1/standard/map?"
-            f"key={api_key}&tile_x={tile_x}&tile_y={
-                tile_y}&tile_zoom={tile_zoom}"
+            f"key={api_key}&tile_x={tile_x}"
+            f"&tile_y={tile_y}&tile_zoom={tile_zoom}"
             f"&datetime={datetime_param}&variable={variable}"
         )
 
