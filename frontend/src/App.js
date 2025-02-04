@@ -1,17 +1,13 @@
-import React, { useState, useEffect } from 'react';
 import { ClerkProvider } from '@clerk/clerk-react';
 import {
   BrowserRouter as Router,
   Routes,
   Route,
   Navigate,
-  useLocation,
 } from 'react-router-dom';
-import Footer from './components/common/footer/Footer';
-import Header from './components/common/header/Header';
-import Sidebar from './components/common/sidebar/Sidebar';
-import { ROUTES, getPageTitle } from './config/routes';
+import { ROUTES } from './config/Routes';
 import './App.css';
+import Layout from './components/common/Layout/Layout';
 
 // Pull in the publishable key from your .env
 const PUBLISHABLE_KEY = process.env.REACT_APP_VITE_CLERK_PUBLISHABLE_KEY;
@@ -19,37 +15,6 @@ if (!PUBLISHABLE_KEY) {
   throw new Error("Missing Clerk Publishable Key");
 }
 
-/**
- * Layout component that wraps the main content and handles mobile menu state
- */
-const Layout = ({ children }) => {
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const location = useLocation();
-
-  // Handle mobile menu toggle
-  const toggleMobileMenu = () => setIsMobileMenuOpen(!isMobileMenuOpen);
-
-  return (
-    <div className="app-wrapper">
-      <Sidebar
-        isOpen={isMobileMenuOpen}
-        onClose={() => setIsMobileMenuOpen(false)}
-      />
-
-      <div className="main-content-wrapper">
-        <Header
-          title={getPageTitle(location.pathname)}
-          onMenuToggle={toggleMobileMenu}
-          isMobileMenuOpen={isMobileMenuOpen}
-        />
-
-        <main className="content-area">{children}</main>
-
-        <Footer />
-      </div>
-    </div>
-  );
-};
 
 /**
  * Main Application component that handles routing
