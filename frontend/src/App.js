@@ -49,7 +49,7 @@ function App() {
                   {/* Catch-all route */}
                   <Route
                     path="*"
-                    element={<Navigate to={ROUTES.dashboard.path} replace />}
+                    element={<Navigate to={ROUTES.notfound.path} replace />}
                   />
                 </Routes>
               </Layout>
