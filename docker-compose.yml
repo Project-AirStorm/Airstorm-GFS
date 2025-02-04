@@ -1,7 +1,7 @@
 services:
   backend:
     env_file: 
-      - .env.${MYSQL_ENV}  # Changed from .env to use environment-specific files
+      - .env
     build: ./backend
     ports:
       - "5001:5000"
@@ -22,7 +22,7 @@ services:
 
   frontend:
     env_file: 
-      - .env.${MYSQL_ENV}  # Changed from .env to use environment-specific files
+      - .env
     build: ./frontend
     ports:
       - "3000:3000"
@@ -39,4 +39,3 @@ services:
       - REACT_APP_USER_ID=${REACT_APP_USER_ID}
       - REACT_APP_GOOGLE_MAPS_API_KEY=${REACT_APP_GOOGLE_MAPS_API_KEY}
       - REACT_APP_METEOSOURCE_API_KEY=${REACT_APP_METEOSOURCE_API_KEY}
-
