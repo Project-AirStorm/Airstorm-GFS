@@ -4,10 +4,22 @@ import './index.css';
 import App from './App';
 import reportWebVitals from './utils/reportWebVitals';
 
+import { ClerkProvider, SignIn } from '@clerk/clerk-react';
+
 const root = ReactDOM.createRoot(document.getElementById('root'));
+
+// Pull in the publishable key from your .env
+const PUBLISHABLE_KEY = process.env.REACT_APP_VITE_CLERK_PUBLISHABLE_KEY;
+if (!PUBLISHABLE_KEY) {
+  throw new Error("Missing Clerk Publishable Key");
+}
+
+
 root.render(
   <React.StrictMode>
-    <App />
+    <ClerkProvider publishableKey={PUBLISHABLE_KEY} afterSignOutUrl="/">
+      <App />
+    </ClerkProvider>
   </React.StrictMode>
 );
 
