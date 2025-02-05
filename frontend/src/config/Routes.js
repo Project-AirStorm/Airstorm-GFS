@@ -10,6 +10,8 @@ import Analysis from '../pages/Analysis/Analysis';
 import Settings from '../pages/Settings/Settings';
 import Logs from '../pages/Logs/Logs';
 import Feedback from '../pages/Feedback/Feedback'
+import NotFound from '../pages/NotFound/NotFound';
+import { SignIn, SignUp } from "@clerk/clerk-react";
 /**
  * Application route configuration
  * Contains all route definitions and their associated metadata
@@ -20,6 +22,7 @@ export const ROUTES = {
     title: 'Login',
     element: Login,
   },
+  
   dashboard: {
     path: '/dashboard',
     title: 'Dashboard',
@@ -60,6 +63,11 @@ export const ROUTES = {
     title: 'Feedback',
     element: Feedback,
   },
+  notfound: {
+    path: '/notfound',
+    title: 'NotFound',
+    element: NotFound,
+  }
 };
 
 /**
