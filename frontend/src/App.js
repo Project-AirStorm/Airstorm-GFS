@@ -14,32 +14,32 @@ import Layout from './components/common/Layout/Layout';
 function App() {
   return (
     <Router>
+      <SignedOut>
+        <SignInButton />
+      </SignedOut>
 
+      <SignedIn>
       <Routes>
-        <Route
-          path="/*"
-          element={
-            <Layout>
+        // The entry point for the aplpication
+        <Route path="/*" element={ 
+        
+          <Layout>
+             <UserButton />
               <Routes>
-
-                <Route
-                  path="/"
-                  element={<Navigate to={ROUTES.dashboard.path} replace />}
-                />
-                               {/* Dynamically generate routes */}
+                <Route path="/" element={<Navigate to={ROUTES.dashboard.path} replace />} />
+                
+                {/* Dynamically generate routes */}
                 {Object.values(ROUTES).map(({ path, element: Element }) => (
                   <Route key={path} path={path} element={<Element />} />
                 ))}
 
-                <Route
-                  path="*"
-                  element={<Navigate to={ROUTES.notfound.path} replace />}
-                />
+                <Route path="*" element={<Navigate to={ROUTES.notfound.path} replace />} />
               </Routes>
             </Layout>
           }
         />
       </Routes>
+      </SignedIn>
     </Router>
   );
 }

@@ -2,8 +2,9 @@ import Sidebar from "../sidebar/Sidebar";
 import Footer from '../footer/Footer';
 import Header from '../header/Header';
 import { getPageTitle } from '../../../config/Routes';
-import { useLocation } from "react-router-dom"; 
+import { useLocation } from "react-router-dom";
 import React, { useState } from "react";
+import { Outlet } from "react-router-dom";
 
 /**
  * Layout component that wraps the main content and handles mobile menu state
@@ -11,9 +12,7 @@ import React, { useState } from "react";
 const Layout = ({ children }) => {
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const location = useLocation();
-
-    // Handle mobile menu toggle
-    const toggleMobileMenu = () => setIsMobileMenuOpen(!isMobileMenuOpen);
+    const toggleMobileMenu = () => setIsMobileMenuOpen(!isMobileMenuOpen);  // Handle mobile menu toggle
 
     return (
         <div className="app-wrapper">
