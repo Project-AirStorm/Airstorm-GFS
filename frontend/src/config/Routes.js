@@ -11,8 +11,8 @@ import Settings from '../pages/Settings/Settings';
 import Logs from '../pages/Logs/Logs';
 import Feedback from '../pages/Feedback/Feedback'
 import NotFound from '../pages/NotFound/NotFound';
-import Create from '../pages/Create/Create';
-import { SignIn, SignUp } from "@clerk/clerk-react";
+import Signup from '../pages/Singup/Signup';
+
 /**
  * Application route configuration
  * Contains all route definitions and their associated metadata
@@ -24,9 +24,9 @@ export const ROUTES = {
     element: Login,
   },
   SignUp:{
-    path: '/create',
-    title: 'Create',
-    element: Create,
+    path: '/sing-up',
+    title: 'Signup',
+    element: Signup,
   },
   
   dashboard: {
