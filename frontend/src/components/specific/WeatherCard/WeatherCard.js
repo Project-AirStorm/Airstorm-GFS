@@ -172,16 +172,15 @@ const WeatherCard = ({
       </p>
 
       <div className="weather-stats-grid">
-        <WeatherStat label="Humidity" value={weatherData.humidity} unit="%" />
+        <WeatherStat label="Rain" value={weatherData.rain} unit="inches" />
         <WeatherStat
           label="Wind"
           value={weatherData.wind_speed.toFixed(0)}
-          unit="mph"
+          unit=" mph"
         />
         <WeatherStat
-          label="Air Quality"
-          value={weatherData.air_quality}
-          description="(Moderate)"
+          label="Wind Direction"
+          value={weatherData.wind_direction}
         />
       </div>
     </div>
