@@ -4,7 +4,7 @@ import './index.css';
 import App from './App';
 import reportWebVitals from './utils/reportWebVitals';
 
-import { ClerkProvider, SignIn } from '@clerk/clerk-react';
+import { ClerkProvider } from '@clerk/clerk-react';
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 
@@ -14,12 +14,20 @@ if (!PUBLISHABLE_KEY) {
   throw new Error("Missing Clerk Publishable Key");
 }
 /* After the user signs out, they are redirected 
-   back to the /login route */ 
+   back to the /login route */
 root.render(
   <React.StrictMode>
-    <ClerkProvider 
-        publishableKey={PUBLISHABLE_KEY} 
-        afterSignOutUrl="/login">
+    <ClerkProvider
+     // Sets global color theme settings
+      appearance={{
+        variables: {
+          colorPrimary: '#2f60d4',
+          colorText: 'black',
+        },
+      }}
+      publishableKey={PUBLISHABLE_KEY}
+      afterSignOutUrl="/login">
+
       <App />
     </ClerkProvider>
   </React.StrictMode>

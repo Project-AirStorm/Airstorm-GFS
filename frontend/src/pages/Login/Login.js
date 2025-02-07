@@ -4,13 +4,13 @@ import './Login.css'; // Your own styling
 
 function Login() {
   return (
-    <div className="login-page-container">
-      <main className="login-main">
-        {/* The 'signUpUrl' property redirects the user to sign-up route,
-            so that we can customize our signup page
-            and not use their external API */}
-        <SignIn signUpUrl="/sign-up" />
-      </main>
+    <div className="weather-heatmap-background">
+      <div className="login-page-container">
+        <main className="login-main">
+          {/* The signUpUrl property redirects the user to a custom sign-up page */}
+          <SignIn signUpUrl="/sign-up" />
+        </main>
+      </div>
     </div>
   );
 }

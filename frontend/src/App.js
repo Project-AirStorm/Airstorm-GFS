@@ -5,7 +5,7 @@ import {
   Route,
   Navigate,
 } from 'react-router-dom';
-import {SignedIn, useUser} from "@clerk/clerk-react";
+import { SignedIn, useUser } from "@clerk/clerk-react";
 import Login from './pages/Login/Login';
 import Signup from './pages/Singup/Signup';
 import './App.css';
@@ -15,6 +15,7 @@ import { UserSession } from './utils/UserSession';
 
 function App() {
 
+  // Currently here for testing purposes, will be removed.
   const { isLoaded, user, isSynced } = UserSession();
 
   if (isLoaded && user) {
@@ -25,7 +26,6 @@ function App() {
   } else {
     console.log("User data not loaded yet.");
   }
-
 
 
   return (
@@ -55,6 +55,5 @@ function App() {
     </Router>
   );
 }
-
 
 export default App;
