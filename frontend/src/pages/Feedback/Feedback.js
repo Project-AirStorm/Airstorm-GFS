@@ -192,8 +192,8 @@ const Feedback = ({ setCurrentPage }) => {
   );
 };
 
-Feedback.propTypes = {
-  setCurrentPage: PropTypes.func.isRequired,
-};
+// Feedback.propTypes = {
+//   setCurrentPage: PropTypes.func.isRequired,
+// };
 
 export default Feedback;

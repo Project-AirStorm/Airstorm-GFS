@@ -68,8 +68,8 @@ const Alerts = ({ setCurrentPage }) => {
   );
 };
 
-Alerts.propTypes = {
-  setCurrentPage: PropTypes.func.isRequired
-};
+// Alerts.propTypes = {
+//   setCurrentPage: PropTypes.func.isRequired
+// };
 
 export default Alerts;

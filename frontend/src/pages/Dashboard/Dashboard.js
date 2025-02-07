@@ -160,8 +160,8 @@ const Dashboard = ({ setCurrentPage }) => {
   );
 };
 
-Dashboard.propTypes = {
-  setCurrentPage: PropTypes.func.isRequired,
-};
+// Dashboard.propTypes = {
+//   setCurrentPage: PropTypes.func.isRequired,
+// };
 
 export default Dashboard;

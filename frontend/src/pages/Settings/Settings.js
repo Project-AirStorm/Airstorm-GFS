@@ -129,8 +129,8 @@ const Settings = ({ setCurrentPage }) => {
   );
 };
 
-Settings.propTypes = {
-  setCurrentPage: PropTypes.func.isRequired
-};
+// Settings.propTypes = {
+//   setCurrentPage: PropTypes.func.isRequired
+// };
 
 export default Settings;

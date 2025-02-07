@@ -5,14 +5,29 @@ import {
   Route,
   Navigate,
 } from 'react-router-dom';
-import {SignedIn} from "@clerk/clerk-react";
+import {SignedIn, useUser} from "@clerk/clerk-react";
 import Login from './pages/Login/Login';
 import Signup from './pages/Singup/Signup';
 import './App.css';
 import { ROUTES } from './config/Routes';
 import Layout from './components/common/Layout/Layout';
+import { UserSession } from './utils/UserSession';
 
 function App() {
+
+  const { isLoaded, user, isSynced } = UserSession();
+
+  if (isLoaded && user) {
+    console.log(user.firstName);
+    console.log(user.lastName);
+    console.log(user.primaryEmailAddress?.emailAddress);
+
+  } else {
+    console.log("User data not loaded yet.");
+  }
+
+
+
   return (
     <Router>
       <Routes>

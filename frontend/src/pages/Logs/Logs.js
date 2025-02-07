@@ -168,8 +168,8 @@ const Logs = ({ setCurrentPage }) => {
   );
 };
 
-Logs.propTypes = {
-  setCurrentPage: PropTypes.func.isRequired
-};
+// Logs.propTypes = {
+//   setCurrentPage: PropTypes.func.isRequired
+// };
 
 export default Logs;
