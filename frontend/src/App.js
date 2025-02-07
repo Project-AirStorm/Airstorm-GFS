@@ -34,14 +34,6 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/sign-up" element={<Signup />} />
 
-        {/* If user is not signed in and visits "/", redirect to login */}
-        {/* <Route path="/" element={
-            <SignedOut>
-              <Navigate to="/login" replace />
-            </SignedOut>
-          }
-        /> */}
-
         {/* Protected application (only show if signed in) */}
         <Route
           path="/*"
