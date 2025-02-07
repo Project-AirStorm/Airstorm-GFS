@@ -5,7 +5,7 @@ import {
   Route,
   Navigate,
 } from 'react-router-dom';
-import { SignedIn, useUser } from "@clerk/clerk-react";
+import { SignedIn, SignedOut } from "@clerk/clerk-react";
 import Login from './pages/Login/Login';
 import Signup from './pages/Singup/Signup';
 import './App.css';
@@ -27,13 +27,21 @@ function App() {
     console.log("User data not loaded yet.");
   }
 
-
   return (
     <Router>
       <Routes>
         {/* Public sign-in route (not behind SignedIn) */}
         <Route path="/login" element={<Login />} />
         <Route path="/sign-up" element={<Signup />} />
+
+        {/* If user is not signed in and visits "/", redirect to login */}
+        {/* <Route path="/" element={
+            <SignedOut>
+              <Navigate to="/login" replace />
+            </SignedOut>
+          }
+        /> */}
+
         {/* Protected application (only show if signed in) */}
         <Route
           path="/*"

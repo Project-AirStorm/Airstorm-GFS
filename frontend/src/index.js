@@ -18,7 +18,7 @@ if (!PUBLISHABLE_KEY) {
 root.render(
   <React.StrictMode>
     <ClerkProvider
-     // Sets global color theme settings
+     // Sets global Clerk color theme settings
       appearance={{
         variables: {
           colorPrimary: '#2f60d4',
