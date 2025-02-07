@@ -6,23 +6,7 @@ function Login() {
   return (
     <div className="login-page-container">
       <main className="login-main">        
-        <SignIn
-          path="/login"
-          routing="path"
-          signUpUrl="/signup"
-          afterSignInUrl="/dashboard"
-          appearance={{
-            variables: {
-              colorPrimary: '#4f46e5',
-              // ...any brand colors or font overrides
-            },
-            elements: {
-              rootBox: 'clerk-root',
-              formButtonPrimary: 'clerk-btn-primary',
-              // ...
-            },
-          }}
-        />
+        <SignIn />
       </main>
     </div>
   );

@@ -5,7 +5,7 @@ import {
   Route,
   Navigate,
 } from 'react-router-dom';
-import { SignedIn, SignedOut, SignInButton, UserButton } from "@clerk/clerk-react";
+import { SignIn, SignedIn, SignedOut, SignInButton, UserButton } from "@clerk/clerk-react";
 
 import './App.css';
 import { ROUTES } from './config/Routes';
@@ -15,16 +15,17 @@ function App() {
   return (
     <Router>
       <SignedOut>
-        <SignInButton />
+
+        <SignIn />
       </SignedOut>
 
       <SignedIn>
       <Routes>
-        // The entry point for the aplpication
+        /* The main entry points for the application */ 
         <Route path="/*" element={ 
         
           <Layout>
-             <UserButton />
+             {/* <UserButton /> */}
               <Routes>
                 <Route path="/" element={<Navigate to={ROUTES.dashboard.path} replace />} />
                 

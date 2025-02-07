@@ -11,6 +11,7 @@ import Settings from '../pages/Settings/Settings';
 import Logs from '../pages/Logs/Logs';
 import Feedback from '../pages/Feedback/Feedback'
 import NotFound from '../pages/NotFound/NotFound';
+import Create from '../pages/Create/Create';
 import { SignIn, SignUp } from "@clerk/clerk-react";
 /**
  * Application route configuration
@@ -21,6 +22,11 @@ export const ROUTES = {
     path: '/login',
     title: 'Login',
     element: Login,
+  },
+  SignUp:{
+    path: '/create',
+    title: 'Create',
+    element: Create,
   },
   
   dashboard: {
