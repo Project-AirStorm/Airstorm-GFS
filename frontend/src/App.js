@@ -33,15 +33,29 @@ function App() {
         {/* Public sign-in route (not behind SignedIn) */}
         <Route path="/login" element={<Login />} />
         <Route path="/sign-up" element={<Signup />} />
-
-        {/* Protected application (only show if signed in) */}
+        
+        {/* Root route - redirect to login if signed out */}
+        <Route
+          path="/"
+          element={
+            <>
+              <SignedIn>
+                <Navigate to={ROUTES.dashboard.path} replace />
+              </SignedIn>
+              <SignedOut>
+                <Navigate to="/login" replace />
+              </SignedOut>
+            </>
+          }
+        />
+        
+        {/* Protected application routes */}
         <Route
           path="/*"
           element={
             <SignedIn>
               <Layout>
                 <Routes>
-                  <Route path="/" element={<Navigate to={ROUTES.dashboard.path} replace />} />
                   {Object.values(ROUTES).map(({ path, element: Element }) => (
                     <Route key={path} path={path} element={<Element />} />
                   ))}
@@ -51,7 +65,7 @@ function App() {
             </SignedIn>
           }
         />
-      </Routes>
+      </Routes>  
     </Router>
   );
 }
