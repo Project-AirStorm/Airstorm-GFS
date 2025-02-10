@@ -5,7 +5,7 @@ version: 2
 updates:
   # Frontend: React/NPM packages
   - package-ecosystem: "npm"
-    directory: "/" # Update this if your frontend is in a specific directory like "/frontend"
+    directory: "/"
     schedule:
       interval: "weekly"
       day: "monday"
@@ -19,12 +19,10 @@ updates:
         patterns:
           - "*"
     open-pull-requests-limit: 10
-    reviewers:
-      - "@Project-AirStorm/maintainers"
 
   # Backend: Python/PIP packages
   - package-ecosystem: "pip"
-    directory: "/" # Update this if your backend is in a specific directory like "/backend"
+    directory: "/"
     schedule:
       interval: "weekly"
       day: "monday"
@@ -38,5 +36,3 @@ updates:
         patterns:
           - "*"
     open-pull-requests-limit: 10
-    reviewers:
-      - "@Project-AirStorm/maintainers"
