@@ -4,7 +4,7 @@ import {
   ChevronUp,
   Filter,
   MapPin,
-  Calendar,
+  ArrowUpDown,
   AlertTriangle,
   ChevronsDown,
   ChevronsUp,
@@ -25,6 +25,7 @@ export const alertCountUpdated = (count) => {
   window.dispatchEvent(new CustomEvent('alertCountUpdated', { detail: count }));
 };
 
+// Alerts Component Variables
 const AlertsComponent = () => {
   const [alerts, setAlerts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -35,8 +36,17 @@ const AlertsComponent = () => {
   const [sortBy, setSortBy] = useState('date');
   const [locations, setLocations] = useState([]);
   const [favoriteLocations, setFavoriteLocations] = useState([]);
+  const [filterCertainty, setFilterCertainty] = useState('all');
 
-  // Fetch favorite locations
+  // Reset Filters Variables
+  const resetFilters = () => {
+    setFilterSeverity('all');
+    setFilterCertainty('all');
+    setFilterLocation('all');
+    setSortBy('date');
+  };
+
+  // Fetch Favorite Locations
   const fetchFavoriteLocations = async () => {
     try {
       const userId = process.env.REACT_APP_USER_ID;
@@ -51,7 +61,7 @@ const AlertsComponent = () => {
     }
   };
 
-  // Fetch alerts
+  // Fetch Alerts
   useEffect(() => {
     const fetchAlerts = async () => {
       try {
@@ -125,14 +135,16 @@ const AlertsComponent = () => {
     }
   };
 
-  // Filter and sort alerts
+  // Filter and Sort Alerts
   const processedAlerts = alerts
     .filter((alert) => {
       const severityMatch =
         filterSeverity === 'all' || alert.severity === filterSeverity;
       const locationMatch =
         filterLocation === 'all' || alert.location_name === filterLocation;
-      return severityMatch && locationMatch;
+      const certaintyMatch =
+        filterCertainty === 'all' || alert.certainty === filterCertainty;
+      return severityMatch && locationMatch && certaintyMatch;
     })
     .sort((a, b) => {
       switch (sortBy) {
@@ -182,18 +194,19 @@ const AlertsComponent = () => {
     }
   };
   return (
-    <div className="alerts-body">
-      <div className="alerts-header">
-        <div className="flex justify-between items-center mb-4">
-          <div>
-            <h2 className="content-title">Weather Alerts</h2>
-            <p className="content-description">
-              Active weather alerts for your saved locations
-            </p>
-          </div>
+    <div className="space-y-6">
+      <div className="flex justify-between items-center">
+        <div>
+          <h2 className="content-title">Weather Alerts</h2>
+          <p className="content-description">
+            Active weather alerts for your saved locations
+          </p>
+        </div>
+
+        <div className="flex gap-2">
           <button
             onClick={toggleExpandAll}
-            className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
+            className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-white bg-gray-800 border border-gray-600 rounded-md hover:bg-gray-700 transition-colors"
           >
             {Object.keys(expandedAlerts).length === processedAlerts.length ? (
               <>
@@ -207,78 +220,110 @@ const AlertsComponent = () => {
               </>
             )}
           </button>
-        </div>
 
-        <div className="flex flex-wrap gap-4 mb-6">
-          <div className="flex items-center gap-2">
-            <Filter className="w-4 h-4" />
-            <select
-              value={filterSeverity}
-              onChange={(e) => setFilterSeverity(e.target.value)}
-              className="border rounded p-2"
-            >
-              <option value="all">All Severities</option>
-              <option value="Extreme">Extreme</option>
-              <option value="Severe">Severe</option>
-              <option value="Moderate">Moderate</option>
-              <option value="Minor">Minor</option>
-            </select>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <MapPin className="w-4 h-4" />
-            <select
-              value={filterLocation}
-              onChange={(e) => setFilterLocation(e.target.value)}
-              className="border rounded p-2"
-            >
-              <option value="all">All Locations</option>
-              {locations.map((location) => (
-                <option key={location} value={location}>
-                  {location}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <Calendar className="w-4 h-4" />
-            <select
-              value={sortBy}
-              onChange={(e) => setSortBy(e.target.value)}
-              className="border rounded p-2"
-            >
-              <option value="date">Sort by Date</option>
-              <option value="severity">Sort by Severity</option>
-              <option value="location">Sort by Location</option>
-            </select>
-          </div>
+          <button
+            onClick={resetFilters}
+            className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-white bg-gray-800 border border-gray-600 rounded-md hover:bg-gray-700 transition-colors"
+          >
+            Reset Filters
+          </button>
         </div>
       </div>
 
-      <div className="alerts-list">
+      <div className="grid grid-cols-4 gap-4">
+        {/* Severity Filter */}
+        <div className="w-full bg-gray-900 border border-gray-600 rounded flex items-center">
+          <Filter className="w-4 h-4 text-white mx-2" />
+          <select
+            value={filterSeverity}
+            onChange={(e) => setFilterSeverity(e.target.value)}
+            className="w-full bg-transparent text-white p-2 outline-none appearance-none"
+          >
+            <option value="all">All Severities</option>
+            <option value="Extreme">Extreme</option>
+            <option value="Severe">Severe</option>
+            <option value="Moderate">Moderate</option>
+            <option value="Minor">Minor</option>
+          </select>
+          <ChevronDown className="w-4 h-4 text-white mx-2" />
+        </div>
+
+        {/* Certainty Filter */}
+        <div className="w-full bg-gray-900 border border-gray-600 rounded flex items-center">
+          <AlertTriangle className="w-4 h-4 text-white mx-2" />
+          <select
+            value={filterCertainty}
+            onChange={(e) => setFilterCertainty(e.target.value)}
+            className="w-full bg-transparent text-white p-2 outline-none appearance-none"
+          >
+            <option value="all">All Certainties</option>
+            <option value="Observed">Observed</option>
+            <option value="Likely">Likely</option>
+            <option value="Possible">Possible</option>
+            <option value="Unlikely">Unlikely</option>
+          </select>
+          <ChevronDown className="w-4 h-4 text-white mx-2" />
+        </div>
+
+        {/* Location Filter */}
+        <div className="w-full bg-gray-900 border border-gray-600 rounded flex items-center">
+          <MapPin className="w-4 h-4 text-white mx-2" />
+          <select
+            value={filterLocation}
+            onChange={(e) => setFilterLocation(e.target.value)}
+            className="w-full bg-transparent text-white p-2 outline-none appearance-none"
+          >
+            <option value="all">All Locations</option>
+            {locations.map((location) => (
+              <option key={location} value={location}>
+                {location}
+              </option>
+            ))}
+          </select>
+          <ChevronDown className="w-4 h-4 text-white mx-2" />
+        </div>
+
+        {/* Sort Filter */}
+        <div className="w-full bg-gray-900 border border-gray-600 rounded flex items-center">
+          <ArrowUpDown className="w-4 h-4 text-white mx-2" />
+          <select
+            value={sortBy}
+            onChange={(e) => setSortBy(e.target.value)}
+            className="w-full bg-transparent text-white p-2 outline-none appearance-none"
+          >
+            <option value="date">Sort by Date</option>
+            <option value="severity">Sort by Severity</option>
+            <option value="location">Sort by Location</option>
+          </select>
+          <ChevronDown className="w-4 h-4 text-white mx-2" />
+        </div>
+      </div>
+
+      <div className="space-y-4">
         {processedAlerts.length === 0 ? (
-          <div className="text-center py-8 text-gray-500">
+          <div className="text-center py-8 text-gray-400">
             No active alerts for your locations
           </div>
         ) : (
           processedAlerts.map((alert, index) => (
             <div
               key={`${alert.location_name}-${alert.event}-${index}`}
-              className={`alert-item ${
-                severityColors[alert.severity] || 'bg-gray-100'
+              className={`rounded-lg p-4 ${
+                severityColors[alert.severity] || 'bg-gray-800'
               }`}
             >
-              <div className="alert-header">
-                <div className="flex-1">
+              <div className="flex justify-between items-start">
+                <div className="space-y-2">
                   <div className="flex items-center gap-2">
                     <AlertTriangle className="w-5 h-5" />
-                    <h3 className="alert-type">{alert.event}</h3>
+                    <h3 className="font-semibold">{alert.event}</h3>
                   </div>
-                  <p className="alert-location">{alert.location_name}</p>
-                  <div className="flex gap-4 mt-2">
-                    <span>Severity: {alert.severity}</span>
-                    <span>Certainty: {alert.certainty}</span>
+                  <p className="text-sm">{alert.location_name}</p>
+                  <div className="flex gap-4">
+                    <span className="text-sm">Severity: {alert.severity}</span>
+                    <span className="text-sm">
+                      Certainty: {alert.certainty}
+                    </span>
                   </div>
                 </div>
                 <button
@@ -287,7 +332,7 @@ const AlertsComponent = () => {
                       `${alert.location_name}-${alert.event}-${index}`
                     )
                   }
-                  className="p-2 hover:bg-black/5 rounded-full transition-colors"
+                  className="p-2 hover:bg-black/10 rounded-full transition-colors"
                 >
                   {expandedAlerts[
                     `${alert.location_name}-${alert.event}-${index}`
@@ -313,13 +358,13 @@ const AlertsComponent = () => {
                     <strong>Sender:</strong> {alert.sender}
                   </p>
                   {alert.headline && (
-                    <p className="alert-message font-bold">{alert.headline}</p>
+                    <p className="font-bold">{alert.headline}</p>
                   )}
-                  <p className="alert-message">{alert.description}</p>
+                  <p>{alert.description}</p>
                   {alert.instruction && (
                     <div className="mt-4">
                       <p className="font-bold">Instructions:</p>
-                      <p className="alert-message">{alert.instruction}</p>
+                      <p>{alert.instruction}</p>
                     </div>
                   )}
                   {alert.url && (
@@ -328,7 +373,7 @@ const AlertsComponent = () => {
                         href={alert.url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-blue-600 hover:text-blue-800 underline"
+                        className="text-blue-400 hover:text-blue-300 underline"
                       >
                         More Information
                       </a>
@@ -343,4 +388,5 @@ const AlertsComponent = () => {
     </div>
   );
 };
+
 export default AlertsComponent;
