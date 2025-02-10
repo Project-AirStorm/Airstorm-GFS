@@ -15,7 +15,8 @@ import { UserSession } from './utils/UserSession';
 
 function App() {
 
-  // Currently here for testing purposes, will be removed.
+  // Currently here for testing purposes, will be removed
+  // This is the user info we will be saving to the DB.
   const { isLoaded, user, isSynced } = UserSession();
 
   if (isLoaded && user) {
@@ -30,11 +31,11 @@ function App() {
   return (
     <Router>
       <Routes>
-        {/* Public sign-in route (not behind SignedIn) */}
+        {/* Public sign-in routes */}
         <Route path="/login" element={<Login />} />
         <Route path="/sign-up" element={<Signup />} />
-        
-        {/* Root route - redirect to login if signed out */}
+
+        {/* Root route - redirect based on auth state */}
         <Route
           path="/"
           element={
@@ -48,24 +49,29 @@ function App() {
             </>
           }
         />
-        
+
         {/* Protected application routes */}
         <Route
-          path="/*"
           element={
-            <SignedIn>
-              <Layout>
-                <Routes>
-                  {Object.values(ROUTES).map(({ path, element: Element }) => (
-                    <Route key={path} path={path} element={<Element />} />
-                  ))}
-                  <Route path="*" element={<Navigate to={ROUTES.notfound.path} replace />} />
-                </Routes>
-              </Layout>
-            </SignedIn>
+            <>
+              <SignedIn>
+                <Layout>
+                  <Routes>
+                    {Object.values(ROUTES).map(({ path, element: Element }) => (
+                      <Route key={path} path={path} element={<Element />} />
+                    ))}
+                  </Routes>
+                </Layout>
+              </SignedIn>
+              <SignedOut>
+                <Navigate to="/login" replace />
+              </SignedOut>
+            </>
           }
-        />
-      </Routes>  
+        >
+          <Route path="*" element={<Navigate to={ROUTES.notfound.path} replace />} />
+        </Route>
+      </Routes>
     </Router>
   );
 }
