@@ -31,11 +31,14 @@ function App() {
   return (
     <Router>
       <Routes>
-        {/* Public sign-in routes */}
+        {/* Publicly declared login/sign-up routes that are only available to users
+            that have not been authenticated by Clerk yet. */}
         <Route path="/login" element={<Login />} />
         <Route path="/sign-up" element={<Signup />} />
 
-        {/* Root route - redirect based on auth state */}
+        {/* These are our public "fallback routes." If rhe user tries to 
+            Type in anything after projectairstorm.com/asdf, this 
+            reroutes the user to the /login page. */}
         <Route
           path="/"
           element={
@@ -50,13 +53,17 @@ function App() {
           }
         />
 
-        {/* Protected application routes */}
+        {/* Protected application routes! 
+            These are only accessible Clerk login has been authenticated and the user is signed in. 
+            Our entire application is wrapped in the <Layout> Component. */}
         <Route
           element={
             <>
               <SignedIn>
                 <Layout>
                   <Routes>
+                    {/* Dynamically generates all proctected application routes from 
+                        the ROUTES array in Routes.js */}
                     {Object.values(ROUTES).map(({ path, element: Element }) => (
                       <Route key={path} path={path} element={<Element />} />
                     ))}
