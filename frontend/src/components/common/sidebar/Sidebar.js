@@ -147,8 +147,8 @@ const Sidebar = () => {
               className="w-8 h-8 object-contain"
             />
             <div>
-              <h1 className="text-lg font-bold text-gray-800">Airstorm</h1>
-              <p className="text-xs text-gray-500">Admin Panel</p>
+              <h1 className="text-lg font-bold text-gray-800">Airstorm GFS</h1>
+              <p className="text-xs text-gray-500">AFGSC</p>
             </div>
           </div>
           <Menu className="w-5 h-5 text-gray-500" />
