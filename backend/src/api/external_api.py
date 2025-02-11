@@ -10,7 +10,9 @@ from db.database_manager import DatabaseManager
 import openmeteo_requests
 import requests_cache
 from retry_requests import retry
-
+from functools import lru_cache
+from datetime import datetime, timedelta
+from threading import Lock
 
 external_api_bp = Blueprint("external_api", __name__)
 
@@ -25,6 +27,7 @@ BACKEND_GOOGLE_MAPS_API_KEY = os.getenv("BACKEND_GOOGLE_MAPS_API_KEY")
 cache_session = requests_cache.CachedSession(".cache", expire_after=3600)
 retry_session = retry(cache_session, retries=5, backoff_factor=0.2)
 openmeteo = openmeteo_requests.Client(session=retry_session)
+
 
 # ====== Meteosource Tile API ======
 
@@ -86,6 +89,8 @@ def meteosource_tile():
 
 
 # ====== Google Maps Geocoding API ======
+
+
 @external_api_bp.route("/api/geocode", methods=["GET"])
 def get_location_info():
     try:
@@ -173,6 +178,8 @@ def google_maps_init():
 
 
 # ====== Open-Meteo Weather API ======
+
+
 @external_api_bp.route("/api/weather", methods=["GET"])
 def get_weather():
     lat = request.args.get("lat", type=float)
@@ -194,9 +201,9 @@ def get_weather():
             ],
             "hourly": ["temperature_2m"],
             "temperature_unit": "fahrenheit",
-            "rain" : "inch",
+            "rain": "inch",
             "wind_speed_unit": "mph",
-            "wind_direction_10m" : "°",
+            "wind_direction_10m": "°",
             "timezone": "GMT",
         }
 
@@ -223,13 +230,18 @@ def get_weather():
         logger.error(f"Error fetching weather data: {str(e)}")
         return jsonify({"error": str(e)}), 500
 
+
 def calculate_wind_direction(current):
     degree_speed = current
-    directions = ["N", "NNE", "NE", "ENE", "E", "ESE", "SE", "SSE", "S", "SSW", "SW", "WSW", "W", "WNW", "NW", "NNW"]
+    directions = ["N", "NNE", "NE", "ENE", "E", "ESE", "SE",
+                  "SSE", "S", "SSW", "SW", "WSW", "W", "WNW", "NW", "NNW"]
     ix = int((degree_speed + 11.25) / 22.5)
     return directions[ix % 16]
 
+
 # ====== GitHub Issues API ======
+
+
 github_service = GitHubService()
 
 
@@ -390,11 +402,45 @@ def handle_500(e):
 
 
 # ====== Alerts API ======
+
+
+# Cache implementation
+class TimedCache:
+    def __init__(self):
+        self._cache = {}
+        self._lock = Lock()
+
+    def get(self, key):
+        with self._lock:
+            if key in self._cache:
+                value, expiry = self._cache[key]
+                if datetime.now() < expiry:
+                    return value
+                else:
+                    del self._cache[key]
+            return None
+
+    def set(self, key, value, ttl_seconds=300):  # 300 seconds = 5 minutes
+        with self._lock:
+            expiry = datetime.now() + timedelta(seconds=ttl_seconds)
+            self._cache[key] = (value, expiry)
+
+
+# Initialize cache instances
+state_code_cache = TimedCache()
+weather_alerts_cache = TimedCache()
+
+
+@lru_cache(maxsize=100)
 def get_state_code(lat, lon):
-    """
-    Get state code using Google Maps Geocoding API directly
-    Returns tuple of (state_code, error_message)
-    """
+    """Get state code with caching"""
+    cache_key = f"{lat},{lon}"
+
+    # Check cache first
+    cached_result = state_code_cache.get(cache_key)
+    if cached_result is not None:
+        return cached_result
+
     try:
         api_key = os.getenv('BACKEND_GOOGLE_MAPS_API_KEY')
         if not api_key:
@@ -416,14 +462,32 @@ def get_state_code(lat, lon):
                 f"Geocoding API error: {data.get('status')} - {data.get('error_message', 'No results found')}")
             return None, "Location not found"
 
-        # Find state component in results
+        # First check if location is in the US
+        is_us = False
         for result in data["results"]:
             for component in result.get("address_components", []):
-                if "administrative_area_level_1" in component["types"]:
-                    # Return state code (e.g., "KS")
-                    return component["short_name"], None
+                if "country" in component["types"] and component["short_name"] == "US":
+                    is_us = True
+                    break
+            if is_us:
+                break
 
-        return None, "State not found in geocoding response"
+        if not is_us:
+            result = (None, "Non-US location")
+            state_code_cache.set(cache_key, result)
+            return result
+
+        # If it is US, find state or territory code
+        for result in data["results"]:
+            for component in result.get("address_components", []):
+                if any(level in component["types"] for level in ["administrative_area_level_1", "country"]):
+                    result = (component["short_name"], None)
+                    state_code_cache.set(cache_key, result)
+                    return result
+
+        result = (None, "State not found in geocoding response")
+        state_code_cache.set(cache_key, result)
+        return result
 
     except requests.RequestException as e:
         logger.error(f"Error in geocoding request: {str(e)}")
@@ -434,10 +498,12 @@ def get_state_code(lat, lon):
 
 
 def get_weather_gov_alerts(state_code):
-    """
-    Get alerts from weather.gov API for a specific state
-    Returns tuple of (alerts_list, error_message)
-    """
+    """Get alerts with caching"""
+    # Check cache first
+    cached_alerts = weather_alerts_cache.get(state_code)
+    if cached_alerts is not None:
+        return cached_alerts
+
     try:
         headers = {
             'Accept': 'application/geo+json',
@@ -449,7 +515,11 @@ def get_weather_gov_alerts(state_code):
         response.raise_for_status()
 
         data = response.json()
-        return data.get('features', []), None
+        result = (data.get('features', []), None)
+
+        # Cache the result
+        weather_alerts_cache.set(state_code, result)
+        return result
 
     except requests.RequestException as e:
         logger.error(f"Error fetching weather.gov alerts: {str(e)}")
@@ -461,7 +531,7 @@ def get_weather_gov_alerts(state_code):
 
 @external_api_bp.route("/api/external/alerts", methods=["GET"])
 def get_alerts():
-    """Fetch alerts for all saved locations of a user using weather.gov API."""
+    """Optimized alert fetching with caching"""
     try:
         user_id = request.args.get("userId")
         if not user_id:
@@ -474,41 +544,50 @@ def get_alerts():
             return jsonify({"alerts": [], "message": "No saved locations found"}), 200
 
         all_alerts = []
-        location_states = {}  # Cache for state lookups
-        state_alerts = {}     # Cache for weather.gov responses
+        location_states = {}
+        state_alerts = {}
 
-        # First, get all unique states for the locations
-        for location in locations:
-            lat = location['latitude']
-            lon = location['longitude']
+        # Process locations in batches to avoid overwhelming the APIs
+        batch_size = 3
+        location_batches = [locations[i:i + batch_size]
+                            for i in range(0, len(locations), batch_size)]
 
-            # Skip if we've already looked up this lat/lon pair
-            loc_key = f"{lat},{lon}"
-            if loc_key not in location_states:
-                state_code, error = get_state_code(lat, lon)
-                if error:
-                    logger.warning(
-                        f"Could not determine state for location {location['name']}: {error}")
-                    continue
+        for batch in location_batches:
+            # Process each batch of locations
+            for location in batch:
+                lat = location['latitude']
+                lon = location['longitude']
+                loc_key = f"{lat},{lon}"
 
-                location_states[loc_key] = state_code
-                logger.info(
-                    f"Found state {state_code} for location {location['name']}")
+                if loc_key not in location_states:
+                    state_code, error = get_state_code(lat, lon)
+                    if error:
+                        if error == "Non-US location":
+                            logger.info(
+                                f"Skipping non-US location {location['name']}")
+                        else:
+                            logger.warning(
+                                f"Could not determine state for location {location['name']}: {error}")
+                        continue
 
-        # Then get alerts for each unique state
-        for state_code in set(location_states.values()):
-            if state_code and state_code not in state_alerts:
-                alerts, error = get_weather_gov_alerts(state_code)
-                if error:
-                    logger.error(
-                        f"Error fetching alerts for state {state_code}: {error}")
-                    continue
+                    location_states[loc_key] = state_code
+                    logger.info(
+                        f"Found state {state_code} for location {location['name']}")
 
-                state_alerts[state_code] = alerts
-                logger.info(
-                    f"Found {len(alerts)} alerts for state {state_code}")
+            # Get alerts for the states in this batch
+            for state_code in set(location_states.values()):
+                if state_code and state_code not in state_alerts:
+                    alerts, error = get_weather_gov_alerts(state_code)
+                    if error:
+                        logger.error(
+                            f"Error fetching alerts for state {state_code}: {error}")
+                        continue
 
-        # Match alerts to locations
+                    state_alerts[state_code] = alerts
+                    logger.info(
+                        f"Found {len(alerts)} alerts for state {state_code}")
+
+        # Process alerts for each location
         for location in locations:
             lat = location['latitude']
             lon = location['longitude']
@@ -518,14 +597,12 @@ def get_alerts():
             if not state_code:
                 continue
 
-            state_alert_list = state_alerts.get(state_code, [])
+            alerts_for_state = state_alerts.get(state_code, [])
 
-            # Filter alerts by proximity to location
-            for alert in state_alert_list:
+            for alert in alerts_for_state:
                 try:
                     properties = alert.get('properties', {})
 
-                    # Add location information to the alert
                     formatted_alert = {
                         'event': properties.get('event'),
                         'severity': properties.get('severity'),
