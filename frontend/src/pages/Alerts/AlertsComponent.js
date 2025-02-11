@@ -135,7 +135,27 @@ const AlertsComponent = () => {
     }
   };
 
-  // Filter and Sort Alerts
+  if (loading) {
+    return (
+      <div className="alerts-body">
+        <div className="text-center py-8">Loading alerts...</div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="alerts-body">
+        <div className="alert-item alert-high">
+          <div className="alert-header">
+            <h3 className="alert-type">Error</h3>
+          </div>
+          <p className="alert-message">{error}</p>
+        </div>
+      </div>
+    );
+  }
+
   const processedAlerts = alerts
     .filter((alert) => {
       const severityMatch =
@@ -193,12 +213,13 @@ const AlertsComponent = () => {
       setExpandedAlerts(newExpandedState);
     }
   };
+
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
+    <div className="alerts-body">
+      <div className="flex justify-between items-center mb-6">
         <div>
-          <h2 className="content-title">Weather Alerts</h2>
-          <p className="content-description">
+          <h2 className="text-xl font-semibold">Weather Alerts</h2>
+          <p className="text-gray-600">
             Active weather alerts for your saved locations
           </p>
         </div>
@@ -206,7 +227,7 @@ const AlertsComponent = () => {
         <div className="flex gap-2">
           <button
             onClick={toggleExpandAll}
-            className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-white bg-gray-800 border border-gray-600 rounded-md hover:bg-gray-700 transition-colors"
+            className="filter-select flex items-center gap-2"
           >
             {Object.keys(expandedAlerts).length === processedAlerts.length ? (
               <>
@@ -223,21 +244,21 @@ const AlertsComponent = () => {
 
           <button
             onClick={resetFilters}
-            className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-white bg-gray-800 border border-gray-600 rounded-md hover:bg-gray-700 transition-colors"
+            className="filter-select flex items-center gap-2"
           >
             Reset Filters
           </button>
         </div>
       </div>
 
-      <div className="grid grid-cols-4 gap-4">
+      <div className="filter-container">
         {/* Severity Filter */}
-        <div className="w-full bg-gray-900 border border-gray-600 rounded flex items-center">
-          <Filter className="w-4 h-4 text-white mx-2" />
+        <div className="flex items-center flex-1">
+          <Filter className="w-4 h-4 text-gray-500 mr-2" />
           <select
             value={filterSeverity}
             onChange={(e) => setFilterSeverity(e.target.value)}
-            className="w-full bg-transparent text-white p-2 outline-none appearance-none"
+            className="filter-select flex-1"
           >
             <option value="all">All Severities</option>
             <option value="Extreme">Extreme</option>
@@ -245,16 +266,15 @@ const AlertsComponent = () => {
             <option value="Moderate">Moderate</option>
             <option value="Minor">Minor</option>
           </select>
-          <ChevronDown className="w-4 h-4 text-white mx-2" />
         </div>
 
         {/* Certainty Filter */}
-        <div className="w-full bg-gray-900 border border-gray-600 rounded flex items-center">
-          <AlertTriangle className="w-4 h-4 text-white mx-2" />
+        <div className="flex items-center flex-1">
+          <AlertTriangle className="w-4 h-4 text-gray-500 mr-2" />
           <select
             value={filterCertainty}
             onChange={(e) => setFilterCertainty(e.target.value)}
-            className="w-full bg-transparent text-white p-2 outline-none appearance-none"
+            className="filter-select flex-1"
           >
             <option value="all">All Certainties</option>
             <option value="Observed">Observed</option>
@@ -262,16 +282,15 @@ const AlertsComponent = () => {
             <option value="Possible">Possible</option>
             <option value="Unlikely">Unlikely</option>
           </select>
-          <ChevronDown className="w-4 h-4 text-white mx-2" />
         </div>
 
         {/* Location Filter */}
-        <div className="w-full bg-gray-900 border border-gray-600 rounded flex items-center">
-          <MapPin className="w-4 h-4 text-white mx-2" />
+        <div className="flex items-center flex-1">
+          <MapPin className="w-4 h-4 text-gray-500 mr-2" />
           <select
             value={filterLocation}
             onChange={(e) => setFilterLocation(e.target.value)}
-            className="w-full bg-transparent text-white p-2 outline-none appearance-none"
+            className="filter-select flex-1"
           >
             <option value="all">All Locations</option>
             {locations.map((location) => (
@@ -280,22 +299,20 @@ const AlertsComponent = () => {
               </option>
             ))}
           </select>
-          <ChevronDown className="w-4 h-4 text-white mx-2" />
         </div>
 
         {/* Sort Filter */}
-        <div className="w-full bg-gray-900 border border-gray-600 rounded flex items-center">
-          <ArrowUpDown className="w-4 h-4 text-white mx-2" />
+        <div className="flex items-center flex-1">
+          <ArrowUpDown className="w-4 h-4 text-gray-500 mr-2" />
           <select
             value={sortBy}
             onChange={(e) => setSortBy(e.target.value)}
-            className="w-full bg-transparent text-white p-2 outline-none appearance-none"
+            className="filter-select flex-1"
           >
             <option value="date">Sort by Date</option>
             <option value="severity">Sort by Severity</option>
             <option value="location">Sort by Location</option>
           </select>
-          <ChevronDown className="w-4 h-4 text-white mx-2" />
         </div>
       </div>
 
@@ -305,84 +322,79 @@ const AlertsComponent = () => {
             No active alerts for your locations
           </div>
         ) : (
-          processedAlerts.map((alert, index) => (
-            <div
-              key={`${alert.location_name}-${alert.event}-${index}`}
-              className={`rounded-lg p-4 ${
-                severityColors[alert.severity] || 'bg-gray-800'
-              }`}
-            >
-              <div className="flex justify-between items-start">
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2">
-                    <AlertTriangle className="w-5 h-5" />
-                    <h3 className="font-semibold">{alert.event}</h3>
-                  </div>
-                  <p className="text-sm">{alert.location_name}</p>
-                  <div className="flex gap-4">
-                    <span className="text-sm">Severity: {alert.severity}</span>
-                    <span className="text-sm">
-                      Certainty: {alert.certainty}
-                    </span>
-                  </div>
-                </div>
-                <button
-                  onClick={() =>
-                    toggleExpand(
-                      `${alert.location_name}-${alert.event}-${index}`
-                    )
-                  }
-                  className="p-2 hover:bg-black/10 rounded-full transition-colors"
-                >
-                  {expandedAlerts[
-                    `${alert.location_name}-${alert.event}-${index}`
-                  ] ? (
-                    <ChevronUp className="w-5 h-5" />
-                  ) : (
-                    <ChevronDown className="w-5 h-5" />
-                  )}
-                </button>
-              </div>
+          processedAlerts.map((alert, index) => {
+            const alertId = `${alert.location_name}-${alert.event}-${index}`;
+            const isExpanded = expandedAlerts[alertId];
 
-              {expandedAlerts[
-                `${alert.location_name}-${alert.event}-${index}`
-              ] && (
-                <div className="mt-4 space-y-2">
-                  <p>
-                    <strong>Start:</strong> {formatDateTime(alert.onset)}
-                  </p>
-                  <p>
-                    <strong>End:</strong> {formatDateTime(alert.expires)}
-                  </p>
-                  <p>
-                    <strong>Sender:</strong> {alert.sender}
-                  </p>
-                  {alert.headline && (
-                    <p className="font-bold">{alert.headline}</p>
-                  )}
-                  <p>{alert.description}</p>
-                  {alert.instruction && (
-                    <div className="mt-4">
-                      <p className="font-bold">Instructions:</p>
-                      <p>{alert.instruction}</p>
+            return (
+              <div
+                key={alertId}
+                className={`alert-item ${severityColors[alert.severity]}`}
+              >
+                <div className="alert-header">
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2">
+                      <AlertTriangle className="w-5 h-5" />
+                      <h3 className="alert-type">{alert.event}</h3>
                     </div>
-                  )}
-                  {alert.url && (
-                    <p className="mt-2">
-                      <a
-                        href={alert.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-blue-400 hover:text-blue-300 underline"
-                      >
-                        More Information
-                      </a>
-                    </p>
-                  )}
+                    <p className="alert-location">{alert.location_name}</p>
+                    <div className="flex gap-4">
+                      <span className={`severity-badge ${alert.severity}`}>
+                        {alert.severity}
+                      </span>
+                      <span className="certainty-badge">{alert.certainty}</span>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => toggleExpand(alertId)}
+                    className="p-2 hover:bg-black/10 rounded-full transition-colors"
+                  >
+                    {isExpanded ? (
+                      <ChevronUp className="w-5 h-5" />
+                    ) : (
+                      <ChevronDown className="w-5 h-5" />
+                    )}
+                  </button>
                 </div>
-              )}
-            </div>
-          ))
+
+                {isExpanded && (
+                  <div className="alert-details">
+                    <p>
+                      <strong>Start:</strong> {formatDateTime(alert.onset)}
+                    </p>
+                    <p>
+                      <strong>End:</strong> {formatDateTime(alert.expires)}
+                    </p>
+                    <p>
+                      <strong>Sender:</strong> {alert.sender}
+                    </p>
+                    {alert.headline && (
+                      <p className="font-bold">{alert.headline}</p>
+                    )}
+                    <p>{alert.description}</p>
+                    {alert.instruction && (
+                      <div className="mt-4">
+                        <p className="font-bold">Instructions:</p>
+                        <p>{alert.instruction}</p>
+                      </div>
+                    )}
+                    {alert.url && (
+                      <p className="mt-2">
+                        <a
+                          href={alert.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-blue-400 hover:text-blue-300 underline"
+                        >
+                          More Information
+                        </a>
+                      </p>
+                    )}
+                  </div>
+                )}
+              </div>
+            );
+          })
         )}
       </div>
     </div>
