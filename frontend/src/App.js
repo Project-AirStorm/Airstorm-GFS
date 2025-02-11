@@ -1,92 +1,84 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import {
   BrowserRouter as Router,
   Routes,
   Route,
   Navigate,
-  useLocation,
 } from 'react-router-dom';
-import Footer from './components/common/footer/Footer';
-import Header from './components/common/header/Header';
-import Sidebar from './components/common/sidebar/Sidebar';
-import { ROUTES, getPageTitle } from './config/routes';
+import { SignedIn, SignedOut } from "@clerk/clerk-react";
+import Login from './pages/Login/Login';
+import Signup from './pages/Singup/Signup';
 import './App.css';
+import { ROUTES } from './config/Routes';
+import Layout from './components/common/Layout/Layout';
+import { UserSession } from './utils/UserSession';
 
-/**
- * Layout component that wraps the main content and handles mobile menu state
- */
-const Layout = ({ children }) => {
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [windowWidth, setWindowWidth] = useState(window.innerWidth);
-  const location = useLocation();
-
-  // Handle window resize events
-  useEffect(() => {
-    const handleResize = () => {
-      setWindowWidth(window.innerWidth);
-      if (window.innerWidth > 768) {
-        setIsMobileMenuOpen(false);
-      }
-    };
-
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
-
-  // Toggle mobile menu
-  const toggleMobileMenu = () => {
-    setIsMobileMenuOpen(!isMobileMenuOpen);
-  };
-
-  return (
-    <div className="app-wrapper">
-      <Sidebar
-        isOpen={isMobileMenuOpen}
-        onClose={() => setIsMobileMenuOpen(false)}
-      />
-
-      <div className="main-content-wrapper">
-        <Header
-          title={getPageTitle(location.pathname)}
-          onMenuToggle={toggleMobileMenu}
-          isMobileMenuOpen={isMobileMenuOpen}
-        />
-
-        <main className="content-area">{children}</main>
-
-        <Footer />
-      </div>
-    </div>
-  );
-};
-
-/**
- * Main Application component that handles routing
- * Uses centralized route configuration for better maintainability
- */
 function App() {
+
+  // Currently here for testing purposes, will be removed
+  // This is the user info we will be saving to the DB.
+  const { isLoaded, user, isSynced } = UserSession();
+
+  if (isLoaded && user) {
+    console.log(user.firstName);
+    console.log(user.lastName);
+    console.log(user.primaryEmailAddress?.emailAddress);
+
+  } else {
+    console.log("User data not loaded yet.");
+  }
+
   return (
     <Router>
-      <Layout>
-        <Routes>
-          {/* Redirect root to dashboard */}
-          <Route
-            path="/"
-            element={<Navigate to={ROUTES.dashboard.path} replace />}
-          />
+      <Routes>
+        {/* Publicly declared login/sign-up routes that are only available to users
+            that have not been authenticated by Clerk yet. */}
+        <Route path="/login" element={<Login />} />
+        <Route path="/sign-up" element={<Signup />} />
 
-          {/* Generate routes from configuration */}
-          {Object.values(ROUTES).map(({ path, element: Element }) => (
-            <Route key={path} path={path} element={<Element />} />
-          ))}
+        {/* These are our public "fallback routes." If rhe user tries to 
+            Type in anything after projectairstorm.com/asdf, this 
+            reroutes the user to the /login page. */}
+        <Route
+          path="/"
+          element={
+            <>
+              <SignedIn>
+                <Navigate to={ROUTES.dashboard.path} replace />
+              </SignedIn>
+              <SignedOut>
+                <Navigate to="/login" replace />
+              </SignedOut>
+            </>
+          }
+        />
 
-          {/* Catch all unmatched routes and redirect to dashboard */}
-          <Route
-            path="*"
-            element={<Navigate to={ROUTES.dashboard.path} replace />}
-          />
-        </Routes>
-      </Layout>
+       {/* Protected application routes! 
+           These are only accessible Clerk login has been authenticated and the user is signed in. 
+           Our entire application is wrapped in the <Layout> Component. */}
+        <Route
+          element={
+            <>
+              <SignedIn>
+                <Layout>
+                  <Routes>
+                    {/* Dynamically generates all proctected application routes from 
+                        the ROUTES array in Routes.js */ }
+                    {Object.values(ROUTES).map(({ path, element: Element }) => (
+                      <Route key={path} path={path} element={<Element />} />
+                    ))}
+                  </Routes>
+                </Layout>
+              </SignedIn>
+              <SignedOut>
+                <Navigate to="/login" replace />
+              </SignedOut>
+            </>
+          }
+        >
+          <Route path="*" element={<Navigate to={ROUTES.notfound.path} replace />} />
+        </Route>
+      </Routes>
     </Router>
   );
 }

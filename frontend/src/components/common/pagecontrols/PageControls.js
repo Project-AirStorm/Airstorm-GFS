@@ -35,7 +35,7 @@ const PageControls = ({
     if (externalTimeframeChange) {
       externalTimeframeChange();
     } else {
-      console.log('Timeframe changed');
+      //console.log('Timeframe changed');
     }
   };
 
@@ -43,7 +43,7 @@ const PageControls = ({
     if (externalAddBase) {
       externalAddBase();
     } else {
-      console.log('Add base clicked');
+      //console.log('Add base clicked');
     }
   };
 

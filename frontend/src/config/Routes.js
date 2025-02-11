@@ -1,13 +1,17 @@
 import Dashboard from '../pages/Dashboard/Dashboard';
 import Forecasts from '../pages/Forecasts/Forecasts';
 import Maps from '../pages/Maps/Maps';
+import Weather from '../pages/Unused/Weather/Weather';
+import MeteogramPbp from '../components/specific/MeteogramPbp/MeteogramPbp';
+import SkewTPbp from '../components/specific/SkewTPbp/SkewTPbp';
+import Login from '../pages/Login/Login';
 import Alerts from '../pages/Alerts/Alerts';
 import Analysis from '../pages/Analysis/Analysis';
-import Logs from '../pages/Logs/Logs';
 import Settings from '../pages/Settings/Settings';
-import Login from '../pages/Login/Login';
-import Weather from '../pages/Unused/Weather/Weather.js';
+import Logs from '../pages/Logs/Logs';
 import Feedback from '../pages/Feedback/Feedback';
+import NotFound from '../pages/NotFound/NotFound';
+import Signup from '../pages/Singup/Signup';
 
 /**
  * Application route configuration
@@ -19,6 +23,12 @@ export const ROUTES = {
     title: 'Login',
     element: Login,
   },
+  SignUp: {
+    path: '/sing-up',
+    title: 'Signup',
+    element: Signup,
+  },
+
   dashboard: {
     path: '/dashboard',
     title: 'Dashboard',
@@ -58,6 +68,11 @@ export const ROUTES = {
     path: '/feedback',
     title: 'Feedback',
     element: Feedback,
+  },
+  notfound: {
+    path: '/notfound',
+    title: 'NotFound',
+    element: NotFound,
   },
 };
 

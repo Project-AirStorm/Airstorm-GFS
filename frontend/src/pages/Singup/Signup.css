@@ -1,0 +1,21 @@
+/* Overall wrapper to make the page a column flex container with full viewport height */
+.signup-wrapper {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+/* The container for the sign-up content will expand to fill available space */
+.signup-page-container {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Style for the main area containing the SignUp component */
+.signup-main {
+  width: 100%;
+  max-width: 480px;
+  padding: 2rem;
+}

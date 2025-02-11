@@ -28,3 +28,13 @@ docker compose exec frontend bash
 docker-compose exec mysql bash
 mysql -u root -p
 ```
+
+## Complete hard reset
+```
+docker-compose down
+docker system prune -f
+docker volume prune -f
+docker network prune -f
+rm -rf frontend/node_modules
+rm -rf frontend/package-lock.json
+```

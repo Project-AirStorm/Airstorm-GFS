@@ -81,8 +81,8 @@ const Analysis = ({ setCurrentPage }) => {
   );
 };
 
-Analysis.propTypes = {
-  setCurrentPage: PropTypes.func.isRequired
-};
+// Analysis.propTypes = {
+//   setCurrentPage: PropTypes.func.isRequired
+// };
 
 export default Analysis;

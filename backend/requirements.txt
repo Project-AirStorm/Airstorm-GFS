@@ -16,3 +16,4 @@ retry-requests
 openmeteo-requests
 pandas
 cryptography
+pymysql

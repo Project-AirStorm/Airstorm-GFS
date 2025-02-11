@@ -16,7 +16,9 @@ RUN npm cache clean --force && \
     npm install --save @maptiler/sdk && \
     npm install --save recharts && \
     npm install --save maplibre-gl && \
-    npm install --save axios
+    npm install --save axios \
+    npm install react-feather \
+    npm install @clerk/themes
 
 # Hotfix ESLINT error
 RUN mkdir -p node_modules/.cache && chmod -R 777 node_modules/.cache

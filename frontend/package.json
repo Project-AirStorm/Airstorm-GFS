@@ -3,18 +3,21 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "@clerk/clerk-react": "^5.22.6",
+    "@clerk/themes": "^2.2.16",
     "@testing-library/jest-dom": "^5.17.0",
     "@testing-library/react": "^13.4.0",
     "@testing-library/user-event": "^13.5.0",
     "axios": "^1.7.9",
+    "lucide-react": "^0.263.1",
+    "mapbox-gl": "^2.x.x",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
-    "react-scripts": "5.0.1",
+    "react-feather": "^2.0.10",
     "react-icons": "^4.x.x",
-    "lucide-react": "^0.263.1", 
-    "web-vitals": "^2.1.4",
     "react-router-dom": "^6.x.x",
-    "mapbox-gl": "^2.x.x"
+    "react-scripts": "5.0.1",
+    "web-vitals": "^2.1.4"
   },
   "scripts": {
     "start": "react-scripts start",

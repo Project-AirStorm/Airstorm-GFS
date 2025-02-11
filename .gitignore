@@ -13,6 +13,7 @@ node_modules/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+package-lock.json
 
 # Ignore Docker files
 docker-compose.override.yml
@@ -59,3 +60,4 @@ coverage/
 # Ignore npm/yarn and IDE files
 .pnp
 .pnp.js
+

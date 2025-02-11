@@ -6,6 +6,7 @@ from email.utils import parsedate_to_datetime
 from datetime import datetime
 from services.weather_analyzer import WeatherAnalyzer
 from services.github_service import GitHubService
+from db.database_manager import DatabaseManager
 import openmeteo_requests
 import requests_cache
 from retry_requests import retry
@@ -14,6 +15,7 @@ from retry_requests import retry
 external_api_bp = Blueprint("external_api", __name__)
 
 logger = logging.getLogger(__name__)
+database_service = DatabaseManager()
 
 # Initialize services
 weather_analyzer = WeatherAnalyzer()
@@ -25,6 +27,8 @@ retry_session = retry(cache_session, retries=5, backoff_factor=0.2)
 openmeteo = openmeteo_requests.Client(session=retry_session)
 
 # ====== Meteosource Tile API ======
+
+
 @external_api_bp.route('/api/meteosource/tile')
 def meteosource_tile():
     try:
@@ -50,7 +54,8 @@ def meteosource_tile():
 
         url = (
             f"https://www.meteosource.com/api/v1/standard/map?"
-            f"key={api_key}&tile_x={tile_x}&tile_y={tile_y}&tile_zoom={tile_zoom}"
+            f"key={api_key}&tile_x={tile_x}"
+            f"&tile_y={tile_y}&tile_zoom={tile_zoom}"
             f"&datetime={datetime_param}&variable={variable}"
         )
 
@@ -125,7 +130,8 @@ def get_location_info():
             },
         }
 
-        result = next((r for r in data["results"] if r.get("address_components")), None)
+        result = next((r for r in data["results"]
+                      if r.get("address_components")), None)
 
         if result:
             location_info["formatted_address"] = result["formatted_address"]
@@ -153,6 +159,7 @@ def get_location_info():
     except Exception as e:
         logger.error(f"Unexpected error in geocoding: {str(e)}")
         return jsonify({"error": "Internal server error", "details": str(e)}), 500
+
 
 @external_api_bp.route('/api/google-maps-init')
 def google_maps_init():
@@ -224,6 +231,7 @@ def calculate_wind_direction(current):
 
 # ====== GitHub Issues API ======
 github_service = GitHubService()
+
 
 @external_api_bp.route('/api/feedback', methods=['POST'])
 def submit_feedback():
@@ -379,3 +387,175 @@ def handle_500(e):
     return jsonify({
         'error': 'Internal server error in feedback service'
     }), 500
+
+
+# ====== Alerts API ======
+def get_state_code(lat, lon):
+    """
+    Get state code using Google Maps Geocoding API directly
+    Returns tuple of (state_code, error_message)
+    """
+    try:
+        api_key = os.getenv('BACKEND_GOOGLE_MAPS_API_KEY')
+        if not api_key:
+            logger.error("Google Maps API key not configured")
+            return None, "Geocoding service not configured"
+
+        params = {
+            "latlng": f"{lat},{lon}",
+            "key": api_key,
+            "language": "en",
+        }
+
+        url = "https://maps.googleapis.com/maps/api/geocode/json"
+        response = requests.get(url, params=params)
+        data = response.json()
+
+        if data.get("status") != "OK" or not data.get("results"):
+            logger.error(
+                f"Geocoding API error: {data.get('status')} - {data.get('error_message', 'No results found')}")
+            return None, "Location not found"
+
+        # Find state component in results
+        for result in data["results"]:
+            for component in result.get("address_components", []):
+                if "administrative_area_level_1" in component["types"]:
+                    # Return state code (e.g., "KS")
+                    return component["short_name"], None
+
+        return None, "State not found in geocoding response"
+
+    except requests.RequestException as e:
+        logger.error(f"Error in geocoding request: {str(e)}")
+        return None, f"Geocoding service error: {str(e)}"
+    except Exception as e:
+        logger.error(f"Unexpected error in geocoding: {str(e)}")
+        return None, f"Unexpected geocoding error: {str(e)}"
+
+
+def get_weather_gov_alerts(state_code):
+    """
+    Get alerts from weather.gov API for a specific state
+    Returns tuple of (alerts_list, error_message)
+    """
+    try:
+        headers = {
+            'Accept': 'application/geo+json',
+            'User-Agent': 'AirStorm Weather App - Development Testing'
+        }
+
+        url = f"https://api.weather.gov/alerts/active?area={state_code}"
+        response = requests.get(url, headers=headers)
+        response.raise_for_status()
+
+        data = response.json()
+        return data.get('features', []), None
+
+    except requests.RequestException as e:
+        logger.error(f"Error fetching weather.gov alerts: {str(e)}")
+        return None, f"Weather.gov service error: {str(e)}"
+    except Exception as e:
+        logger.error(f"Unexpected error fetching alerts: {str(e)}")
+        return None, f"Unexpected error: {str(e)}"
+
+
+@external_api_bp.route("/api/external/alerts", methods=["GET"])
+def get_alerts():
+    """Fetch alerts for all saved locations of a user using weather.gov API."""
+    try:
+        user_id = request.args.get("userId")
+        if not user_id:
+            logger.error("User ID is required")
+            return jsonify({"error": "User ID is required"}), 400
+
+        # Get user's saved locations
+        locations = database_service.get_user_locations(user_id)
+        if not locations:
+            return jsonify({"alerts": [], "message": "No saved locations found"}), 200
+
+        all_alerts = []
+        location_states = {}  # Cache for state lookups
+        state_alerts = {}     # Cache for weather.gov responses
+
+        # First, get all unique states for the locations
+        for location in locations:
+            lat = location['latitude']
+            lon = location['longitude']
+
+            # Skip if we've already looked up this lat/lon pair
+            loc_key = f"{lat},{lon}"
+            if loc_key not in location_states:
+                state_code, error = get_state_code(lat, lon)
+                if error:
+                    logger.warning(
+                        f"Could not determine state for location {location['name']}: {error}")
+                    continue
+
+                location_states[loc_key] = state_code
+                logger.info(
+                    f"Found state {state_code} for location {location['name']}")
+
+        # Then get alerts for each unique state
+        for state_code in set(location_states.values()):
+            if state_code and state_code not in state_alerts:
+                alerts, error = get_weather_gov_alerts(state_code)
+                if error:
+                    logger.error(
+                        f"Error fetching alerts for state {state_code}: {error}")
+                    continue
+
+                state_alerts[state_code] = alerts
+                logger.info(
+                    f"Found {len(alerts)} alerts for state {state_code}")
+
+        # Match alerts to locations
+        for location in locations:
+            lat = location['latitude']
+            lon = location['longitude']
+            loc_key = f"{lat},{lon}"
+
+            state_code = location_states.get(loc_key)
+            if not state_code:
+                continue
+
+            state_alert_list = state_alerts.get(state_code, [])
+
+            # Filter alerts by proximity to location
+            for alert in state_alert_list:
+                try:
+                    properties = alert.get('properties', {})
+
+                    # Add location information to the alert
+                    formatted_alert = {
+                        'event': properties.get('event'),
+                        'severity': properties.get('severity'),
+                        'certainty': properties.get('certainty'),
+                        'onset': properties.get('onset'),
+                        'expires': properties.get('ends') or properties.get('expires'),
+                        'sender': properties.get('senderName'),
+                        'description': properties.get('description'),
+                        'instruction': properties.get('instruction'),
+                        'location_name': location['name'],
+                        'latitude': location['latitude'],
+                        'longitude': location['longitude'],
+                        'state': state_code,
+                        'headline': properties.get('headline'),
+                        'url': properties.get('url')
+                    }
+
+                    all_alerts.append(formatted_alert)
+
+                except Exception as e:
+                    logger.error(f"Error processing alert: {str(e)}")
+                    continue
+
+        logger.info(
+            f"Returning {len(all_alerts)} total alerts across all locations")
+        return jsonify({
+            "alerts": all_alerts,
+            "total": len(all_alerts)
+        })
+
+    except Exception as e:
+        logger.error(f"Unexpected error in alerts endpoint: {str(e)}")
+        return jsonify({"error": "Internal server error"}), 500
