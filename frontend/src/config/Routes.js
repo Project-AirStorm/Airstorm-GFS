@@ -11,7 +11,7 @@ import Settings from '../pages/Settings/Settings';
 import Logs from '../pages/Logs/Logs';
 import Feedback from '../pages/Feedback/Feedback';
 import NotFound from '../pages/NotFound/NotFound';
-import Signup from '../pages/Singup/Signup';
+import Signup from '../pages/Signup/Signup';
 
 /**
  * Application route configuration

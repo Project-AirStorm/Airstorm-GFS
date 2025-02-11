@@ -5,16 +5,15 @@ import {
   Route,
   Navigate,
 } from 'react-router-dom';
-import { SignedIn, SignedOut } from "@clerk/clerk-react";
+import { SignedIn, SignedOut } from '@clerk/clerk-react';
 import Login from './pages/Login/Login';
-import Signup from './pages/Singup/Signup';
+import Signup from './pages/Signup/Signup';
 import './App.css';
 import { ROUTES } from './config/Routes';
 import Layout from './components/common/Layout/Layout';
 import { UserSession } from './utils/UserSession';
 
 function App() {
-
   // Currently here for testing purposes, will be removed
   // This is the user info we will be saving to the DB.
   const { isLoaded, user, isSynced } = UserSession();
@@ -23,9 +22,8 @@ function App() {
     console.log(user.firstName);
     console.log(user.lastName);
     console.log(user.primaryEmailAddress?.emailAddress);
-
   } else {
-    console.log("User data not loaded yet.");
+    console.log('User data not loaded yet.');
   }
 
   return (
@@ -53,7 +51,7 @@ function App() {
           }
         />
 
-       {/* Protected application routes! 
+        {/* Protected application routes! 
            These are only accessible Clerk login has been authenticated and the user is signed in. 
            Our entire application is wrapped in the <Layout> Component. */}
         <Route
@@ -63,7 +61,7 @@ function App() {
                 <Layout>
                   <Routes>
                     {/* Dynamically generates all proctected application routes from 
-                        the ROUTES array in Routes.js */ }
+                        the ROUTES array in Routes.js */}
                     {Object.values(ROUTES).map(({ path, element: Element }) => (
                       <Route key={path} path={path} element={<Element />} />
                     ))}
@@ -76,7 +74,10 @@ function App() {
             </>
           }
         >
-          <Route path="*" element={<Navigate to={ROUTES.notfound.path} replace />} />
+          <Route
+            path="*"
+            element={<Navigate to={ROUTES.notfound.path} replace />}
+          />
         </Route>
       </Routes>
     </Router>
