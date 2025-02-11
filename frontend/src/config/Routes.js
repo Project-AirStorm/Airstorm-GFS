@@ -24,7 +24,7 @@ export const ROUTES = {
     element: Login,
   },
   SignUp: {
-    path: '/sing-up',
+    path: '/sign-up',
     title: 'Signup',
     element: Signup,
   },
