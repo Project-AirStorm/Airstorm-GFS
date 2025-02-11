@@ -1,22 +1,75 @@
 /* Alerts.css */
-.alerts-body {
-  background-color: white;
-  padding: 1.5rem;
-  border-radius: 0.5rem;
-  border: 1px solid rgb(229 231 235);
-  margin-bottom: 1.5rem;
+.alert-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
   width: 100%;
 }
 
-.alert-item {
-  padding: 1rem;
-  border-radius: 0.5rem;
-  margin-bottom: 1rem;
-  border: 1px solid;
-  transition: background-color 0.2s ease;
+.alert-header > div {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex: 1;
 }
 
-/* Severity colors matching the logs page style */
+.alert-type {
+  font-size: 1rem;
+  font-weight: 600;
+  margin: 0;
+  white-space: nowrap;
+}
+
+.alert-location {
+  font-size: 0.875rem;
+  color: rgb(75 85 99);
+  margin: 0;
+  white-space: nowrap;
+}
+
+.severity-badge {
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.25rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  white-space: nowrap;
+  margin: 0;
+  border: 1px solid currentColor;
+}
+
+.severity-badge,
+.certainty-badge {
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.25rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  white-space: nowrap;
+  margin: 0;
+}
+
+.alert-item {
+  padding: 0.75rem 1rem;
+  border-radius: 0.5rem;
+  margin-bottom: 0.5rem;
+  border: 1px solid;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.alert-item * {
+  pointer-events: none;
+}
+
+.alert-item button {
+  pointer-events: auto;
+  cursor: pointer;
+}
+
+.alert-item:hover {
+  transform: scale(0.99);
+}
+
 .alert-high {
   background-color: rgb(254 226 226);
   border-color: rgb(239 68 68);
@@ -33,27 +86,6 @@
   background-color: rgb(219 234 254);
   border-color: rgb(37 99 235);
   color: rgb(30 58 138);
-}
-
-.alert-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 0.75rem;
-}
-
-.alert-type {
-  font-size: 1rem;
-  font-weight: 600;
-}
-
-.severity-badge {
-  padding: 0.25rem 0.5rem;
-  border-radius: 0.25rem;
-  font-size: 0.75rem;
-  font-weight: 500;
-  display: inline-block;
-  margin-right: 0.5rem;
 }
 
 .severity-badge.Severe,
@@ -74,18 +106,8 @@
 }
 
 .certainty-badge {
-  padding: 0.25rem 0.5rem;
-  border-radius: 0.25rem;
-  font-size: 0.75rem;
-  font-weight: 500;
   background-color: rgb(243 244 246);
   color: rgb(75 85 99);
-}
-
-.alert-location {
-  font-size: 0.875rem;
-  color: rgb(75 85 99);
-  margin-bottom: 0.5rem;
 }
 
 .alert-details {
@@ -99,16 +121,6 @@
   line-height: 1.5;
 }
 
-.alert-details a {
-  color: rgb(37 99 235);
-  text-decoration: underline;
-}
-
-.alert-details a:hover {
-  color: rgb(29 78 216);
-}
-
-/* Filter styles */
 .filter-container {
   display: flex;
   gap: 1rem;

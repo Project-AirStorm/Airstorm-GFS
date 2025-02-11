@@ -330,15 +330,23 @@ const AlertsComponent = () => {
               <div
                 key={alertId}
                 className={`alert-item ${severityColors[alert.severity]}`}
+                onClick={(e) => {
+                  // Only toggle if not clicking the expand button
+                  if (!e.target.closest('button')) {
+                    toggleExpand(alertId);
+                  }
+                }}
               >
                 <div className="alert-header">
-                  <div className="space-y-2">
-                    <div className="flex items-center gap-2">
-                      <AlertTriangle className="w-5 h-5" />
-                      <h3 className="alert-type">{alert.event}</h3>
+                  <div className="flex items-center gap-4 flex-1 min-w-0">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <AlertTriangle className="w-5 h-5 flex-shrink-0" />
+                      <h3 className="alert-type truncate">{alert.event}</h3>
                     </div>
-                    <p className="alert-location">{alert.location_name}</p>
-                    <div className="flex gap-4">
+                    <p className="alert-location flex-shrink-0">
+                      {alert.location_name}
+                    </p>
+                    <div className="flex gap-2 flex-shrink-0">
                       <span className={`severity-badge ${alert.severity}`}>
                         {alert.severity}
                       </span>
@@ -347,7 +355,7 @@ const AlertsComponent = () => {
                   </div>
                   <button
                     onClick={() => toggleExpand(alertId)}
-                    className="p-2 hover:bg-black/10 rounded-full transition-colors"
+                    className="p-2 hover:bg-black/10 rounded-full transition-colors flex-shrink-0"
                   >
                     {isExpanded ? (
                       <ChevronUp className="w-5 h-5" />
