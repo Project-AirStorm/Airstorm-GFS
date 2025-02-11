@@ -66,6 +66,10 @@
   cursor: pointer;
 }
 
+.alert-item button:hover {
+  background-color: rgba(0, 0, 0, 0.1);
+}
+
 .alert-item:hover {
   transform: scale(0.99);
 }

@@ -8,6 +8,8 @@ import {
   AlertTriangle,
   ChevronsDown,
   ChevronsUp,
+  Copy,
+  Check,
 } from 'lucide-react';
 import axios from 'axios';
 import './Alerts.css';
@@ -155,6 +157,28 @@ const AlertsComponent = () => {
       </div>
     );
   }
+
+  // Copy to clipboard feature
+  const copyToClipboard = async (alert, e) => {
+    e.stopPropagation(); // Prevent card expansion when clicking copy
+    const text = `
+Weather Alert: ${alert.event}
+Location: ${alert.location_name}
+Severity: ${alert.severity}
+Certainty: ${alert.certainty}
+Start: ${formatDateTime(alert.onset)}
+End: ${formatDateTime(alert.expires)}
+${alert.headline ? `Headline: ${alert.headline}\n` : ''}
+Description: ${alert.description}
+${alert.instruction ? `Instructions: ${alert.instruction}` : ''}
+  `.trim();
+
+    try {
+      await navigator.clipboard.writeText(text);
+    } catch (err) {
+      console.error('Failed to copy alert:', err);
+    }
+  };
 
   const processedAlerts = alerts
     .filter((alert) => {
@@ -351,6 +375,13 @@ const AlertsComponent = () => {
                         {alert.severity}
                       </span>
                       <span className="certainty-badge">{alert.certainty}</span>
+                      <button
+                        onClick={(e) => copyToClipboard(alert, e)}
+                        className="p-1 hover:bg-black/10 rounded-full transition-colors flex-shrink-0"
+                        title="Copy alert to clipboard"
+                      >
+                        <Copy className="w-4 h-4" />
+                      </button>
                     </div>
                   </div>
                   <button
