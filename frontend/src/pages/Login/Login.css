@@ -1,0 +1,59 @@
+/* Root wrapper - fills viewport with flex column layout */
+.login-wrapper {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  position: relative;
+}
+
+/* Container for centering the login form */
+.login-page-container {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  z-index: 1;
+  padding: 2rem;
+  background: transparent;
+}
+
+/* Main login form container */
+.login-main {
+  width: 100%;
+  max-width: 480px;
+  padding: 2.5rem;
+
+  /* Glass effect - made more transparent */
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+
+  /* Styling */
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+
+  /* Ensure it's above the globe */
+  position: relative;
+  z-index: 2;
+}
+
+/* Ensure footer stays on top */
+footer {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+}
+
+/* Media query for smaller screens */
+@media (max-width: 640px) {
+  .login-main {
+    padding: 1.5rem;
+    margin: 1rem;
+  }
+
+  .login-page-container {
+    padding: 1rem;
+  }
+}

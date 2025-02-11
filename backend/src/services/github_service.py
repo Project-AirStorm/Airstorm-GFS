@@ -6,7 +6,6 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-
 class GitHubService:
     """
     Service class for interacting with GitHub Issues API

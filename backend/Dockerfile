@@ -13,20 +13,6 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Install watchdog to improve reloading in Docker
 RUN pip install watchdog
 
-# Adds packages needed for openmeteo api
-RUN pip install openmeteo-requests
-RUN pip install openmeteo-requests requests-cache retry-requests numpy pandas 
-
-# Adds packages needed for Google Reverse GeoCoding API
-RUN pip install requests
-RUN pip install python-dotenv
-
-# Ensure the data directory exists
-RUN mkdir -p data
-
-# Install SQLite explicitly
-RUN apt-get update && apt-get install -y sqlite3 && apt-get clean
-
 # Copies the rest of the application code to the container
 COPY . .
 
@@ -34,4 +20,4 @@ COPY . .
 EXPOSE 5001
 
 # Run the flask application
-CMD ["flask", "--app", "api.py", "run", "--host=0.0.0.0", "--debug"]
+CMD ["flask", "--app", "src/app.py", "run", "--host=0.0.0.0", "--debug"]

@@ -47,8 +47,8 @@ const Forecasts = ({ setCurrentPage }) => {
   );
 };
 
-Forecasts.propTypes = {
-  setCurrentPage: PropTypes.func.isRequired
-};
+// Forecasts.propTypes = {
+//   setCurrentPage: PropTypes.func.isRequired
+// };
 
 export default Forecasts;

@@ -29,7 +29,7 @@ const WeatherCard = ({
   React.useEffect(() => {
     const fetchData = async () => {
       try {
-        console.log(`Fetching data for ${city} at ${latitude}, ${longitude}`);
+        //console.log(`Fetching data for ${city} at ${latitude}, ${longitude}`);
 
         // This fetches the latitude and longitutde from the the Flask API as JSON data
         const weatherResponse = await axios.get(
@@ -38,7 +38,7 @@ const WeatherCard = ({
             params: { lat: latitude, lon: longitude },
           }
         );
-        console.log('Weather response:', weatherResponse.data);
+        //console.log('Weather response:', weatherResponse.data);
         setWeatherData(weatherResponse.data);
 
         const locationResponse = await axios.get(
@@ -47,7 +47,7 @@ const WeatherCard = ({
             params: { lat: latitude, lon: longitude },
           }
         );
-        console.log('Geocoding API response:', locationResponse.data);
+        //console.log('Geocoding API response:', locationResponse.data);
         setLocationInfo(locationResponse.data);
 
         setLoading(false);
@@ -172,16 +172,15 @@ const WeatherCard = ({
       </p>
 
       <div className="weather-stats-grid">
-        <WeatherStat label="Humidity" value={weatherData.humidity} unit="%" />
+        <WeatherStat label="Rain" value={weatherData.rain} unit="inches" />
         <WeatherStat
           label="Wind"
           value={weatherData.wind_speed.toFixed(0)}
-          unit="mph"
+          unit=" mph"
         />
         <WeatherStat
-          label="Air Quality"
-          value={weatherData.air_quality}
-          description="(Moderate)"
+          label="Wind Direction"
+          value={weatherData.wind_direction}
         />
       </div>
     </div>
