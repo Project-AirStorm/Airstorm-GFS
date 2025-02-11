@@ -9,7 +9,7 @@ import Alerts from '../pages/Alerts/Alerts';
 import Analysis from '../pages/Analysis/Analysis';
 import Settings from '../pages/Settings/Settings';
 import Logs from '../pages/Logs/Logs';
-import Feedback from '../pages/Feedback/Feedback'
+import Feedback from '../pages/Feedback/Feedback';
 import NotFound from '../pages/NotFound/NotFound';
 import Signup from '../pages/Singup/Signup';
 
@@ -18,17 +18,17 @@ import Signup from '../pages/Singup/Signup';
  * Contains all route definitions and their associated metadata
  */
 export const ROUTES = {
-  Login:{
+  Login: {
     path: '/login',
     title: 'Login',
     element: Login,
   },
-  SignUp:{
-    path: '/sign-up',
+  SignUp: {
+    path: '/sing-up',
     title: 'Signup',
     element: Signup,
   },
-  
+
   dashboard: {
     path: '/dashboard',
     title: 'Dashboard',
@@ -73,7 +73,7 @@ export const ROUTES = {
     path: '/notfound',
     title: 'NotFound',
     element: NotFound,
-  }
+  },
 };
 
 /**

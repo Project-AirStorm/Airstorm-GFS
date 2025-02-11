@@ -53,9 +53,9 @@ function App() {
           }
         />
 
-        {/* Protected application routes! 
-            These are only accessible Clerk login has been authenticated and the user is signed in. 
-            Our entire application is wrapped in the <Layout> Component. */}
+       {/* Protected application routes! 
+           These are only accessible Clerk login has been authenticated and the user is signed in. 
+           Our entire application is wrapped in the <Layout> Component. */}
         <Route
           element={
             <>
@@ -63,7 +63,7 @@ function App() {
                 <Layout>
                   <Routes>
                     {/* Dynamically generates all proctected application routes from 
-                        the ROUTES array in Routes.js */}
+                        the ROUTES array in Routes.js */ }
                     {Object.values(ROUTES).map(({ path, element: Element }) => (
                       <Route key={path} path={path} element={<Element />} />
                     ))}

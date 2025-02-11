@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import PropTypes from 'prop-types';
 import {
@@ -14,23 +14,15 @@ import {
 import profilePic from '../../../assets/sample-profile-pic.jpeg';
 import afgscLogo from '../../../assets/afgsc-logo.png';
 import './Sidebar.css';
+import axios from 'axios';
 
-/**
- * NavItem component for sidebar navigation
- * @param {Object} props - Component props
- * @param {React.ReactNode} props.icon - Icon component to display
- * @param {string} props.label - Navigation item label
- * @param {string} props.badge - Optional badge text
- * @param {boolean} props.isActive - Whether the item is currently active
- * @param {Function} props.onClick - Click handler
- */
 const NavItem = ({ icon, label, badge, isActive, onClick }) => (
   <div className={`nav-item ${isActive ? 'active' : ''}`} onClick={onClick}>
     <div className="flex items-center gap-3">
       {icon}
       <span className="text-sm font-semibold">{label}</span>
     </div>
-    {badge && (
+    {badge && badge !== '0' && (
       <span className="px-2 py-1 bg-red-500 text-white text-xs rounded">
         {badge}
       </span>
@@ -46,12 +38,57 @@ NavItem.propTypes = {
   onClick: PropTypes.func.isRequired,
 };
 
-/**
- * Sidebar component for application navigation
- */
 const Sidebar = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const [alertCount, setAlertCount] = useState('0');
+
+  // Function to fetch initial alert count
+  const fetchInitialAlertCount = async () => {
+    try {
+      const userId = process.env.REACT_APP_USER_ID;
+      const baseUrl = process.env.REACT_APP_API_URL || 'http://localhost:5001';
+      const response = await axios.get(
+        `${baseUrl}/api/external/alerts?userId=${userId}`
+      );
+
+      // First get favorite locations
+      const locResponse = await axios.get(
+        `${baseUrl}/api/locations?userId=${userId}`
+      );
+      const favorites = locResponse.data.filter(
+        (location) => location.isFavorite
+      );
+
+      // Filter alerts for favorite locations
+      const favoriteAlerts = response.data.alerts.filter((alert) =>
+        favorites.some(
+          (loc) =>
+            loc.latitude === alert.latitude && loc.longitude === alert.longitude
+        )
+      );
+
+      setAlertCount(favoriteAlerts.length.toString());
+    } catch (error) {
+      console.error('Error fetching initial alert count:', error);
+      setAlertCount('0');
+    }
+  };
+
+  // Set up event listener for alert count updates
+  useEffect(() => {
+    fetchInitialAlertCount();
+
+    const handleAlertCountUpdate = (event) => {
+      setAlertCount(event.detail.toString());
+    };
+
+    window.addEventListener('alertCountUpdated', handleAlertCountUpdate);
+
+    return () => {
+      window.removeEventListener('alertCountUpdated', handleAlertCountUpdate);
+    };
+  }, []);
 
   // Navigation items configuration
   const navItems = [
@@ -60,7 +97,11 @@ const Sidebar = () => {
       label: 'Dashboard',
       page: '/dashboard',
     },
-    { icon: <Map className="w-4 h-4" />, label: 'Maps', page: '/maps' },
+    {
+      icon: <Map className="w-4 h-4" />,
+      label: 'Maps',
+      page: '/maps',
+    },
     {
       icon: <BarChart2 className="w-4 h-4" />,
       label: 'Forecasts',
@@ -70,7 +111,7 @@ const Sidebar = () => {
       icon: <Bell className="w-4 h-4" />,
       label: 'Alerts',
       page: '/alerts',
-      badge: '4',
+      badge: alertCount,
     },
     {
       icon: <FileText className="w-4 h-4" />,
@@ -82,7 +123,11 @@ const Sidebar = () => {
       label: 'Settings',
       page: '/settings',
     },
-    { icon: <FileText className="w-4 h-4" />, label: 'Logs', page: '/logs' },
+    {
+      icon: <FileText className="w-4 h-4" />,
+      label: 'Logs',
+      page: '/logs',
+    },
     {
       icon: <Sticker className="w-4 h-4" />,
       label: 'Feedback',
