@@ -188,13 +188,15 @@ def get_weather():
             "longitude": lon,
             "current": [
                 "temperature_2m",
-                "relative_humidity_2m",
+                "rain",
                 "wind_speed_10m",
                 "weather_code",
             ],
             "hourly": ["temperature_2m"],
             "temperature_unit": "fahrenheit",
+            "rain" : "inch",
             "wind_speed_unit": "mph",
+            "wind_direction_10m" : "°",
             "timezone": "GMT",
         }
 
@@ -207,10 +209,10 @@ def get_weather():
 
         weather_data = {
             "current_temperature": current.Variables(0).Value(),
-            "humidity": current.Variables(1).Value(),
+            "rain": current.Variables(1).Value(),
             "wind_speed": current.Variables(2).Value(),
+            "wind_direction": calculate_wind_direction(current.Variables(3).Value()),
             "condition": condition,
-            "air_quality": weather_analyzer.calculate_air_quality(current),
             "latitude": response.Latitude(),
             "longitude": response.Longitude(),
         }
@@ -221,6 +223,11 @@ def get_weather():
         logger.error(f"Error fetching weather data: {str(e)}")
         return jsonify({"error": str(e)}), 500
 
+def calculate_wind_direction(current):
+    degree_speed = current
+    directions = ["N", "NNE", "NE", "ENE", "E", "ESE", "SE", "SSE", "S", "SSW", "SW", "WSW", "W", "WNW", "NW", "NNW"]
+    ix = int((degree_speed + 11.25) / 22.5)
+    return directions[ix % 16]
 
 # ====== GitHub Issues API ======
 github_service = GitHubService()
