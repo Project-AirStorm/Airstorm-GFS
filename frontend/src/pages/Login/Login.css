@@ -1,12 +1,21 @@
-html, body {
-  margin: 0;
-  padding: 0;
-  height: 100%;
+/* This wrapper uses a column flex layout that fills the viewport */
+.login-wrapper {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh; /* Ensures the container takes up the full viewport height */
 }
 
+/* The login-page-container takes up all the available space between the header (if any) and the footer */
 .login-page-container {
+  flex: 1; /* Grow to fill available vertical space */
   display: flex;
   align-items: center;
   justify-content: center;
-  height: 100vh;  /* use full viewport height */
+}
+
+/* The login-main styles your SignIn component */
+.login-main {
+  width: 100%;
+  max-width: 480px;
+  padding: 2rem;
 }

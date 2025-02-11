@@ -27,27 +27,27 @@ export function UserSession() {
         email: user.primaryEmailAddress?.emailAddress,
       };
 
-    //   // Send the data to your backend API to save/update the user's record.
-    //   fetch('/api/user-session', {
-    //     method: 'POST',
-    //     headers: {
-    //       'Content-Type': 'application/json',
-    //     },
-    //     body: JSON.stringify(userData),
-    //   })
-    //     .then((response) => {
-    //       if (!response.ok) {
-    //         throw new Error('Failed to sync user session');
-    //       }
-    //       return response.json();
-    //     })
-    //     .then((data) => {
-    //       console.log('User session synced successfully:', data);
-    //       setIsSynced(true);
-    //     })
-    //     .catch((error) => {
-    //       console.error('Error syncing user session:', error);
-    //     });
+      // // Send the data to your backend API to save/update the user's record.
+      // fetch('/api/user-session', {
+      //   method: 'POST',
+      //   headers: {
+      //     'Content-Type': 'application/json',
+      //   },
+      //   body: JSON.stringify(userData),
+      // })
+      //   .then((response) => {
+      //     if (!response.ok) {
+      //       throw new Error('Failed to sync user session');
+      //     }
+      //     return response.json();
+      //   })
+      //   .then((data) => {
+      //     console.log('User session synced successfully:', data);
+      //     setIsSynced(true);
+      //   })
+      //   .catch((error) => {
+      //     console.error('Error syncing user session:', error);
+      //   });
     }
   }, [isLoaded, user, isSynced]);
 
