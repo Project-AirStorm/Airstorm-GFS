@@ -25,6 +25,7 @@ import './map.css';
 import WeatherGraph from '../../../components/specific/WeatherGraph/WeatherGraph';
 import TimelineSlider from '../../../components/specific/TimelineSlider/TimelineSlider';
 
+// Declare URL for Flask API
 const REACT_APP_API_URL = process.env.REACT_APP_API_URL;
 
 const units = {
@@ -47,7 +48,7 @@ const units = {
 
 const Weather = () => {
 
-  const { user } = UserSession(); // User session
+  const { user } = UserSession(); // Current user session
   const mapContainer = useRef(null);
   const mapRef = useRef(null);
   const markerRef = useRef(null);

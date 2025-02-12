@@ -13,6 +13,7 @@ const REACT_APP_API_URL = process.env.REACT_APP_API_URL;
 
 const Dashboard = ({ setCurrentPage }) => {
   const { user } = UserSession(); // User session
+  
   const [activeView, setActiveView] = useState('overview');
   const [locations, setLocations] = useState([]);
   const [loading, setLoading] = useState(true);
