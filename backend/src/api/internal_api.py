@@ -5,6 +5,37 @@ internal_api_bp = Blueprint("internal_api", __name__)
 
 database_service = DatabaseManager()
 
+
+@internal_api_bp.route("/api/save-user", methods=["POST"])
+def user_session():
+    """
+    Receives user data from Clerk (React frontend) and saves it in the MySQL Users table.
+    """
+    data = request.json
+    required_fields = ("userId", "username", "firstName", "lastName", "email")
+
+    # Quick validation
+    if not all(field in data for field in required_fields):
+        return jsonify({"error": "Missing required user fields"}), 400
+
+    clerk_user_id = data["userId"]       # This is the Clerk user ID string
+    username = data["username"]
+    first_name = data["firstName"]
+    last_name = data["lastName"]
+    email = data["email"]
+
+    # Save user data in the MySQL database
+    success = database_service.save_user(
+        clerk_user_id, username, first_name, last_name, email
+    )
+
+    if not success:
+        return jsonify({"error": "Failed to save user data"}), 500
+
+    return jsonify({"message": "User data saved successfully"}), 200
+
+
+
 # Gets the current User_ID
 @internal_api_bp.route("/api/locations", methods=["GET"])
 def get_locations():

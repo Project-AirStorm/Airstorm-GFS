@@ -19,6 +19,7 @@ CORS(app)
 app.register_blueprint(external_api_bp)
 app.register_blueprint(internal_api_bp)
 
+#Creates the datbase 
 db_initializer = DatabaseInitializer()
 
 # Configure logging
