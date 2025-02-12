@@ -43,7 +43,7 @@ NavItem.propTypes = {
 };
 
 const Sidebar = () => {
-  const { user } = UserSession();
+  const { user } = UserSession(); //Current User Session
 
   const navigate = useNavigate();
   const location = useLocation();

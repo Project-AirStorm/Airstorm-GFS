@@ -18,7 +18,7 @@ def user_session():
     if not all(field in data for field in required_fields):
         return jsonify({"error": "Missing required user fields"}), 400
 
-    clerk_user_id = data["userId"]       # This is the Clerk user ID string
+    clerk_user_id = data["userId"]  # This is the Clerk user ID string
     username = data["username"]
     first_name = data["firstName"]
     last_name = data["lastName"]
@@ -35,7 +35,6 @@ def user_session():
     return jsonify({"message": "User data saved successfully"}), 200
 
 
-
 # Gets the current User_ID
 @internal_api_bp.route("/api/locations", methods=["GET"])
 def get_locations():
@@ -45,13 +44,14 @@ def get_locations():
     locations = database_service.get_user_locations(user_id)
     return jsonify(locations)
 
-# Retrives locations from the database  
+
+# Retrives locations from the database
 @internal_api_bp.route("/api/locations", methods=["POST"])
 def save_location():
     data = request.json
     if not all(k in data for k in ("userId", "name", "latitude", "longitude")):
         return jsonify({"error": "Missing required fields"}), 400
-    
+
     success = database_service.save_location(
         data["userId"],
         data["name"],
@@ -60,6 +60,7 @@ def save_location():
         data.get("isFavorite", False),
     )
     return jsonify({"success": success})
+
 
 # Deletes locations from React WeatherCard
 @internal_api_bp.route("/api/locations", methods=["DELETE"])
@@ -72,6 +73,7 @@ def delete_location():
         data["userId"], data["latitude"], data["longitude"]
     )
     return jsonify({"success": success})
+
 
 @internal_api_bp.route("/api/locations/favorite", methods=["POST"])
 def toggle_favorite():
