@@ -30,6 +30,8 @@ openmeteo = openmeteo_requests.Client(session=retry_session)
 
 
 # ====== Meteosource Tile API ======
+
+
 @external_api_bp.route('/api/meteosource/tile')
 def meteosource_tile():
     try:
@@ -87,6 +89,8 @@ def meteosource_tile():
 
 
 # ====== Google Maps Geocoding API ======
+
+
 @external_api_bp.route("/api/geocode", methods=["GET"])
 def get_location_info():
     try:
@@ -174,6 +178,8 @@ def google_maps_init():
 
 
 # ====== Open-Meteo Weather API ======
+
+
 @external_api_bp.route("/api/weather", methods=["GET"])
 def get_weather():
     lat = request.args.get("lat", type=float)
