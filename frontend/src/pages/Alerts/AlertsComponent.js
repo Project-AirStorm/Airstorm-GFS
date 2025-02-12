@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import { useUser } from '@clerk/clerk-react';
+
 import {
   ChevronDown,
   ChevronUp,

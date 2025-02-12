@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { UserSession } from '../../utils/UserSession';
 import PropTypes from 'prop-types';
 import axios from 'axios';
 import WeatherCard from '../../components/specific/WeatherCard/WeatherCard';
@@ -7,12 +8,11 @@ import ActionButtons from '../../components/specific/ActionButtons/ActionButtons
 import OverviewSwitch from '../../components/specific/OverviewSwitch/OverviewSwitch';
 import './Dashboard.css';
 
+// Declare URL for Flask API
 const REACT_APP_API_URL = process.env.REACT_APP_API_URL;
 
-const REACT_APP_USER_ID = process.env.REACT_APP_USER_ID;
-const API_BASE_URL = `${REACT_APP_API_URL}/api`;
-
 const Dashboard = ({ setCurrentPage }) => {
+  const { user } = UserSession(); // User session
   const [activeView, setActiveView] = useState('overview');
   const [locations, setLocations] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -20,8 +20,8 @@ const Dashboard = ({ setCurrentPage }) => {
 
   const fetchLocations = async () => {
     try {
-      const response = await axios.get(`${API_BASE_URL}/locations`, {
-        params: { userId: REACT_APP_USER_ID },
+      const response = await axios.get(`${REACT_APP_API_URL}/api/locations`, {
+        params: { userId: user.id },
       });
 
       // Add background colors to locations
@@ -46,9 +46,9 @@ const Dashboard = ({ setCurrentPage }) => {
 
   const handleDeleteLocation = async (latitude, longitude) => {
     try {
-      await axios.delete(`${API_BASE_URL}/locations`, {
+      await axios.delete(`${REACT_APP_API_URL}/api/locations`, {
         data: {
-          userId: REACT_APP_USER_ID,
+          userId: user.id,
           latitude,
           longitude,
         },
@@ -62,8 +62,8 @@ const Dashboard = ({ setCurrentPage }) => {
 
   const handleToggleFavorite = async (latitude, longitude) => {
     try {
-      await axios.post(`${API_BASE_URL}/locations/favorite`, {
-        userId: REACT_APP_USER_ID,
+      await axios.post(`${REACT_APP_API_URL}/api/locations/favorite`, {
+        userId: user.id,
         latitude,
         longitude,
       });
