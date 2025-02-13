@@ -1,4 +1,8 @@
 import React, { useEffect, useState } from 'react';
+import {
+  UserSession
+
+} from '../../../utils/UserSession';
 import axios from 'axios';
 import WeatherDashboard from '../components/WeatherDashboard';
 import GraphCastForecast from '../components/GraphCastForecast';
@@ -6,15 +10,16 @@ import GraphCastForecast from '../components/GraphCastForecast';
 const REACT_APP_API_URL = process.env.REACT_APP_API_URL;
 
 const Homepage = () => {
+  const { user } = UserSession(); // Current user session
   const [locations, setLocations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   const fetchLocations = async () => {
     try {
-      const REACT_APP_USER_ID = process.env.REACT_APP_USER_ID;
+
       const response = await axios.get(
-        `${REACT_APP_API_URL}/api/locations?userId=${REACT_APP_USER_ID}`
+        `${REACT_APP_API_URL}/api/locations?userId=${user.id}`
       );
       const locationData = response.data;
 
@@ -55,9 +60,9 @@ const Homepage = () => {
 
   const handleToggleFavorite = async (location) => {
     try {
-      const REACT_APP_USER_ID = process.env.REACT_APP_USER_ID;
+
       await axios.post(
-        `${REACT_APP_API_URL}http://localhost:5001/api/locations/favorite`,
+        `${REACT_APP_API_URL}/api/locations/favorite`,
         {
           userId: REACT_APP_USER_ID,
           latitude: location.latitude,

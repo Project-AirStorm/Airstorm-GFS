@@ -40,12 +40,11 @@ class DatabaseInitializer:
                     '''
                     cursor.execute("""
                         CREATE TABLE IF NOT EXISTS Users (
-                            user_id INT AUTO_INCREMENT PRIMARY KEY,
+                            user_id VARCHAR(255) PRIMARY KEY,      -- Stores clerk user_id
                             username VARCHAR(255) UNIQUE NOT NULL,
                             email VARCHAR(255) UNIQUE NOT NULL, 
                             first_name VARCHAR(255) NOT NULL,
-                            last_name VARCHAR(255) NOT NULL,
-                            password VARCHAR(255) UNIQUE
+                            last_name VARCHAR(255) NOT NULL
                         ) ENGINE=InnoDB;
                     """)
 
@@ -53,7 +52,7 @@ class DatabaseInitializer:
                     cursor.execute("""
                         CREATE TABLE IF NOT EXISTS Locations (
                             id INT AUTO_INCREMENT PRIMARY KEY,
-                            user_id INT NOT NULL,
+                            user_id VARCHAR(255) NOT NULL,
                             latitude DOUBLE NOT NULL,
                             longitude DOUBLE NOT NULL,
                             location VARCHAR(255) NOT NULL,

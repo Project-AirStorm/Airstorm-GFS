@@ -178,8 +178,6 @@ def google_maps_init():
 
 
 # ====== Open-Meteo Weather API ======
-
-
 @external_api_bp.route("/api/weather", methods=["GET"])
 def get_weather():
     lat = request.args.get("lat", type=float)
