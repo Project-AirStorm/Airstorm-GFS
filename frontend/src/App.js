@@ -19,6 +19,7 @@ function App() {
   const { isLoaded, user, isSynced } = UserSession();
 
   if (isLoaded && user) {
+    console.log(user.id);
     console.log(user.firstName);
     console.log(user.lastName);
     console.log(user.primaryEmailAddress?.emailAddress);

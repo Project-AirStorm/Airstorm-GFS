@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { UserSession } from '../../../utils/UserSession';
 import { useNavigate, useLocation } from 'react-router-dom';
 import PropTypes from 'prop-types';
 import {
@@ -15,6 +16,9 @@ import profilePic from '../../../assets/sample-profile-pic.jpeg';
 import afgscLogo from '../../../assets/afgsc-logo.png';
 import './Sidebar.css';
 import axios from 'axios';
+
+// Declare URL for Flask API
+const REACT_APP_API_URL = process.env.REACT_APP_API_URL;
 
 const NavItem = ({ icon, label, badge, isActive, onClick }) => (
   <div className={`nav-item ${isActive ? 'active' : ''}`} onClick={onClick}>
@@ -39,6 +43,8 @@ NavItem.propTypes = {
 };
 
 const Sidebar = () => {
+  const { user } = UserSession(); //Current User Session
+
   const navigate = useNavigate();
   const location = useLocation();
   const [alertCount, setAlertCount] = useState('0');
@@ -46,15 +52,14 @@ const Sidebar = () => {
   // Function to fetch initial alert count
   const fetchInitialAlertCount = async () => {
     try {
-      const userId = process.env.REACT_APP_USER_ID;
-      const baseUrl = process.env.REACT_APP_API_URL || 'http://localhost:5001';
+
       const response = await axios.get(
-        `${baseUrl}/api/external/alerts?userId=${userId}`
+        `${REACT_APP_API_URL}/api/external/alerts?userId=${user.id}`
       );
 
       // First get favorite locations
       const locResponse = await axios.get(
-        `${baseUrl}/api/locations?userId=${userId}`
+        `${REACT_APP_API_URL}/api/locations?userId=${user.id}`
       );
       const favorites = locResponse.data.filter(
         (location) => location.isFavorite

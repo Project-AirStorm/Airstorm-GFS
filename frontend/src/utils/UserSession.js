@@ -1,6 +1,6 @@
 import { useUser } from '@clerk/clerk-react';
 import { useEffect, useState } from 'react';
-
+import axios from 'axios'
 /**
  * Custom hook for syncing the current user's session data to your backend.
  *
@@ -13,12 +13,13 @@ import { useEffect, useState } from 'react';
 export function UserSession() {
   const { isLoaded, user } = useUser();
   const [isSynced, setIsSynced] = useState(false);
+  const REACT_APP_API_URL = process.env.REACT_APP_API_URL;
 
   useEffect(() => {
     // Only attempt syncing if user data is loaded and available,
     // and we haven't synced already.
     if (isLoaded && user && !isSynced) {
-      // Prepare the data you want to save.
+      // User application data
       const userData = {
         userId: user.id,
         username: user.username,
@@ -27,27 +28,15 @@ export function UserSession() {
         email: user.primaryEmailAddress?.emailAddress,
       };
 
-      // // Send the data to your backend API to save/update the user's record.
-      // fetch('/api/user-session', {
-      //   method: 'POST',
-      //   headers: {
-      //     'Content-Type': 'application/json',
-      //   },
-      //   body: JSON.stringify(userData),
-      // })
-      //   .then((response) => {
-      //     if (!response.ok) {
-      //       throw new Error('Failed to sync user session');
-      //     }
-      //     return response.json();
-      //   })
-      //   .then((data) => {
-      //     console.log('User session synced successfully:', data);
-      //     setIsSynced(true);
-      //   })
-      //   .catch((error) => {
-      //     console.error('Error syncing user session:', error);
-      //   });
+      axios
+        .post(`${REACT_APP_API_URL}/api/save-user`, userData)
+        .then((response) => {
+          console.log('User session synced successfully:', response.data);
+          setIsSynced(true);
+        })
+        .catch((error) => {
+          console.error('Error syncing user session:', error);
+        });
     }
   }, [isLoaded, user, isSynced]);
 

@@ -1,30 +1,73 @@
 import logging
 from db.mysql_connection import get_mysql_connection
 
+
 class DatabaseManager:
     """
     Provides an interface for interacting with the Locations table in a MySQL database.
     Features:
+    - Save a user to the Users table.
     - Add new locations for a user.
     - Retrieve all locations associated with a specific user.
     - Toggle the 'is_favorite' status of a location.
     - Delete a location based on user ID and coordinates.
     """
 
+    def save_user(self, clerk_user_id, username, first_name, last_name, email):
+        """
+        Inserts or updates a user in the Users table, using the Clerk user ID
+        as the primary key (user_id).
+        """
+        try:
+            with get_mysql_connection() as conn:
+                with conn.cursor() as cursor:
+                    # Check if user already exists in the table
+                    cursor.execute(
+                        "SELECT user_id FROM Users WHERE user_id = %s", (clerk_user_id,)
+                    )
+                    row = cursor.fetchone()
+
+                    if row is None:
+                        # Insert new user
+                        cursor.execute(
+                            """
+                            INSERT INTO Users (user_id, username, first_name, last_name, email)
+                            VALUES (%s, %s, %s, %s, %s)
+                        """,
+                            (clerk_user_id, username, first_name, last_name, email),
+                        )
+                    else:
+                        # Update existing user
+                        cursor.execute(
+                            """
+                            UPDATE Users
+                            SET username = %s,
+                                first_name = %s,
+                                last_name = %s,
+                                email = %s
+                            WHERE user_id = %s
+                        """,
+                            (username, first_name, last_name, email, clerk_user_id),
+                        )
+
+                conn.commit()
+            return True
+
+        except Exception as e:
+            logging.error(f"Error saving user: {e}")
+            return False
+
     def save_location(self, user_id, name, latitude, longitude, is_favorite=False):
         try:
             with get_mysql_connection() as conn:
                 with conn.cursor() as cursor:
-                    cursor.execute("""
+                    cursor.execute(
+                        """
                         INSERT INTO Locations (user_id, location, latitude, longitude, is_favorite)
                         VALUES (%s, %s, %s, %s, %s)
-                    """, (
-                        user_id,
-                        name,
-                        latitude,
-                        longitude,
-                        1 if is_favorite else 0
-                    ))
+                    """,
+                        (user_id, name, latitude, longitude, 1 if is_favorite else 0),
+                    )
             return True
         except Exception as e:
             logging.error(f"Error saving location: {e}")
@@ -35,20 +78,25 @@ class DatabaseManager:
         try:
             with get_mysql_connection() as conn:
                 with conn.cursor() as cursor:
-                    cursor.execute("""
+                    cursor.execute(
+                        """
                         SELECT location, latitude, longitude, is_favorite
                         FROM Locations
                         WHERE user_id = %s
-                    """, (user_id,))
+                    """,
+                        (user_id,),
+                    )
                     rows = cursor.fetchall()
 
                     for row in rows:
-                        locations.append({
-                            'name': row['location'],
-                            'latitude': float(row['latitude']),
-                            'longitude': float(row['longitude']),
-                            'isFavorite': bool(row['is_favorite'])
-                        })
+                        locations.append(
+                            {
+                                "name": row["location"],
+                                "latitude": float(row["latitude"]),
+                                "longitude": float(row["longitude"]),
+                                "isFavorite": bool(row["is_favorite"]),
+                            }
+                        )
         except Exception as e:
             logging.error(f"Error fetching user locations: {e}")
         return locations
@@ -59,24 +107,30 @@ class DatabaseManager:
             with get_mysql_connection() as conn:
                 with conn.cursor() as cursor:
                     # Fetch the current record (using a small tolerance on floating-point values)
-                    cursor.execute("""
+                    cursor.execute(
+                        """
                         SELECT id, is_favorite
                         FROM Locations
                         WHERE user_id = %s
                           AND ABS(latitude - %s) < 0.0001
                           AND ABS(longitude - %s) < 0.0001
                         LIMIT 1
-                    """, (user_id, latitude, longitude))
+                    """,
+                        (user_id, latitude, longitude),
+                    )
                     row = cursor.fetchone()
 
                     if row:
-                        new_value = 0 if row['is_favorite'] else 1
-                        cursor.execute("""
+                        new_value = 0 if row["is_favorite"] else 1
+                        cursor.execute(
+                            """
                             UPDATE Locations
                             SET is_favorite = %s
                             WHERE id = %s
-                        """, (new_value, row['id']))
-                        updated = (cursor.rowcount > 0)
+                        """,
+                            (new_value, row["id"]),
+                        )
+                        updated = cursor.rowcount > 0
         except Exception as e:
             logging.error(f"Error toggling favorite: {e}")
         return updated
@@ -86,13 +140,16 @@ class DatabaseManager:
         try:
             with get_mysql_connection() as conn:
                 with conn.cursor() as cursor:
-                    cursor.execute("""
+                    cursor.execute(
+                        """
                         DELETE FROM Locations
                         WHERE user_id = %s
                           AND ABS(latitude - %s) < 0.0001
                           AND ABS(longitude - %s) < 0.0001
-                    """, (user_id, latitude, longitude))
-                    deleted = (cursor.rowcount > 0)
+                    """,
+                        (user_id, latitude, longitude),
+                    )
+                    deleted = cursor.rowcount > 0
         except Exception as e:
             logging.error(f"Error deleting location: {e}")
         return deleted

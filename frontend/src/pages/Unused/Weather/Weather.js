@@ -1,4 +1,6 @@
 import React, { useRef, useEffect, useState } from 'react';
+import { UserSession } from '../../../utils/UserSession';
+
 import {
   IoThermometerOutline,
   IoChevronForward,
@@ -23,8 +25,8 @@ import './map.css';
 import WeatherGraph from '../../../components/specific/WeatherGraph/WeatherGraph';
 import TimelineSlider from '../../../components/specific/TimelineSlider/TimelineSlider';
 
+// Declare URL for Flask API
 const REACT_APP_API_URL = process.env.REACT_APP_API_URL;
-const REACT_APP_USER_ID = process.env.REACT_APP_USER_ID;
 
 const units = {
   temperature: '°C',
@@ -45,6 +47,8 @@ const units = {
 };
 
 const Weather = () => {
+
+  const { user } = UserSession(); // Current user session
   const mapContainer = useRef(null);
   const mapRef = useRef(null);
   const markerRef = useRef(null);
@@ -81,8 +85,10 @@ const Weather = () => {
   // Load saved locations
   const loadSavedLocations = async () => {
     try {
+      
+      if (!user?.id) return; 
       const response = await axios.get(
-        `${REACT_APP_API_URL}/api/locations?userId=${REACT_APP_USER_ID}`
+        `${REACT_APP_API_URL}/api/locations?userId=${user.id}`
       );
       const locations = response.data.map((loc) => ({
         ...loc,
@@ -174,7 +180,7 @@ const Weather = () => {
 
     try {
       await axios.post(`${REACT_APP_API_URL}/api/locations`, {
-        userId: REACT_APP_USER_ID,
+        userId: user.id,
         name: locationName,
         latitude: lat,
         longitude: lng,
@@ -195,7 +201,7 @@ const Weather = () => {
     try {
       await axios.delete(`${REACT_APP_API_URL}/api/locations`, {
         data: {
-          userId: REACT_APP_USER_ID,
+          userId: user.id,
           latitude: location.latitude,
           longitude: location.longitude,
         },

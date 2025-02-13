@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import { UserSession } from '../../utils/UserSession';
+
 import {
   ChevronDown,
   ChevronUp,
@@ -13,6 +15,9 @@ import {
 } from 'lucide-react';
 import axios from 'axios';
 import './Alerts.css';
+
+// Declare URL for Flask API
+const REACT_APP_API_URL = process.env.REACT_APP_API_URL;
 
 const severityColors = {
   Extreme: 'alert-high',
@@ -29,6 +34,7 @@ export const alertCountUpdated = (count) => {
 
 // Alerts Component Variables
 const AlertsComponent = () => {
+  const { user } = UserSession(); // User session
   const [alerts, setAlerts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -51,10 +57,9 @@ const AlertsComponent = () => {
   // Fetch Favorite Locations
   const fetchFavoriteLocations = async () => {
     try {
-      const userId = process.env.REACT_APP_USER_ID;
-      const baseUrl = process.env.REACT_APP_API_URL || 'http://localhost:5001';
+
       const response = await axios.get(
-        `${baseUrl}/api/locations?userId=${userId}`
+        `${REACT_APP_API_URL}/api/locations?userId=${user.id}`
       );
       return response.data.filter((location) => location.isFavorite);
     } catch (err) {
@@ -72,13 +77,10 @@ const AlertsComponent = () => {
         const favorites = await fetchFavoriteLocations();
         setFavoriteLocations(favorites);
 
-        // Then get alerts
-        const userId = process.env.REACT_APP_USER_ID;
-        const baseUrl =
-          process.env.REACT_APP_API_URL || 'http://localhost:5001';
         const response = await axios.get(
-          `${baseUrl}/api/external/alerts?userId=${userId}`
+          `${REACT_APP_API_URL}/api/external/alerts?userId=${user.id}`
         );
+
 
         if (response.data && response.data.alerts) {
           // Filter alerts to only include favorite locations
@@ -100,7 +102,7 @@ const AlertsComponent = () => {
       } catch (err) {
         setError(
           'Failed to fetch alerts: ' +
-            (err.response?.data?.error || err.message)
+          (err.response?.data?.error || err.message)
         );
         console.error('Error fetching alerts:', err);
         alertCountUpdated(0);
