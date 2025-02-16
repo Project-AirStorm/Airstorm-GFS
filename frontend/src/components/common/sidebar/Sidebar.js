@@ -135,11 +135,11 @@ const Sidebar = ({ isOpen, onClose, isCollapsed, onToggleCollapse }) => {
       </div>
       {/* Navigation */}
       <nav className="nav-section">
-        {isCollapsed ? (
+        {/* {isCollapsed ? (
           <div className="nav-title-placeholder"></div>
         ) : (
           <p className="nav-title">Main Menu</p>
-        )}
+        )} */}
         <div className="nav-items-container">
           {navItems.map((item) => (
             <NavItem
