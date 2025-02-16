@@ -1,5 +1,6 @@
-import React, { useRef, useEffect, useState } from 'react';
+import React, { useRef, useEffect, useState, useCallback } from 'react';
 import { UserSession } from '../../../utils/UserSession';
+import { useLocation } from 'react-router-dom';
 
 import {
   IoThermometerOutline,
@@ -47,7 +48,7 @@ const units = {
 };
 
 const Weather = () => {
-
+  const location = useLocation(); // This provides the current route/location
   const { user } = UserSession(); // Current user session
   const mapContainer = useRef(null);
   const mapRef = useRef(null);
@@ -82,11 +83,110 @@ const Weather = () => {
     { value: 'pm2.5', label: 'PM₂.₅' },
   ];
 
-  // Load saved locations
-  const loadSavedLocations = async () => {
+  // Handle coordinate input
+  const handleCoordinateInput = (e, type) => {
+    const value = e.target.value;
+    if (/^-?\d*\.?\d*$/.test(value)) {
+      setCoordinates((prev) => ({
+        ...prev,
+        [type]: value,
+      }));
+    }
+  };
+
+  // Save location
+  const handleSaveLocation = async () => {
+    if (!locationName) return;
+
+    let lat, lng;
+    if (coordinates.lat && coordinates.lng) {
+      lat = parseFloat(coordinates.lat);
+      lng = parseFloat(coordinates.lng);
+    } else if (markerRef.current?.getPosition()) {
+      const position = markerRef.current.getPosition();
+      lat = position.lat();
+      lng = position.lng();
+    } else {
+      return;
+    }
+
     try {
-      
-      if (!user?.id) return; 
+      await axios.post(`${REACT_APP_API_URL}/api/locations`, {
+        userId: user.id,
+        name: locationName,
+        latitude: lat,
+        longitude: lng,
+        isFavorite,
+      });
+
+      await loadSavedLocations();
+      setLocationName('');
+      setIsFavorite(false);
+      setCoordinates({ lat: '', lng: '' });
+      setIsLocationPanelCollapsed(true);
+    } catch (error) {
+      console.error('Error saving location:', error);
+    }
+  };
+
+  // Delete location
+  const handleDeleteLocation = async (location) => {
+    try {
+      await axios.delete(`${REACT_APP_API_URL}/api/locations`, {
+        data: {
+          userId: user.id,
+          latitude: location.latitude,
+          longitude: location.longitude,
+        },
+      });
+      await loadSavedLocations();
+    } catch (error) {
+      console.error('Error deleting location:', error);
+    }
+  };
+
+  const handleMapClick = useCallback(async (e) => {
+    if (!markerRef.current) return;
+
+    const lat = e.latLng.lat();
+    const lng = e.latLng.lng();
+
+    // Set position of the marker
+    markerRef.current.setPosition(e.latLng);
+    markerRef.current.setVisible(true); // Ensure marker is visible
+    setCoordinates({ lat: lat.toFixed(4), lng: lng.toFixed(4) });
+
+    console.log(`Map clicked at latitude: ${lat}, longitude: ${lng}`);
+
+    try {
+      const response = await axios.get(`${REACT_APP_API_URL}/api/weather`, {
+        params: { lat, lon: lng },
+      });
+
+      setWeatherData({
+        current_temperature: response.data.current_temperature,
+        latitude: response.data.latitude,
+        longitude: response.data.longitude,
+        elevation: response.data.elevation,
+        chartData: response.data.times.map((time, index) => ({
+          time,
+          temperature: response.data.temperatures[index],
+        })),
+      });
+    } catch (error) {
+      console.error('Error fetching weather data:', error);
+    }
+  }, []);
+
+  const handleTimeChange = (offset) => {
+    // If offset is 'now', set timeOffset to 'now'; otherwise, use the offset
+    setTimeOffset(offset === 'now' ? 'now' : offset);
+  };
+
+  // Load saved locations
+  const loadSavedLocations = useCallback(async () => {
+    try {
+      if (!user?.id) return;
       const response = await axios.get(
         `${REACT_APP_API_URL}/api/locations?userId=${user.id}`
       );
@@ -99,11 +199,65 @@ const Weather = () => {
     } catch (error) {
       console.error('Error loading locations:', error);
     }
-  };
+  }, [user?.id]);
 
-  // Handle saved location markers
+  // Prep Google Map
+  const loadGoogleMaps = useCallback(async () => {
+    try {
+      const response = await axios.get(
+        `${REACT_APP_API_URL}/api/google-maps-init`
+      );
+      const { googleMapsKey } = response.data;
+
+      const script = document.createElement('script');
+      script.src = `https://maps.googleapis.com/maps/api/js?key=${googleMapsKey}&callback=initMap&v=weekly`;
+      script.async = true;
+      script.defer = true;
+      document.head.appendChild(script);
+
+      window.initMap = () => {
+        const mapInstance = new window.google.maps.Map(mapContainer.current, {
+          center: { lat: 36, lng: -86 },
+          zoom: 4,
+        });
+
+        markerRef.current = new window.google.maps.Marker({
+          map: mapInstance,
+          position: null,
+          icon: {
+            path: window.google.maps.SymbolPath.CIRCLE,
+            fillColor: '#FF0000',
+            fillOpacity: 1,
+            strokeWeight: 0,
+            scale: 8,
+          },
+          visible: false,
+        });
+
+        const meteosourceOverlay = new window.google.maps.ImageMapType({
+          getTileUrl: (coord, zoom) => {
+            const timeParam = timeOffset === 'now' ? 'now' : timeOffset;
+            return `${REACT_APP_API_URL}/api/meteosource/tile?x=${coord.x}&y=${coord.y}&zoom=${zoom}&variable=${selectedVariable}&datetime=${timeParam}`;
+          },
+          tileSize: new window.google.maps.Size(256, 256),
+          name: 'Weather Data',
+        });
+
+        mapInstance.overlayMapTypes.push(meteosourceOverlay);
+        mapRef.current = mapInstance;
+        mapInstance.addListener('click', handleMapClick);
+      };
+
+      loadSavedLocations();
+    } catch (error) {
+      console.error('Error initializing map:', error);
+    }
+  }, [loadSavedLocations, selectedVariable, timeOffset, handleMapClick]);
+
+  // Handle Saved Markers
   useEffect(() => {
     if (mapRef.current && savedLocations.length > 0) {
+      // Clear old markers
       savedMarkers.forEach((marker) => marker.setMap(null));
 
       const newMarkers = savedLocations.map((location) => {
@@ -142,9 +296,15 @@ const Weather = () => {
         return marker;
       });
 
+      // Only set the markers once, after creating them
       setSavedMarkers(newMarkers);
     }
-  }, [savedLocations, mapRef.current]);
+
+    // Cleanup markers on component unmount or savedLocations change
+    return () => {
+      savedMarkers.forEach((marker) => marker.setMap(null));
+    };
+  }, [savedLocations]); // Only depend on savedLocations, not savedMarkers
 
   // Cleanup markers
   useEffect(() => {
@@ -153,118 +313,8 @@ const Weather = () => {
     };
   }, [savedMarkers]);
 
-  const handleCoordinateInput = (e, type) => {
-    const value = e.target.value;
-    if (/^-?\d*\.?\d*$/.test(value)) {
-      setCoordinates((prev) => ({
-        ...prev,
-        [type]: value,
-      }));
-    }
-  };
-
-  const handleSaveLocation = async () => {
-    if (!locationName) return;
-
-    let lat, lng;
-    if (coordinates.lat && coordinates.lng) {
-      lat = parseFloat(coordinates.lat);
-      lng = parseFloat(coordinates.lng);
-    } else if (markerRef.current?.getPosition()) {
-      const position = markerRef.current.getPosition();
-      lat = position.lat();
-      lng = position.lng();
-    } else {
-      return;
-    }
-
-    try {
-      await axios.post(`${REACT_APP_API_URL}/api/locations`, {
-        userId: user.id,
-        name: locationName,
-        latitude: lat,
-        longitude: lng,
-        isFavorite,
-      });
-
-      await loadSavedLocations();
-      setLocationName('');
-      setIsFavorite(false);
-      setCoordinates({ lat: '', lng: '' });
-      setIsLocationPanelCollapsed(true);
-    } catch (error) {
-      console.error('Error saving location:', error);
-    }
-  };
-
-  const handleDeleteLocation = async (location) => {
-    try {
-      await axios.delete(`${REACT_APP_API_URL}/api/locations`, {
-        data: {
-          userId: user.id,
-          latitude: location.latitude,
-          longitude: location.longitude,
-        },
-      });
-      await loadSavedLocations();
-    } catch (error) {
-      console.error('Error deleting location:', error);
-    }
-  };
-
+  // Load Google Map
   useEffect(() => {
-    const loadGoogleMaps = async () => {
-      try {
-        const response = await axios.get(
-          `${REACT_APP_API_URL}/api/google-maps-init`
-        );
-        const { googleMapsKey } = response.data;
-
-        const script = document.createElement('script');
-        script.src = `https://maps.googleapis.com/maps/api/js?key=${googleMapsKey}&callback=initMap&v=weekly`;
-        script.async = true;
-        script.defer = true;
-        document.head.appendChild(script);
-
-        window.initMap = () => {
-          const mapInstance = new window.google.maps.Map(mapContainer.current, {
-            center: { lat: 51.5, lng: 0 },
-            zoom: 6,
-          });
-
-          markerRef.current = new window.google.maps.Marker({
-            map: mapInstance,
-            position: null,
-            icon: {
-              path: window.google.maps.SymbolPath.CIRCLE,
-              fillColor: '#FF0000',
-              fillOpacity: 1,
-              strokeWeight: 0,
-              scale: 8,
-            },
-            visible: false,
-          });
-
-          const meteosourceOverlay = new window.google.maps.ImageMapType({
-            getTileUrl: (coord, zoom) => {
-              const timeParam = timeOffset === 'now' ? 'now' : timeOffset;
-              return `${REACT_APP_API_URL}/api/meteosource/tile?x=${coord.x}&y=${coord.y}&zoom=${zoom}&variable=${selectedVariable}&datetime=${timeParam}`;
-            },
-            tileSize: new window.google.maps.Size(256, 256),
-            name: 'Weather Data',
-          });
-
-          mapInstance.overlayMapTypes.push(meteosourceOverlay);
-          mapRef.current = mapInstance;
-          mapInstance.addListener('click', handleMapClick);
-        };
-
-        loadSavedLocations();
-      } catch (error) {
-        console.error('Error initializing map:', error);
-      }
-    };
-
     if (!window.google?.maps) {
       loadGoogleMaps();
     }
@@ -275,7 +325,7 @@ const Weather = () => {
         window.google.maps.event.clearInstanceListeners(mapRef.current);
       }
     };
-  }, []);
+  }, [loadGoogleMaps]);
 
   // Update map overlay when variable or time changes
   useEffect(() => {
@@ -294,41 +344,6 @@ const Weather = () => {
       mapRef.current.overlayMapTypes.push(meteosourceOverlay);
     }
   }, [selectedVariable, timeOffset]);
-
-  const handleMapClick = async (e) => {
-    if (!markerRef.current) return;
-
-    const lat = e.latLng.lat();
-    const lng = e.latLng.lng();
-
-    markerRef.current.setPosition(e.latLng);
-    markerRef.current.setVisible(true);
-    setCoordinates({ lat: lat.toFixed(4), lng: lng.toFixed(4) });
-
-    try {
-      const response = await axios.get(`${REACT_APP_API_URL}/api/weather`, {
-        params: { lat, lon: lng },
-      });
-
-      setWeatherData({
-        current_temperature: response.data.current_temperature,
-        latitude: response.data.latitude,
-        longitude: response.data.longitude,
-        elevation: response.data.elevation,
-        chartData: response.data.times.map((time, index) => ({
-          time,
-          temperature: response.data.temperatures[index],
-        })),
-      });
-    } catch (error) {
-      console.error('Error fetching weather data:', error);
-    }
-  };
-
-  const handleTimeChange = (offset) => {
-    // If offset is 'now', set timeOffset to 'now'; otherwise, use the offset
-    setTimeOffset(offset === 'now' ? 'now' : offset);
-  };
 
   return (
     <div className="h-screen w-screen relative">

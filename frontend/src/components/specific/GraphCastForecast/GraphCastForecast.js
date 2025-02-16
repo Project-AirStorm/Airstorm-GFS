@@ -33,7 +33,7 @@ const GraphCastForecast = () => {
 
           try {
             const response = await axios.get(
-              `https://api.open-meteo.com/v1/forecast`,
+              `https://customer-api.open-meteo.com/v1/forecast?apikey=${process.env.REACT_APP_OPENMETEO_API_KEY}`,
               {
                 params: {
                   latitude,

@@ -11,7 +11,6 @@ import {
   ChevronsDown,
   ChevronsUp,
   Copy,
-  Check,
 } from 'lucide-react';
 import axios from 'axios';
 import './Alerts.css';
@@ -43,7 +42,6 @@ const AlertsComponent = () => {
   const [filterLocation, setFilterLocation] = useState('all');
   const [sortBy, setSortBy] = useState('date');
   const [locations, setLocations] = useState([]);
-  const [favoriteLocations, setFavoriteLocations] = useState([]);
   const [filterCertainty, setFilterCertainty] = useState('all');
 
   // Reset Filters Variables
@@ -54,33 +52,29 @@ const AlertsComponent = () => {
     setSortBy('date');
   };
 
-  // Fetch Favorite Locations
-  const fetchFavoriteLocations = async () => {
-    try {
-
-      const response = await axios.get(
-        `${REACT_APP_API_URL}/api/locations?userId=${user.id}`
-      );
-      return response.data.filter((location) => location.isFavorite);
-    } catch (err) {
-      console.error('Error fetching favorite locations:', err);
-      return [];
-    }
-  };
-
   // Fetch Alerts
   useEffect(() => {
+    const fetchFavoriteLocations = async () => {
+      try {
+        const response = await axios.get(
+          `${REACT_APP_API_URL}/api/locations?userId=${user.id}`
+        );
+        return response.data.filter((location) => location.isFavorite);
+      } catch (err) {
+        console.error('Error fetching favorite locations:', err);
+        return [];
+      }
+    };
+
     const fetchAlerts = async () => {
       try {
         setLoading(true);
         // First get favorite locations
         const favorites = await fetchFavoriteLocations();
-        setFavoriteLocations(favorites);
 
         const response = await axios.get(
           `${REACT_APP_API_URL}/api/external/alerts?userId=${user.id}`
         );
-
 
         if (response.data && response.data.alerts) {
           // Filter alerts to only include favorite locations
@@ -102,7 +96,7 @@ const AlertsComponent = () => {
       } catch (err) {
         setError(
           'Failed to fetch alerts: ' +
-          (err.response?.data?.error || err.message)
+            (err.response?.data?.error || err.message)
         );
         console.error('Error fetching alerts:', err);
         alertCountUpdated(0);
@@ -114,7 +108,7 @@ const AlertsComponent = () => {
     fetchAlerts();
     const interval = setInterval(fetchAlerts, 300000); // Refresh every 5 minutes
     return () => clearInterval(interval);
-  }, []);
+  }, [user.id]); // Updated dependencies
 
   /// Only update the locations state with favorite locations
   useEffect(() => {

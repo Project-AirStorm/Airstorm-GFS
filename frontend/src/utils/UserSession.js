@@ -1,6 +1,6 @@
 import { useUser } from '@clerk/clerk-react';
 import { useEffect, useState } from 'react';
-import axios from 'axios'
+import axios from 'axios';
 /**
  * Custom hook for syncing the current user's session data to your backend.
  *
@@ -38,7 +38,7 @@ export function UserSession() {
           console.error('Error syncing user session:', error);
         });
     }
-  }, [isLoaded, user, isSynced]);
+  }, [isLoaded, user, isSynced, REACT_APP_API_URL]);
 
   return { isLoaded, user, isSynced };
 }

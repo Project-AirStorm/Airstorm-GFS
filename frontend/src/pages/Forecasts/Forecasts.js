@@ -1,6 +1,6 @@
 // Forecasts.js
 import React, { useState } from 'react';
-import PropTypes from 'prop-types';
+// import PropTypes from 'prop-types';
 import OverviewSwitch from '../../components/specific/OverviewSwitch/OverviewSwitch';
 import ActionButtons from '../../components/specific/ActionButtons/ActionButtons';
 import GraphCastForecast from '../../components/specific/GraphCastForecast/GraphCastForecast';
@@ -21,12 +21,12 @@ const Forecasts = ({ setCurrentPage }) => {
       <div className="main-content">
         {/* View Toggle and Action Buttons */}
         <div className="controls-container">
-          <OverviewSwitch 
+          <OverviewSwitch
             activeView={activeView}
             onViewChange={setActiveView}
           />
-          
-          <ActionButtons 
+
+          <ActionButtons
             onTimeframeChange={() => console.log('Timeframe changed')}
             onAddBase={() => console.log('Add base clicked')}
             timeframe="Week"
@@ -37,7 +37,8 @@ const Forecasts = ({ setCurrentPage }) => {
           <div className="forecasts-content">
             <h2 className="content-title">Weather Forecasts</h2>
             <p className="content-description">
-              Comprehensive weather forecasts and predictions for monitored locations.
+              Comprehensive weather forecasts and predictions for monitored
+              locations.
             </p>
             <GraphCastForecast />
           </div>

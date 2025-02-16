@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { UserSession } from '../../utils/UserSession';
-import PropTypes from 'prop-types';
+// import PropTypes from 'prop-types';
 import axios from 'axios';
 import WeatherCard from '../../components/specific/WeatherCard/WeatherCard';
 import GraphCastForecast from '../../components/specific/GraphCastForecast/GraphCastForecast';
@@ -13,13 +13,13 @@ const REACT_APP_API_URL = process.env.REACT_APP_API_URL;
 
 const Dashboard = ({ setCurrentPage }) => {
   const { user } = UserSession(); // User session
-  
+
   const [activeView, setActiveView] = useState('overview');
   const [locations, setLocations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  const fetchLocations = async () => {
+  const fetchLocations = useCallback(async () => {
     try {
       const response = await axios.get(`${REACT_APP_API_URL}/api/locations`, {
         params: { userId: user.id },
@@ -39,11 +39,11 @@ const Dashboard = ({ setCurrentPage }) => {
       setError('Failed to fetch locations');
       setLoading(false);
     }
-  };
+  }, [user.id]);
 
   useEffect(() => {
     fetchLocations();
-  }, []);
+  }, [fetchLocations]);
 
   const handleDeleteLocation = async (latitude, longitude) => {
     try {

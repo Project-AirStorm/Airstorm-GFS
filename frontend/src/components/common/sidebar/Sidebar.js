@@ -49,39 +49,39 @@ const Sidebar = () => {
   const location = useLocation();
   const [alertCount, setAlertCount] = useState('0');
 
-  // Function to fetch initial alert count
-  const fetchInitialAlertCount = async () => {
-    try {
-
-      const response = await axios.get(
-        `${REACT_APP_API_URL}/api/external/alerts?userId=${user.id}`
-      );
-
-      // First get favorite locations
-      const locResponse = await axios.get(
-        `${REACT_APP_API_URL}/api/locations?userId=${user.id}`
-      );
-      const favorites = locResponse.data.filter(
-        (location) => location.isFavorite
-      );
-
-      // Filter alerts for favorite locations
-      const favoriteAlerts = response.data.alerts.filter((alert) =>
-        favorites.some(
-          (loc) =>
-            loc.latitude === alert.latitude && loc.longitude === alert.longitude
-        )
-      );
-
-      setAlertCount(favoriteAlerts.length.toString());
-    } catch (error) {
-      console.error('Error fetching initial alert count:', error);
-      setAlertCount('0');
-    }
-  };
-
   // Set up event listener for alert count updates
   useEffect(() => {
+    // Moved function inside useEffect
+    const fetchInitialAlertCount = async () => {
+      try {
+        const response = await axios.get(
+          `${REACT_APP_API_URL}/api/external/alerts?userId=${user.id}`
+        );
+
+        // First get favorite locations
+        const locResponse = await axios.get(
+          `${REACT_APP_API_URL}/api/locations?userId=${user.id}`
+        );
+        const favorites = locResponse.data.filter(
+          (location) => location.isFavorite
+        );
+
+        // Filter alerts for favorite locations
+        const favoriteAlerts = response.data.alerts.filter((alert) =>
+          favorites.some(
+            (loc) =>
+              loc.latitude === alert.latitude &&
+              loc.longitude === alert.longitude
+          )
+        );
+
+        setAlertCount(favoriteAlerts.length.toString());
+      } catch (error) {
+        console.error('Error fetching initial alert count:', error);
+        setAlertCount('0');
+      }
+    };
+
     fetchInitialAlertCount();
 
     const handleAlertCountUpdate = (event) => {
@@ -93,7 +93,7 @@ const Sidebar = () => {
     return () => {
       window.removeEventListener('alertCountUpdated', handleAlertCountUpdate);
     };
-  }, []);
+  }, [user.id]);
 
   // Navigation items configuration
   const navItems = [

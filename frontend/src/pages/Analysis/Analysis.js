@@ -1,6 +1,6 @@
 // Analysis.js
 import React, { useState } from 'react';
-import PropTypes from 'prop-types';
+// import PropTypes from 'prop-types';
 import OverviewSwitch from '../../components/specific/OverviewSwitch/OverviewSwitch';
 import ActionButtons from '../../components/specific/ActionButtons/ActionButtons';
 import './Analysis.css';
@@ -20,7 +20,7 @@ const Analysis = ({ setCurrentPage }) => {
     { id: 'temperature', label: 'Temperature' },
     { id: 'precipitation', label: 'Precipitation' },
     { id: 'wind', label: 'Wind Speed' },
-    { id: 'humidity', label: 'Humidity' }
+    { id: 'humidity', label: 'Humidity' },
   ];
 
   return (
@@ -28,12 +28,12 @@ const Analysis = ({ setCurrentPage }) => {
       <div className="main-content">
         {/* View Toggle and Action Buttons */}
         <div className="controls-container">
-          <OverviewSwitch 
+          <OverviewSwitch
             activeView={activeView}
             onViewChange={setActiveView}
           />
-          
-          <ActionButtons 
+
+          <ActionButtons
             onTimeframeChange={() => console.log('Timeframe changed')}
             onAddBase={() => console.log('Add base clicked')}
             timeframe="Week"
@@ -49,10 +49,12 @@ const Analysis = ({ setCurrentPage }) => {
           </div>
 
           <div className="metrics-selector">
-            {metrics.map(metric => (
+            {metrics.map((metric) => (
               <button
                 key={metric.id}
-                className={`metric-button ${selectedMetric === metric.id ? 'active' : ''}`}
+                className={`metric-button ${
+                  selectedMetric === metric.id ? 'active' : ''
+                }`}
                 onClick={() => setSelectedMetric(metric.id)}
               >
                 {metric.label}
@@ -71,7 +73,10 @@ const Analysis = ({ setCurrentPage }) => {
             <div className="analysis-details">
               <h3 className="details-title">Analysis Details</h3>
               <div className="details-content">
-                <p>Detailed analysis information will be displayed here based on the selected metric.</p>
+                <p>
+                  Detailed analysis information will be displayed here based on
+                  the selected metric.
+                </p>
               </div>
             </div>
           </div>

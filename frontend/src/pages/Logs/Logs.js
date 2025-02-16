@@ -1,6 +1,6 @@
 // Logs.js
 import React, { useState } from 'react';
-import PropTypes from 'prop-types';
+// import PropTypes from 'prop-types';
 import { Search, Filter, Download } from 'lucide-react';
 import './Logs.css';
 
@@ -24,7 +24,7 @@ const Logs = ({ setCurrentPage }) => {
       type: 'system',
       severity: 'info',
       message: 'System startup completed successfully',
-      source: 'System'
+      source: 'System',
     },
     {
       id: 2,
@@ -32,7 +32,7 @@ const Logs = ({ setCurrentPage }) => {
       type: 'weather',
       severity: 'warning',
       message: 'High wind alert triggered for Barksdale AFB',
-      source: 'Weather Service'
+      source: 'Weather Service',
     },
     {
       id: 3,
@@ -40,22 +40,22 @@ const Logs = ({ setCurrentPage }) => {
       type: 'user',
       severity: 'error',
       message: 'Failed login attempt detected',
-      source: 'Auth Service'
-    }
+      source: 'Auth Service',
+    },
   ];
 
   const logTypes = [
     { id: 'all', label: 'All Logs' },
     { id: 'system', label: 'System' },
     { id: 'weather', label: 'Weather' },
-    { id: 'user', label: 'User Activity' }
+    { id: 'user', label: 'User Activity' },
   ];
 
   const timeframes = [
     { id: '1h', label: 'Last Hour' },
     { id: '24h', label: 'Last 24 Hours' },
     { id: '7d', label: 'Last 7 Days' },
-    { id: '30d', label: 'Last 30 Days' }
+    { id: '30d', label: 'Last 30 Days' },
   ];
 
   const handleSearch = (event) => {
@@ -67,10 +67,12 @@ const Logs = ({ setCurrentPage }) => {
   };
 
   // Filter logs based on search term and filters
-  const filteredLogs = logs.filter(log => {
-    const matchesSearch = log.message.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         log.source.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesType = selectedLogType === 'all' || log.type === selectedLogType;
+  const filteredLogs = logs.filter((log) => {
+    const matchesSearch =
+      log.message.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      log.source.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesType =
+      selectedLogType === 'all' || log.type === selectedLogType;
     return matchesSearch && matchesType;
   });
 
@@ -113,8 +115,10 @@ const Logs = ({ setCurrentPage }) => {
                 onChange={(e) => setSelectedLogType(e.target.value)}
                 className="filter-select"
               >
-                {logTypes.map(type => (
-                  <option key={type.id} value={type.id}>{type.label}</option>
+                {logTypes.map((type) => (
+                  <option key={type.id} value={type.id}>
+                    {type.label}
+                  </option>
                 ))}
               </select>
 
@@ -123,8 +127,10 @@ const Logs = ({ setCurrentPage }) => {
                 onChange={(e) => setSelectedTimeframe(e.target.value)}
                 className="filter-select"
               >
-                {timeframes.map(time => (
-                  <option key={time.id} value={time.id}>{time.label}</option>
+                {timeframes.map((time) => (
+                  <option key={time.id} value={time.id}>
+                    {time.label}
+                  </option>
                 ))}
               </select>
             </div>
@@ -142,13 +148,11 @@ const Logs = ({ setCurrentPage }) => {
                 </tr>
               </thead>
               <tbody>
-                {filteredLogs.map(log => (
+                {filteredLogs.map((log) => (
                   <tr key={log.id} className={`severity-${log.severity}`}>
                     <td>{new Date(log.timestamp).toLocaleString()}</td>
                     <td>
-                      <span className={`log-type ${log.type}`}>
-                        {log.type}
-                      </span>
+                      <span className={`log-type ${log.type}`}>{log.type}</span>
                     </td>
                     <td>
                       <span className={`severity-badge ${log.severity}`}>
