@@ -253,6 +253,7 @@ jobs:
             REACT_APP_MAPTILER_KEY=${{ secrets.REACT_APP_MAPTILER_KEY }}
             REACT_APP_METEOSOURCE_API_KEY=${{ secrets.REACT_APP_METEOSOURCE_API_KEY }}
             REACT_APP_VITE_CLERK_PUBLISHABLE_KEY=${{ secrets.REACT_APP_VITE_CLERK_PUBLISHABLE_KEY }}
+            BACKEND_OPENMETEO_API_KEY=${{ secrets.BACKEND_OPENMETEO_API_KEY }}
             EOL
             # Verify .env file was created
             if [ ! -f .env ]; then
