@@ -11,6 +11,8 @@ import {
   FileText,
   Grid,
   Sticker,
+  ChevronLeft,
+  ChevronRight
 } from 'lucide-react';
 import profilePic from '../../../assets/sample-profile-pic.jpeg';
 import afgscLogo from '../../../assets/afgsc-logo.png';
@@ -42,9 +44,15 @@ NavItem.propTypes = {
   onClick: PropTypes.func.isRequired,
 };
 
-const Sidebar = () => {
-  const { user } = UserSession(); //Current User Session
+const Sidebar = ({
+  // Props for our sidebar for Layout.js
+  isOpen,
+  onClose,
+  isCollapsed,
+  onToggleCollapse
+}) => {
 
+  const { user } = UserSession(); //Current User Session
   const navigate = useNavigate();
   const location = useLocation();
   const [alertCount, setAlertCount] = useState('0');
@@ -141,7 +149,10 @@ const Sidebar = () => {
   ];
 
   return (
-    <div className="sidebar">
+    <div
+      className={`sidebar ${isCollapsed ? 'collapsed' : ''} ${isOpen ? 'open' : ''
+        }`}
+    >
       {/* Header */}
       <div className="header">
         <div className="flex items-center justify-between">
@@ -151,35 +162,44 @@ const Sidebar = () => {
               alt="AFGSC Logo"
               className="w-8 h-8 object-contain"
             />
-            <div>
-              <h1 className="text-lg font-bold text-gray-800">Airstorm GFS</h1>
-              <p className="text-xs text-gray-500">AFGSC</p>
-            </div>
+            {/* Hide text if collapsed */}
+            {!isCollapsed && (
+              <div>
+                <h1 className="text-lg font-bold text-gray-800">Airstorm GFS</h1>
+                <p className="text-xs text-gray-500">AFGSC</p>
+              </div>
+            )}
           </div>
-          <Menu className="w-5 h-5 text-gray-500" />
+
+          {/* The icon to toggle collapse */}
+          <button onClick={onToggleCollapse} className="text-gray-500">
+            {isCollapsed ? <ChevronRight className="w-5 h-5" /> : <ChevronLeft className="w-5 h-5" />}
+          </button>
         </div>
       </div>
 
       {/* User Profile */}
-      <div className="profile-section">
-        <div className="profile-card">
-          <img src={profilePic} alt="Profile" className="profile-image" />
-          <div>
-            <p className="text-sm font-semibold text-gray-800">Sgt. Tubbs</p>
-            <p className="text-xs text-gray-500">Flight Chief</p>
+      {!isCollapsed && ( // Hide entire profile card if collapsed
+        <div className="profile-section">
+          <div className="profile-card">
+            <img src={profilePic} alt="Profile" className="profile-image" />
+            <div>
+              <p className="text-sm font-semibold text-gray-800">Sgt. Tubbs</p>
+              <p className="text-xs text-gray-500">Flight Chief</p>
+            </div>
           </div>
         </div>
-      </div>
+      )}
 
       {/* Navigation */}
       <nav className="nav-section">
-        <p className="text-sm text-gray-500 mb-4">Main Menu</p>
+        {!isCollapsed && <p className="text-sm text-gray-500 mb-4">Main Menu</p>}
         <div className="space-y-2">
           {navItems.map((item) => (
             <NavItem
               key={item.label}
               icon={item.icon}
-              label={item.label}
+              label={isCollapsed ? '' : item.label}  // Hide label if collapsed
               badge={item.badge}
               isActive={location.pathname === item.page}
               onClick={() => navigate(item.page)}
@@ -189,6 +209,13 @@ const Sidebar = () => {
       </nav>
     </div>
   );
+};
+
+Sidebar.propTypes = {
+  isOpen: PropTypes.bool,
+  onClose: PropTypes.func,
+  isCollapsed: PropTypes.bool,        // NEW
+  onToggleCollapse: PropTypes.func,   // NEW
 };
 
 export default Sidebar;

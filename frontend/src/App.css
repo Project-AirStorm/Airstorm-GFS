@@ -14,12 +14,18 @@
   min-height: 100vh;
 }
 
+/* If the parent has class sidebar-collapsed, shrink margin-left: */
+.app-wrapper.sidebar-collapsed .main-content-wrapper {
+  margin-left: 4rem; /* match your collapsed sidebar width */
+}
+
 /* Main content wrapper with sidebar margin */
 .main-content-wrapper {
   flex: 1;
   display: flex;
   flex-direction: column;
   margin-left: var(--sidebar-width);
+  transition: margin-left 0.3 ease; 
   min-width: 0;
 }
 
