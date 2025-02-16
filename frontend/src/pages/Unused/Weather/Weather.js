@@ -143,38 +143,35 @@ const Weather = () => {
     }
   };
 
-  const handleMapClick = useCallback(
-    async (e) => {
-      if (!markerRef.current) return;
+  const handleMapClick = useCallback(async (e) => {
+    if (!markerRef.current) return;
 
-      const lat = e.latLng.lat();
-      const lng = e.latLng.lng();
+    const lat = e.latLng.lat();
+    const lng = e.latLng.lng();
 
-      markerRef.current.setPosition(e.latLng);
-      markerRef.current.setVisible(true);
-      setCoordinates({ lat: lat.toFixed(4), lng: lng.toFixed(4) });
+    markerRef.current.setPosition(e.latLng);
+    markerRef.current.setVisible(true);
+    setCoordinates({ lat: lat.toFixed(4), lng: lng.toFixed(4) });
 
-      try {
-        const response = await axios.get(`${REACT_APP_API_URL}/api/weather`, {
-          params: { lat, lon: lng },
-        });
+    try {
+      const response = await axios.get(`${REACT_APP_API_URL}/api/weather`, {
+        params: { lat, lon: lng },
+      });
 
-        setWeatherData({
-          current_temperature: response.data.current_temperature,
-          latitude: response.data.latitude,
-          longitude: response.data.longitude,
-          elevation: response.data.elevation,
-          chartData: response.data.times.map((time, index) => ({
-            time,
-            temperature: response.data.temperatures[index],
-          })),
-        });
-      } catch (error) {
-        console.error('Error fetching weather data:', error);
-      }
-    },
-    [REACT_APP_API_URL]
-  );
+      setWeatherData({
+        current_temperature: response.data.current_temperature,
+        latitude: response.data.latitude,
+        longitude: response.data.longitude,
+        elevation: response.data.elevation,
+        chartData: response.data.times.map((time, index) => ({
+          time,
+          temperature: response.data.temperatures[index],
+        })),
+      });
+    } catch (error) {
+      console.error('Error fetching weather data:', error);
+    }
+  }, []);
 
   const handleTimeChange = (offset) => {
     // If offset is 'now', set timeOffset to 'now'; otherwise, use the offset
@@ -250,13 +247,7 @@ const Weather = () => {
     } catch (error) {
       console.error('Error initializing map:', error);
     }
-  }, [
-    loadSavedLocations,
-    selectedVariable,
-    timeOffset,
-    REACT_APP_API_URL,
-    handleMapClick,
-  ]);
+  }, [loadSavedLocations, selectedVariable, timeOffset, handleMapClick]);
 
   // Handle saved location markers
   useEffect(() => {
@@ -301,7 +292,7 @@ const Weather = () => {
 
       setSavedMarkers(newMarkers);
     }
-  }, [savedLocations]);
+  }, [savedLocations, savedMarkers]);
 
   // Cleanup markers
   useEffect(() => {
@@ -340,7 +331,7 @@ const Weather = () => {
 
       mapRef.current.overlayMapTypes.push(meteosourceOverlay);
     }
-  }, [selectedVariable, timeOffset, REACT_APP_API_URL]);
+  }, [selectedVariable, timeOffset]);
 
   return (
     <div className="h-screen w-screen relative">
