@@ -19,7 +19,8 @@ RUN npm cache clean --force && \
     npm install --save axios && \
     npm install react-feather && \
     npm install @clerk/themes && \
-    npm install three
+    npm install three && \
+    npm install dotenv
 
 # Hotfix ESLINT error
 RUN mkdir -p node_modules/.cache && chmod -R 777 node_modules/.cache

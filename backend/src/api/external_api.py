@@ -22,6 +22,7 @@ database_service = DatabaseManager()
 # Initialize services
 weather_analyzer = WeatherAnalyzer()
 BACKEND_GOOGLE_MAPS_API_KEY = os.getenv("BACKEND_GOOGLE_MAPS_API_KEY")
+BACKEND_OPENMETEO_API_KEY = os.getenv("BACKEND_OPENMETEO_API_KEY")
 
 # Setup Open-Meteo API client
 cache_session = requests_cache.CachedSession(".cache", expire_after=3600)
@@ -187,7 +188,7 @@ def get_weather():
         return jsonify({"error": "Latitude and Longitude are required"}), 400
 
     try:
-        url = "https://api.open-meteo.com/v1/forecast"
+        url = "https://customer-api.open-meteo.com/v1/forecast?apikey={BACKEND_OPENMETEO_API_KEY}"
         params = {
             "latitude": lat,
             "longitude": lon,
