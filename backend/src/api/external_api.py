@@ -181,6 +181,12 @@ def google_maps_init():
 # ====== Open-Meteo Weather API ======
 @external_api_bp.route("/api/weather", methods=["GET"])
 def get_weather():
+    # Load API key and verify it exists
+    api_key = os.getenv('BACKEND_OPENMETEO_API_KEY')
+    if not api_key:
+        logger.error("No API key found for Open-Meteo")
+        return jsonify({"error": "API configuration error"}), 500
+
     lat = request.args.get("lat", type=float)
     lon = request.args.get("lon", type=float)
 
@@ -188,7 +194,7 @@ def get_weather():
         return jsonify({"error": "Latitude and Longitude are required"}), 400
 
     try:
-        url = "https://customer-api.open-meteo.com/v1/forecast?apikey={BACKEND_OPENMETEO_API_KEY}"
+        url = f"https://customer-api.open-meteo.com/v1/forecast?apikey={api_key}"
         params = {
             "latitude": lat,
             "longitude": lon,
@@ -210,15 +216,17 @@ def get_weather():
         response = responses[0]
         current = response.Current()
 
-        weather_code = current.Variables(3).Value()
-        condition = weather_analyzer.get_weather_condition(weather_code)
+        # Add more detailed error logging
+        if not current:
+            logger.error("No current weather data received from Open-Meteo")
+            return jsonify({"error": "No weather data available"}), 500
 
         weather_data = {
             "current_temperature": current.Variables(0).Value(),
             "rain": current.Variables(1).Value(),
             "wind_speed": current.Variables(2).Value(),
             "wind_direction": calculate_wind_direction(current.Variables(3).Value()),
-            "condition": condition,
+            "condition": weather_analyzer.get_weather_condition(current.Variables(3).Value()),
             "latitude": response.Latitude(),
             "longitude": response.Longitude(),
         }
@@ -227,7 +235,12 @@ def get_weather():
 
     except Exception as e:
         logger.error(f"Error fetching weather data: {str(e)}")
-        return jsonify({"error": str(e)}), 500
+        # Return more specific error information
+        return jsonify({
+            "error": f"Weather service error: {str(e)}",
+            "latitude": lat,
+            "longitude": lon
+        }), 500
 
 
 def calculate_wind_direction(current):

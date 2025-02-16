@@ -1,9 +1,6 @@
 import Dashboard from '../pages/Dashboard/Dashboard';
 import Forecasts from '../pages/Forecasts/Forecasts';
-import Maps from '../pages/Maps/Maps';
 import Weather from '../pages/Unused/Weather/Weather';
-import MeteogramPbp from '../components/specific/MeteogramPbp/MeteogramPbp';
-import SkewTPbp from '../components/specific/SkewTPbp/SkewTPbp';
 import Login from '../pages/Login/Login';
 import Alerts from '../pages/Alerts/Alerts';
 import Analysis from '../pages/Analysis/Analysis';
@@ -12,6 +9,11 @@ import Logs from '../pages/Logs/Logs';
 import Feedback from '../pages/Feedback/Feedback';
 import NotFound from '../pages/NotFound/NotFound';
 import Signup from '../pages/Signup/Signup';
+
+// Unused imports for now
+// import Maps from '../pages/Maps/Maps';
+// import MeteogramPbp from '../components/specific/MeteogramPbp/MeteogramPbp';
+// import SkewTPbp from '../components/specific/SkewTPbp/SkewTPbp';
 
 /**
  * Application route configuration

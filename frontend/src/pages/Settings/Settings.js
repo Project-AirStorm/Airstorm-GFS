@@ -1,6 +1,6 @@
 // Settings.js
 import React, { useState } from 'react';
-import PropTypes from 'prop-types';
+// import PropTypes from 'prop-types';
 import './Settings.css';
 
 /**
@@ -16,13 +16,13 @@ const Settings = ({ setCurrentPage }) => {
     emailAlerts: false,
     darkMode: false,
     temperatureUnit: 'fahrenheit',
-    refreshInterval: '30'
+    refreshInterval: '30',
   });
 
   const handleSettingChange = (setting, value) => {
-    setSettings(prev => ({
+    setSettings((prev) => ({
       ...prev,
-      [setting]: value
+      [setting]: value,
     }));
   };
 
@@ -48,7 +48,9 @@ const Settings = ({ setCurrentPage }) => {
                     <input
                       type="checkbox"
                       checked={settings.notifications}
-                      onChange={(e) => handleSettingChange('notifications', e.target.checked)}
+                      onChange={(e) =>
+                        handleSettingChange('notifications', e.target.checked)
+                      }
                       className="setting-checkbox"
                     />
                   </label>
@@ -60,7 +62,9 @@ const Settings = ({ setCurrentPage }) => {
                     <input
                       type="checkbox"
                       checked={settings.emailAlerts}
-                      onChange={(e) => handleSettingChange('emailAlerts', e.target.checked)}
+                      onChange={(e) =>
+                        handleSettingChange('emailAlerts', e.target.checked)
+                      }
                       className="setting-checkbox"
                     />
                   </label>
@@ -78,7 +82,9 @@ const Settings = ({ setCurrentPage }) => {
                     <input
                       type="checkbox"
                       checked={settings.darkMode}
-                      onChange={(e) => handleSettingChange('darkMode', e.target.checked)}
+                      onChange={(e) =>
+                        handleSettingChange('darkMode', e.target.checked)
+                      }
                       className="setting-checkbox"
                     />
                   </label>
@@ -89,7 +95,9 @@ const Settings = ({ setCurrentPage }) => {
                     <span>Temperature Unit</span>
                     <select
                       value={settings.temperatureUnit}
-                      onChange={(e) => handleSettingChange('temperatureUnit', e.target.value)}
+                      onChange={(e) =>
+                        handleSettingChange('temperatureUnit', e.target.value)
+                      }
                       className="setting-select"
                     >
                       <option value="fahrenheit">Fahrenheit</option>
@@ -103,7 +111,9 @@ const Settings = ({ setCurrentPage }) => {
                     <span>Refresh Interval (seconds)</span>
                     <select
                       value={settings.refreshInterval}
-                      onChange={(e) => handleSettingChange('refreshInterval', e.target.value)}
+                      onChange={(e) =>
+                        handleSettingChange('refreshInterval', e.target.value)
+                      }
                       className="setting-select"
                     >
                       <option value="30">30 seconds</option>
@@ -118,9 +128,7 @@ const Settings = ({ setCurrentPage }) => {
 
             {/* Save Button */}
             <div className="settings-actions">
-              <button className="save-button">
-                Save Changes
-              </button>
+              <button className="save-button">Save Changes</button>
             </div>
           </div>
         </div>

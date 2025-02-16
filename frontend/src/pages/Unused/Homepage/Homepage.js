@@ -1,8 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import {
-  UserSession
-
-} from '../../../utils/UserSession';
+import { UserSession } from '../../../utils/UserSession';
 import axios from 'axios';
 import WeatherDashboard from '../components/WeatherDashboard';
 import GraphCastForecast from '../components/GraphCastForecast';
@@ -17,7 +14,6 @@ const Homepage = () => {
 
   const fetchLocations = async () => {
     try {
-
       const response = await axios.get(
         `${REACT_APP_API_URL}/api/locations?userId=${user.id}`
       );
@@ -60,15 +56,11 @@ const Homepage = () => {
 
   const handleToggleFavorite = async (location) => {
     try {
-
-      await axios.post(
-        `${REACT_APP_API_URL}/api/locations/favorite`,
-        {
-          userId: REACT_APP_USER_ID,
-          latitude: location.latitude,
-          longitude: location.longitude,
-        }
-      );
+      await axios.post(`${REACT_APP_API_URL}/api/locations/favorite`, {
+        userId: user.id,
+        latitude: location.latitude,
+        longitude: location.longitude,
+      });
       fetchLocations();
     } catch (error) {
       console.error('Error toggling favorite:', error);
@@ -81,7 +73,7 @@ const Homepage = () => {
         <div className="space-y-8">
           <div className="text-center mb-8">
             <h1 className="text-4xl font-bold text-purple-300 mb-4">
-              Welcome to Airstörm GFS
+              Welcome to Airstorm GFS
             </h1>
             <p className="text-lg text-purple-200">
               Your Advanced Weather Forecasting Platform

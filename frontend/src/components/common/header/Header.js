@@ -1,7 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { UserButton } from '@clerk/clerk-react'; // Import UserButton
-import { dark } from '@clerk/themes'
+// import { dark } from '@clerk/themes'
 import './Header.css';
 
 /**
@@ -16,14 +16,14 @@ const Header = ({ title }) => {
     <header className="dashboard-header">
       <div className="header-content">
         <h1 className="text-xl font-bold text-gray-800">{title}</h1>
-        <UserButton/>
+        <UserButton />
       </div>
     </header>
   );
 };
 
 Header.propTypes = {
-  title: PropTypes.string.isRequired
+  title: PropTypes.string.isRequired,
 };
 
 export default Header;
