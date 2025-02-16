@@ -12,27 +12,26 @@ import {
   Grid,
   Sticker,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
 } from 'lucide-react';
 import profilePic from '../../../assets/sample-profile-pic.jpeg';
 import afgscLogo from '../../../assets/afgsc-logo.png';
 import './Sidebar.css';
 import axios from 'axios';
 
-// Declare URL for Flask API
+// Environment variable for Flask API
 const REACT_APP_API_URL = process.env.REACT_APP_API_URL;
 
+/**
+ * Navigation item component.
+ */
 const NavItem = ({ icon, label, badge, isActive, onClick }) => (
-  <div className={`nav-item ${isActive ? 'active' : ''}`} onClick={onClick}>
-    <div className="flex items-center gap-3">
+  <div className={`nav-item${isActive ? ' active' : ''}`} onClick={onClick}>
+    <div className="nav-item-left">
       {icon}
-      <span className="text-sm font-semibold">{label}</span>
     </div>
-    {badge && badge !== '0' && (
-      <span className="px-2 py-1 bg-red-500 text-white text-xs rounded">
-        {badge}
-      </span>
-    )}
+    {!label ? null : <span className="nav-label">{label}</span>}
+    {badge && badge !== '0' && <span className="nav-badge">{badge}</span>}
   </div>
 );
 
@@ -44,37 +43,25 @@ NavItem.propTypes = {
   onClick: PropTypes.func.isRequired,
 };
 
-const Sidebar = ({
-  // Props for our sidebar for Layout.js
-  isOpen,
-  onClose,
-  isCollapsed,
-  onToggleCollapse
-}) => {
-
-  const { user } = UserSession(); //Current User Session
+/**
+ * Sidebar component.
+ */
+const Sidebar = ({ isOpen, onClose, isCollapsed, onToggleCollapse }) => {
+  const { user } = UserSession();
   const navigate = useNavigate();
   const location = useLocation();
   const [alertCount, setAlertCount] = useState('0');
 
-  // Set up event listener for alert count updates
   useEffect(() => {
-    // Moved function inside useEffect
     const fetchInitialAlertCount = async () => {
       try {
         const response = await axios.get(
           `${REACT_APP_API_URL}/api/external/alerts?userId=${user.id}`
         );
-
-        // First get favorite locations
         const locResponse = await axios.get(
           `${REACT_APP_API_URL}/api/locations?userId=${user.id}`
         );
-        const favorites = locResponse.data.filter(
-          (location) => location.isFavorite
-        );
-
-        // Filter alerts for favorite locations
+        const favorites = locResponse.data.filter((loc) => loc.isFavorite);
         const favoriteAlerts = response.data.alerts.filter((alert) =>
           favorites.some(
             (loc) =>
@@ -82,10 +69,9 @@ const Sidebar = ({
               loc.longitude === alert.longitude
           )
         );
-
         setAlertCount(favoriteAlerts.length.toString());
       } catch (error) {
-        console.error('Error fetching initial alert count:', error);
+        console.error('Error fetching alerts:', error);
         setAlertCount('0');
       }
     };
@@ -97,109 +83,69 @@ const Sidebar = ({
     };
 
     window.addEventListener('alertCountUpdated', handleAlertCountUpdate);
-
     return () => {
       window.removeEventListener('alertCountUpdated', handleAlertCountUpdate);
     };
   }, [user.id]);
 
-  // Navigation items configuration
   const navItems = [
-    {
-      icon: <Grid className="w-4 h-4" />,
-      label: 'Dashboard',
-      page: '/dashboard',
-    },
-    {
-      icon: <Map className="w-4 h-4" />,
-      label: 'Maps',
-      page: '/maps',
-    },
-    {
-      icon: <BarChart2 className="w-4 h-4" />,
-      label: 'Forecasts',
-      page: '/forecasts',
-    },
-    {
-      icon: <Bell className="w-4 h-4" />,
-      label: 'Alerts',
-      page: '/alerts',
-      badge: alertCount,
-    },
-    {
-      icon: <FileText className="w-4 h-4" />,
-      label: 'Analysis',
-      page: '/analysis',
-    },
-    {
-      icon: <Settings className="w-4 h-4" />,
-      label: 'Settings',
-      page: '/settings',
-    },
-    {
-      icon: <FileText className="w-4 h-4" />,
-      label: 'Logs',
-      page: '/logs',
-    },
-    {
-      icon: <Sticker className="w-4 h-4" />,
-      label: 'Feedback',
-      page: '/feedback',
-    },
+    { icon: <Grid className="nav-icon" />, label: 'Dashboard', page: '/dashboard' },
+    { icon: <Map className="nav-icon" />, label: 'Maps', page: '/maps' },
+    { icon: <BarChart2 className="nav-icon" />, label: 'Forecasts', page: '/forecasts' },
+    { icon: <Bell className="nav-icon" />, label: 'Alerts', page: '/alerts', badge: alertCount },
+    { icon: <FileText className="nav-icon" />, label: 'Analysis', page: '/analysis' },
+    { icon: <Settings className="nav-icon" />, label: 'Settings', page: '/settings' },
+    { icon: <FileText className="nav-icon" />, label: 'Logs', page: '/logs' },
+    { icon: <Sticker className="nav-icon" />, label: 'Feedback', page: '/feedback' },
   ];
 
   return (
-    <div
-      className={`sidebar ${isCollapsed ? 'collapsed' : ''} ${isOpen ? 'open' : ''
-        }`}
-    >
-      {/* Header */}
-      <div className="header">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <img
-              src={afgscLogo}
-              alt="AFGSC Logo"
-              className="w-8 h-8 object-contain"
-            />
-            {/* Hide text if collapsed */}
+    <div className={`sidebar${isCollapsed ? ' collapsed' : ''}${isOpen ? ' open' : ''}`}>
+      {/* Fixed top container for header and profile */}
+      <div className="sidebar-top">
+        {/* Header */}
+        <div className="sidebar-header">
+          <div className="header-left">
+            <img src={afgscLogo} alt="AFGSC Logo" className="logo-image" />
             {!isCollapsed && (
-              <div>
-                <h1 className="text-lg font-bold text-gray-800">Airstorm GFS</h1>
-                <p className="text-xs text-gray-500">AFGSC</p>
+              <div className="app-info">
+                <h1 className="app-title">Airstorm GFS</h1>
+                <p className="app-subtitle">AFGSC</p>
               </div>
             )}
           </div>
-
-          {/* The icon to toggle collapse */}
-          <button onClick={onToggleCollapse} className="text-gray-500">
-            {isCollapsed ? <ChevronRight className="w-5 h-5" /> : <ChevronLeft className="w-5 h-5" />}
+          <button className="collapse-btn" onClick={onToggleCollapse}>
+            {isCollapsed ? (
+              <ChevronRight className="nav-icon" />
+            ) : (
+              <ChevronLeft className="nav-icon" />
+            )}
           </button>
         </div>
-      </div>
-
-      {/* User Profile */}
-      {!isCollapsed && ( // Hide entire profile card if collapsed
-        <div className="profile-section">
-          <div className="profile-card">
-            <img src={profilePic} alt="Profile" className="profile-image" />
-            <div>
-              <p className="text-sm font-semibold text-gray-800">Sgt. Tubbs</p>
-              <p className="text-xs text-gray-500">Flight Chief</p>
+        {/* Profile */}
+        <div className="profile-container">
+          <img src={profilePic} alt="Profile" className="profile-image" />
+          {!isCollapsed && (
+            <div className="profile-details">
+              <p className="profile-name">Sgt. Tubbs</p>
+              <p className="profile-rank">Flight Chief</p>
             </div>
-          </div>
+          )}
         </div>
-      )}
-
+      </div>
       {/* Navigation */}
       <nav className="nav-section">
-        {!isCollapsed && <p className="text-sm text-gray-500 mb-4">Main Menu</p>}
-        <div className="space-y-2">
+        {isCollapsed ? (
+          <div className="nav-title-placeholder"></div>
+        ) : (
+          <p className="nav-title">Main Menu</p>
+        )}
+        <div className="nav-items-container">
           {navItems.map((item) => (
             <NavItem
               key={item.label}
               icon={item.icon}
-              label={isCollapsed ? '' : item.label}  // Hide label if collapsed
+              label={isCollapsed ? '' : item.label}
               badge={item.badge}
               isActive={location.pathname === item.page}
               onClick={() => navigate(item.page)}
@@ -214,8 +160,8 @@ const Sidebar = ({
 Sidebar.propTypes = {
   isOpen: PropTypes.bool,
   onClose: PropTypes.func,
-  isCollapsed: PropTypes.bool,        // NEW
-  onToggleCollapse: PropTypes.func,   // NEW
+  isCollapsed: PropTypes.bool,
+  onToggleCollapse: PropTypes.func,
 };
 
 export default Sidebar;

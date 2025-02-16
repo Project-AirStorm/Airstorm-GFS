@@ -1,107 +1,196 @@
-/* Sidebar Styles */
+/* Overall Sidebar */
 .sidebar {
+  display: flex;
+  flex-direction: column;
   position: fixed;
-  width: 16rem; 
+  width: 16rem;
   height: 100%;
   background-color: white;
-  border-right: 1px solid rgb(229 231 235);
+  border-right: 1px solid rgb(229, 231, 235);
   z-index: 20;
-  overflow-y: auto;
   transition: width 0.3s ease;
+  overflow-y: auto;
 }
 
+/* Collapsed state: reduce sidebar width */
 .sidebar.collapsed {
   width: 4rem;
 }
 
-.sidebar .header,
-.sidebar .profile-section,
-.sidebar .nav-section {
-  padding: 1rem;
-  /* border-bottom: 1px solid rgb(229 231 235); */
+/* Fixed top container for header and profile */
+.sidebar-top {
+  height: 9rem; /* 4rem for header + 5rem for profile */
+  flex-shrink: 0;
 }
 
-/* If collapsed, we might reduce or hide certain padding:
-   We'll do minimal changes here. Adjust as needed. */
-   .sidebar.collapsed .header {
-    padding: 1rem 0.5rem;
-    border-bottom: 1px solid rgb(229 231 235);
-  }
-  
-
-
-.logo-container {
-  width: 1.5rem;
-  height: 1.5rem;
-  background-color: rgb(229 231 235);
-  border-radius: 0.25rem;
-}
-
-
-.profile-card {
+/* Sidebar Header */
+.sidebar-header {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  padding: 0.5rem;
-  background-color: white;
-  border-radius: 0.25rem;
-  border: 1px solid rgb(229 231 235);
+  justify-content: space-between;
+  height: 4rem;
+  padding: 0 1rem;
+  border-bottom: 1px solid rgb(229, 231, 235);
+  box-sizing: border-box;
+  flex-shrink: 0;
 }
 
-.profile-image {
+/* Header left side (logo and text) */
+.header-left {
+  display: flex;
+  align-items: center;
+}
+
+/* Logo image */
+.logo-image {
   width: 2rem;
   height: 2rem;
-  background-color: rgb(229 231 235);
-  border-radius: 9999px;
+  object-fit: contain;
 }
 
+/* App info */
+.app-info {
+  margin-left: 0.5rem;
+}
+.app-title {
+  font-size: 1rem;
+  font-weight: bold;
+  color: #1f2937;
+  margin: 0;
+}
+.app-subtitle {
+  font-size: 0.75rem;
+  color: #6b7280;
+  margin: 0;
+}
+
+/* Collapse button styling */
+.collapse-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  outline: none;
+}
+
+/* Profile Container: fixed height to reserve vertical space */
+.profile-container {
+  display: flex;
+  align-items: center;
+  height: 5rem;
+  padding: 0 1rem;
+  border-bottom: 1px solid rgb(229, 231, 235);
+  box-sizing: border-box;
+  flex-shrink: 0;
+}
+
+/* Profile image */
+.profile-image {
+  width: 2.5rem;
+  height: 2.5rem;
+  background-color: #e5e7eb;
+  border-radius: 9999px;
+  margin-right: 0.5rem;
+}
+
+/* Profile details (text) */
+.profile-details {
+  display: flex;
+  flex-direction: column;
+}
+.profile-name {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #1f2937;
+  margin: 0;
+}
+.profile-rank {
+  font-size: 0.75rem;
+  color: #6b7280;
+  margin: 0;
+}
+
+/* Navigation Section */
+.nav-section {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  padding: 1rem;
+  box-sizing: border-box;
+  overflow-y: auto;
+}
+
+/* Reserve space for nav title even when collapsed */
+.nav-title,
+.nav-title-placeholder {
+  font-size: 0.875rem;
+  color: #6b7280;
+  margin-bottom: 1rem;
+  height: 1.5rem; /* fixed height */
+}
+
+/* Container for nav items */
+.nav-items-container {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
 
 .nav-item {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  padding: 0.5rem;
-  border-radius: 0.25rem;
-  cursor: pointer;
-  transition: all 0.2s ease-in-out;
+  justify-content: flex-start; 
 
-  white-space: nowrap; /* to keep icons aligned */
 }
 
-.nav-item:hover {
-  background-color: rgb(249 250 251);
+.nav-item-left {
+  display: flex;
+  align-items: center;
+  width: 2rem;
 }
 
-.nav-item.active {
-  background-color: rgb(239 246 255);
-  color: rgb(37 99 235);
-}
-
-.nav-item .icon {
+/* Icon size */
+.nav-icon {
   width: 1rem;
   height: 1rem;
   margin-right: 0.5rem;
 }
 
+/* Nav label styling */
+.nav-label {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+/* Badge styling */
+.nav-badge {
+  padding: 0.25rem 0.5rem;
+  background-color: #ef4444;
+  color: white;
+  font-size: 0.75rem;
+  border-radius: 0.25rem;
+}
+
+/* Hover and active states for nav items */
+.nav-item:hover {
+  background-color: #f9fafb;
+}
+.nav-item.active {
+  background-color: #eff6ff;
+  color: #2563eb;
+}
 
 /* Mobile responsive behavior */
 @media screen and (max-width: 768px) {
   .sidebar {
     transform: translateX(-100%);
     transition: transform 0.3s ease-in-out;
-    position: fixed;
+    width: 16rem;
+    height: 100vh;
     top: 0;
     left: 0;
-    height: 100vh;
-    background-color: white;
-    z-index: 50;
   }
-
   .sidebar.open {
     transform: translateX(0);
-  }
-
-  .nav-section {
-    padding-bottom: 5rem; /* Extra padding for mobile scrolling */
   }
 }
