@@ -17,6 +17,12 @@
   width: 4rem;
 }
 
+/* Center nav items when sidebar is collapsed */
+.sidebar.collapsed .nav-item {
+  justify-content: center;
+}
+
+
 /* Fixed top container for header and profile */
 .sidebar-top {
   height: 9rem; /* 4rem for header + 5rem for profile */
