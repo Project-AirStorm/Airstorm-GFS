@@ -217,8 +217,8 @@ const Weather = () => {
 
       window.initMap = () => {
         const mapInstance = new window.google.maps.Map(mapContainer.current, {
-          center: { lat: 51.5, lng: 0 },
-          zoom: 6,
+          center: { lat: 36, lng: -86 },
+          zoom: 4,
         });
 
         markerRef.current = new window.google.maps.Marker({
