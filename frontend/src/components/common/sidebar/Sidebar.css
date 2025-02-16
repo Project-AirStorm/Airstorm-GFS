@@ -54,20 +54,41 @@
   object-fit: contain;
 }
 
-/* App info */
+/* App info container */
 .app-info {
   margin-left: 0.5rem;
+  white-space: nowrap;
+  overflow: hidden;
+  opacity: 1;
+  transform: translateX(0);
+  transition: all 0.3s ease;
+  width: auto;
 }
+
+/* When sidebar is collapsed, animate the app info */
+.sidebar.collapsed .app-info {
+  opacity: 0;
+  transform: translateX(-10px);
+  width: 0;
+  margin-left: 0;
+}
+
+
+/* App title */
 .app-title {
   font-size: 1rem;
   font-weight: bold;
   color: #1f2937;
   margin: 0;
+  transition: opacity 0.3s ease, transform 0.3s ease;
 }
+
+/* App subtitle */
 .app-subtitle {
   font-size: 0.75rem;
   color: #6b7280;
   margin: 0;
+  transition: opacity 0.3s ease, transform 0.3s ease;
 }
 
 /* Collapse button styling */
