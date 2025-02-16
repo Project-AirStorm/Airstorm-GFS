@@ -1,5 +1,6 @@
 import React, { useRef, useEffect, useState, useCallback } from 'react';
 import { UserSession } from '../../../utils/UserSession';
+import { useLocation } from 'react-router-dom';
 
 import {
   IoThermometerOutline,
@@ -47,6 +48,7 @@ const units = {
 };
 
 const Weather = () => {
+  const location = useLocation(); // This provides the current route/location
   const { user } = UserSession(); // Current user session
   const mapContainer = useRef(null);
   const mapRef = useRef(null);
@@ -149,9 +151,12 @@ const Weather = () => {
     const lat = e.latLng.lat();
     const lng = e.latLng.lng();
 
+    // Set position of the marker
     markerRef.current.setPosition(e.latLng);
-    markerRef.current.setVisible(true);
+    markerRef.current.setVisible(true); // Ensure marker is visible
     setCoordinates({ lat: lat.toFixed(4), lng: lng.toFixed(4) });
+
+    console.log(`Map clicked at latitude: ${lat}, longitude: ${lng}`);
 
     try {
       const response = await axios.get(`${REACT_APP_API_URL}/api/weather`, {
@@ -249,9 +254,10 @@ const Weather = () => {
     }
   }, [loadSavedLocations, selectedVariable, timeOffset, handleMapClick]);
 
-  // Handle saved location markers
+  // Handle Saved Markers
   useEffect(() => {
     if (mapRef.current && savedLocations.length > 0) {
+      // Clear old markers
       savedMarkers.forEach((marker) => marker.setMap(null));
 
       const newMarkers = savedLocations.map((location) => {
@@ -290,9 +296,15 @@ const Weather = () => {
         return marker;
       });
 
+      // Only set the markers once, after creating them
       setSavedMarkers(newMarkers);
     }
-  }, [savedLocations, savedMarkers]);
+
+    // Cleanup markers on component unmount or savedLocations change
+    return () => {
+      savedMarkers.forEach((marker) => marker.setMap(null));
+    };
+  }, [savedLocations]); // Only depend on savedLocations, not savedMarkers
 
   // Cleanup markers
   useEffect(() => {
