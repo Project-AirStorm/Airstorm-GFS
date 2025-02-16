@@ -139,29 +139,34 @@
 .nav-item {
   display: flex;
   align-items: center;
-  justify-content: flex-start; /* Align items to start so text stays next to the icon */
-  padding: 0.5rem 0.75rem;      /* Increase horizontal padding to create space */
+  padding: 0.5rem 0;
+  position: relative;
+  width: 100%;
 }
 
+/* Container for icon and label */
 .nav-item-left {
   display: flex;
   align-items: center;
-  gap: 0.5rem;               /* Ensure a consistent gap between the icon and the label */
+  min-width: 2.5rem; /* This ensures consistent icon placement */
+  justify-content: center;
 }
 
-
-/* Icon size */
+/* Icon specific styling */
 .nav-icon {
-  width: 1rem;
-  height: 1rem;
-  margin-right: 0.5rem;
+  width: 1.25rem;
+  height: 1.25rem;
+  margin-right: 0; /* Remove margin since we're using container positioning */
 }
 
-/* Nav label styling */
+
+
+/* Label styling */
 .nav-label {
   font-size: 0.875rem;
   font-weight: 600;
   color: #1f2937;
+  flex: 1;
 }
 
 /* Badge styling */
