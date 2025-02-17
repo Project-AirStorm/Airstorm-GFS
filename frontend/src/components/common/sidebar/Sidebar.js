@@ -122,24 +122,24 @@ const Sidebar = ({ isOpen, onClose, isCollapsed, onToggleCollapse }) => {
             )}
           </button>
         </div>
-        {/* Profile */}
-        <div className="profile-container">
+      </div>
+      {/* Profile */}
+      <div className="profile-section">
+        <div className="profile-card">
           <img src={profilePic} alt="Profile" className="profile-image" />
-          {!isCollapsed && (
-            <div className="profile-details">
-              <p className="profile-name">Sgt. Tubbs</p>
-              <p className="profile-rank">Flight Chief</p>
-            </div>
-          )}
+          <div className="profile-details">
+            <p className="profile-name">Sgt. Tubbs</p>
+            <p className="profile-rank">Flight Chief</p>
+          </div>
         </div>
       </div>
       {/* Navigation */}
       <nav className="nav-section">
-        {/* {isCollapsed ? (
+        {isCollapsed ? (
           <div className="nav-title-placeholder"></div>
         ) : (
           <p className="nav-title">Main Menu</p>
-        )} */}
+        )}
         <div className="nav-items-container">
           {navItems.map((item) => (
             <NavItem
