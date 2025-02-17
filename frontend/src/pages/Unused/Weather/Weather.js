@@ -1,7 +1,6 @@
 import React, { useRef, useEffect, useState, useCallback } from 'react';
 import { UserSession } from '../../../utils/UserSession';
 import { useLocation } from 'react-router-dom';
-
 import {
   IoThermometerOutline,
   IoChevronForward,
@@ -22,7 +21,7 @@ import {
   ResponsiveContainer,
 } from 'recharts';
 import axios from 'axios';
-import './map.css';
+import './MapLayout.css';
 import WeatherGraph from '../../../components/specific/WeatherGraph/WeatherGraph';
 import TimelineSlider from '../../../components/specific/TimelineSlider/TimelineSlider';
 
@@ -48,22 +47,21 @@ const units = {
 };
 
 const Weather = () => {
-  const location = useLocation(); // This provides the current route/location
-  const { user } = UserSession(); // Current user session
+  const location = useLocation();
+  const { user } = UserSession();
   const mapContainer = useRef(null);
   const mapRef = useRef(null);
   const markerRef = useRef(null);
   const [weatherData, setWeatherData] = useState(null);
   const [isCollapsed, setIsCollapsed] = useState(false);
-  const [isLocationPanelCollapsed, setIsLocationPanelCollapsed] =
-    useState(true);
+  const [isLocationPanelCollapsed, setIsLocationPanelCollapsed] = useState(true);
   const [locationName, setLocationName] = useState('');
   const [isFavorite, setIsFavorite] = useState(false);
   const [savedLocations, setSavedLocations] = useState([]);
   const [coordinates, setCoordinates] = useState({ lat: '', lng: '' });
   const [savedMarkers, setSavedMarkers] = useState([]);
   const [selectedVariable, setSelectedVariable] = useState('temperature');
-  const [timeOffset, setTimeOffset] = useState('now'); // Start at current time
+  const [timeOffset, setTimeOffset] = useState('now');
 
   const weatherVariables = [
     { value: 'temperature', label: 'Temperature' },
@@ -83,7 +81,6 @@ const Weather = () => {
     { value: 'pm2.5', label: 'PM₂.₅' },
   ];
 
-  // Handle coordinate input
   const handleCoordinateInput = (e, type) => {
     const value = e.target.value;
     if (/^-?\d*\.?\d*$/.test(value)) {
@@ -94,7 +91,6 @@ const Weather = () => {
     }
   };
 
-  // Save location
   const handleSaveLocation = async () => {
     if (!locationName) return;
 
@@ -129,7 +125,6 @@ const Weather = () => {
     }
   };
 
-  // Delete location
   const handleDeleteLocation = async (location) => {
     try {
       await axios.delete(`${REACT_APP_API_URL}/api/locations`, {
@@ -145,18 +140,83 @@ const Weather = () => {
     }
   };
 
+  const loadSavedLocations = useCallback(async () => {
+    try {
+      if (!user?.id) return;
+      const response = await axios.get(
+        `${REACT_APP_API_URL}/api/locations?userId=${user.id}`
+      );
+      const locations = response.data.map((loc) => ({
+        ...loc,
+        latitude: parseFloat(loc.latitude),
+        longitude: parseFloat(loc.longitude),
+      }));
+      setSavedLocations(locations);
+    } catch (error) {
+      console.error('Error loading locations:', error);
+    }
+  }, [user?.id]);
+
+  // Handle saved location markers
+  useEffect(() => {
+    if (mapRef.current && savedLocations.length > 0) {
+      savedMarkers.forEach((marker) => marker.setMap(null));
+
+      const newMarkers = savedLocations.map((location) => {
+        const marker = new window.google.maps.Marker({
+          position: { lat: location.latitude, lng: location.longitude },
+          map: mapRef.current,
+          icon: {
+            path: window.google.maps.SymbolPath.CIRCLE,
+            fillColor: location.isFavorite ? '#FFD700' : '#4A90E2',
+            fillOpacity: 0.9,
+            strokeWeight: 0,
+            scale: 8,
+          },
+        });
+
+        let infoWindow = null;
+        marker.addListener('mouseover', () => {
+          infoWindow = new window.google.maps.InfoWindow({
+            content: `
+              <div class="info-window-content">
+                <div class="info-window-title">${location.name}</div>
+                <div class="info-window-coords">
+                  ${location.latitude.toFixed(4)}°N<br>
+                  ${location.longitude.toFixed(4)}°E
+                </div>
+              </div>
+            `,
+          });
+          infoWindow.open(mapRef.current, marker);
+        });
+
+        marker.addListener('mouseout', () => {
+          if (infoWindow) infoWindow.close();
+        });
+
+        return marker;
+      });
+
+      setSavedMarkers(newMarkers);
+    }
+  }, [savedLocations]);
+
+  // Cleanup markers
+  useEffect(() => {
+    return () => {
+      savedMarkers.forEach((marker) => marker.setMap(null));
+    };
+  }, [savedMarkers]);
   const handleMapClick = useCallback(async (e) => {
     if (!markerRef.current) return;
 
     const lat = e.latLng.lat();
     const lng = e.latLng.lng();
 
-    // Set position of the marker
     markerRef.current.setPosition(e.latLng);
-    markerRef.current.setVisible(true); // Ensure marker is visible
+    markerRef.current.setVisible(true);
     setCoordinates({ lat: lat.toFixed(4), lng: lng.toFixed(4) });
-
-    console.log(`Map clicked at latitude: ${lat}, longitude: ${lng}`);
 
     try {
       const response = await axios.get(`${REACT_APP_API_URL}/api/weather`, {
@@ -178,30 +238,6 @@ const Weather = () => {
     }
   }, []);
 
-  const handleTimeChange = (offset) => {
-    // If offset is 'now', set timeOffset to 'now'; otherwise, use the offset
-    setTimeOffset(offset === 'now' ? 'now' : offset);
-  };
-
-  // Load saved locations
-  const loadSavedLocations = useCallback(async () => {
-    try {
-      if (!user?.id) return;
-      const response = await axios.get(
-        `${REACT_APP_API_URL}/api/locations?userId=${user.id}`
-      );
-      const locations = response.data.map((loc) => ({
-        ...loc,
-        latitude: parseFloat(loc.latitude),
-        longitude: parseFloat(loc.longitude),
-      }));
-      setSavedLocations(locations);
-    } catch (error) {
-      console.error('Error loading locations:', error);
-    }
-  }, [user?.id]);
-
-  // Prep Google Map
   const loadGoogleMaps = useCallback(async () => {
     try {
       const response = await axios.get(
@@ -254,65 +290,6 @@ const Weather = () => {
     }
   }, [loadSavedLocations, selectedVariable, timeOffset, handleMapClick]);
 
-  // Handle Saved Markers
-  useEffect(() => {
-    if (mapRef.current && savedLocations.length > 0) {
-      // Clear old markers
-      savedMarkers.forEach((marker) => marker.setMap(null));
-
-      const newMarkers = savedLocations.map((location) => {
-        const marker = new window.google.maps.Marker({
-          position: { lat: location.latitude, lng: location.longitude },
-          map: mapRef.current,
-          icon: {
-            path: window.google.maps.SymbolPath.CIRCLE,
-            fillColor: location.isFavorite ? '#FFD700' : '#4A90E2',
-            fillOpacity: 0.9,
-            strokeWeight: 0,
-            scale: 8,
-          },
-        });
-
-        let infoWindow = null;
-        marker.addListener('mouseover', () => {
-          infoWindow = new window.google.maps.InfoWindow({
-            content: `
-              <div class="info-window-content">
-                <div class="info-window-title">${location.name}</div>
-                <div class="info-window-coords">
-                  ${location.latitude.toFixed(4)}°N<br>
-                  ${location.longitude.toFixed(4)}°E
-                </div>
-              </div>
-            `,
-          });
-          infoWindow.open(mapRef.current, marker);
-        });
-
-        marker.addListener('mouseout', () => {
-          if (infoWindow) infoWindow.close();
-        });
-
-        return marker;
-      });
-
-      // Only set the markers once, after creating them
-      setSavedMarkers(newMarkers);
-    }
-
-    // Cleanup markers on component unmount or savedLocations change
-    return () => {
-      savedMarkers.forEach((marker) => marker.setMap(null));
-    };
-  }, [savedLocations]); // Only depend on savedLocations, not savedMarkers
-
-  // Cleanup markers
-  useEffect(() => {
-    return () => {
-      savedMarkers.forEach((marker) => marker.setMap(null));
-    };
-  }, [savedMarkers]);
-
   // Load Google Map
   useEffect(() => {
     if (!window.google?.maps) {
@@ -345,181 +322,186 @@ const Weather = () => {
     }
   }, [selectedVariable, timeOffset]);
 
+  const handleTimeChange = (offset) => {
+    setTimeOffset(offset === 'now' ? 'now' : offset);
+  };
   return (
-    <div className="h-screen w-screen relative">
-      {/* Variable Selection Dropdown */}
-      <div className="map-controls">
-        <select
-          value={selectedVariable}
-          onChange={(e) => setSelectedVariable(e.target.value)}
-          className="map-type-selector"
-        >
-          {weatherVariables.map((option) => (
-            <option key={option.value} value={option.value}>
-              {option.label} ({units[option.value]})
-            </option>
-          ))}
-        </select>
-      </div>
-
-      <div ref={mapContainer} className="h-full w-full" id="map" />
-
-      {/* Location Save Panel */}
-      <div
-        className={`absolute top-8 right-0 transition-transform duration-300 location-panel ${
-          isLocationPanelCollapsed ? 'translate-x-full' : 'translate-x-0'
-        }`}
-      >
-        <button
-          onClick={() => setIsLocationPanelCollapsed(!isLocationPanelCollapsed)}
-          className="absolute left-0 top-0 -translate-x-full bg-white p-2 rounded-l-lg shadow-lg"
-        >
-          {isLocationPanelCollapsed ? <IoAdd /> : <IoChevronForward />}
-        </button>
-
-        <div className="bg-white rounded-l-lg shadow-lg p-4 w-72">
-          <h2 className="text-xl font-semibold mb-4">Save Location</h2>
-          <div className="space-y-4">
-            <input
-              type="text"
-              value={locationName}
-              onChange={(e) => setLocationName(e.target.value)}
-              placeholder="Enter location name"
-              className="w-full px-3 py-2 border rounded"
-            />
-
-            <div className="space-y-2">
-              <input
-                type="text"
-                value={coordinates.lat}
-                onChange={(e) => handleCoordinateInput(e, 'lat')}
-                placeholder="Latitude"
-                className="w-full px-3 py-2 border rounded"
-              />
-              <input
-                type="text"
-                value={coordinates.lng}
-                onChange={(e) => handleCoordinateInput(e, 'lng')}
-                placeholder="Longitude"
-                className="w-full px-3 py-2 border rounded"
-              />
-            </div>
-
-            <button
-              onClick={() => setIsFavorite(!isFavorite)}
-              className="flex items-center gap-2 text-gray-700 hover:text-yellow-500"
+    <div className="dashboard-container">
+      <div className="main-content">
+        <div className="weather-page-container">
+          {/* Map Controls */}
+          <div className="map-controls">
+            <select
+              value={selectedVariable}
+              onChange={(e) => setSelectedVariable(e.target.value)}
+              className="map-type-selector"
             >
-              {isFavorite ? (
-                <IoBookmark className="text-yellow-500" />
-              ) : (
-                <IoBookmarkOutline />
-              )}
-              {isFavorite ? 'Favorited' : 'Add to Favorites'}
-            </button>
+              {weatherVariables.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label} ({units[option.value]})
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Main Map Container */}
+          <div ref={mapContainer} className="map-container" id="map" />
+
+          {/* Location Save Panel */}
+          <div className={`location-panel ${isLocationPanelCollapsed ? 'translate-x-full' : 'translate-x-0'}`}>
             <button
-              onClick={handleSaveLocation}
-              disabled={!locationName}
-              className="w-full bg-blue-500 text-white px-4 py-2 rounded disabled:opacity-50"
+              onClick={() => setIsLocationPanelCollapsed(!isLocationPanelCollapsed)}
+              className="panel-toggle-button"
             >
-              Save Location
+              {isLocationPanelCollapsed ? <IoAdd /> : <IoChevronForward />}
             </button>
 
-            <div className="mt-6">
-              <h3 className="text-lg font-semibold mb-2">Saved Locations</h3>
-              <div className="space-y-2 max-h-96 overflow-y-auto">
-                {savedLocations.map((location) => (
-                  <div
-                    key={`${location.latitude}-${location.longitude}`}
-                    className="saved-location-item flex items-center justify-between p-2 rounded group transition-all"
-                  >
-                    <div className="flex items-center gap-2">
-                      {location.isFavorite ? (
-                        <IoBookmark className="text-yellow-500" />
-                      ) : (
-                        <IoLocation className="text-blue-500" />
-                      )}
-                      <span>{location.name}</span>
-                    </div>
-                    <button
-                      onClick={() => handleDeleteLocation(location)}
-                      className="opacity-0 group-hover:opacity-100 text-red-500 hover:text-red-700 transition-opacity"
+            <div className="location-panel-content">
+              <div className="location-panel-header">
+                <h2 className="location-panel-title">Save Location</h2>
+              </div>
+
+              <div className="location-input-group">
+                <input
+                  type="text"
+                  value={locationName}
+                  onChange={(e) => setLocationName(e.target.value)}
+                  placeholder="Enter location name"
+                  className="location-input"
+                />
+
+                <div className="coordinates-container">
+                  <input
+                    type="text"
+                    value={coordinates.lat}
+                    onChange={(e) => handleCoordinateInput(e, 'lat')}
+                    placeholder="Latitude"
+                    className="location-input"
+                  />
+                  <input
+                    type="text"
+                    value={coordinates.lng}
+                    onChange={(e) => handleCoordinateInput(e, 'lng')}
+                    placeholder="Longitude"
+                    className="location-input"
+                  />
+                </div>
+
+                <button
+                  onClick={() => setIsFavorite(!isFavorite)}
+                  className={`favorite-button ${isFavorite ? 'active' : ''}`}
+                >
+                  {isFavorite ? (
+                    <IoBookmark className="text-yellow-500" />
+                  ) : (
+                    <IoBookmarkOutline />
+                  )}
+                  {isFavorite ? 'Favorited' : 'Add to Favorites'}
+                </button>
+
+                <button
+                  onClick={handleSaveLocation}
+                  disabled={!locationName}
+                  className="save-button"
+                >
+                  Save Location
+                </button>
+              </div>
+
+              <div className="saved-locations-list">
+                <h3 className="saved-locations-header">Saved Locations</h3>
+                <div className="saved-locations-content">
+                  {savedLocations.map((location) => (
+                    <div
+                      key={`${location.latitude}-${location.longitude}`}
+                      className="saved-location-item"
                     >
-                      <IoRemove />
-                    </button>
-                  </div>
-                ))}
+                      <div className="saved-location-info">
+                        {location.isFavorite ? (
+                          <IoBookmark className="text-yellow-500" />
+                        ) : (
+                          <IoLocation className="text-blue-500" />
+                        )}
+                        <span>{location.name}</span>
+                      </div>
+                      <button
+                        onClick={() => handleDeleteLocation(location)}
+                        className="delete-button"
+                        aria-label="Delete location"
+                      >
+                        <IoRemove />
+                      </button>
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
           </div>
-        </div>
-      </div>
 
-      {/* Weather Sidebar */}
-      <div
-        className={`absolute bottom-8 right-0 transition-transform duration-300 weather-panel ${
-          isCollapsed ? 'translate-x-full' : 'translate-x-0'
-        }`}
-      >
-        <button
-          onClick={() => setIsCollapsed(!isCollapsed)}
-          className="absolute left-0 top-1/2 -translate-x-full -translate-y-1/2 bg-white p-2 rounded-l-lg shadow-lg"
-        >
-          {isCollapsed ? <IoChevronBack /> : <IoChevronForward />}
-        </button>
+          {/* Weather Sidebar */}
+          <div className={`weather-panel ${isCollapsed ? 'translate-x-full' : 'translate-x-0'}`}>
+            <button
+              onClick={() => setIsCollapsed(!isCollapsed)}
+              className="panel-toggle-button"
+            >
+              {isCollapsed ? <IoChevronBack /> : <IoChevronForward />}
+            </button>
 
-        <div className="bg-white rounded-l-lg shadow-lg p-4 w-96">
-          <h2 className="text-xl font-semibold mb-4">Weather Information</h2>
-          {weatherData ? (
-            <div className="space-y-4">
-              <div className="flex items-center gap-2 mb-4">
-                <IoThermometerOutline className="text-red-500 text-xl" />
-                <span>
-                  Current Temperature: {weatherData.current_temperature}°F
-                </span>
-              </div>
-              <div className="text-sm text-gray-600 mb-2">
-                {weatherData.latitude.toFixed(2)}°N,{' '}
-                {weatherData.longitude.toFixed(2)}°E
-                <br />
-                {weatherData.elevation}m above sea level
-              </div>
-              <div className="h-64 w-full">
-                <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={weatherData.chartData}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis
-                      dataKey="time"
-                      tick={{ fontSize: 12 }}
-                      interval={2}
-                    />
-                    <YAxis domain={['auto', 'auto']} tick={{ fontSize: 12 }} />
-                    <Tooltip />
-                    <Line
-                      type="monotone"
-                      dataKey="temperature"
-                      stroke="#3b82f6"
-                      dot={{ r: 1 }}
-                      name="Temperature °F"
-                    />
-                  </LineChart>
-                </ResponsiveContainer>
-              </div>
+            <div className="weather-panel-content">
+              <h2 className="weather-panel-title">Weather Information</h2>
+              {weatherData ? (
+                <div className="weather-data-container">
+                  <div className="temperature-display">
+                    <IoThermometerOutline className="temperature-icon" />
+                    <span>
+                      Current Temperature: {weatherData.current_temperature}°F
+                    </span>
+                  </div>
+                  <div className="location-display">
+                    {weatherData.latitude.toFixed(2)}°N,{' '}
+                    {weatherData.longitude.toFixed(2)}°E
+                    <br />
+                    {weatherData.elevation}m above sea level
+                  </div>
+                  <div className="chart-container">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <LineChart data={weatherData.chartData}>
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis
+                          dataKey="time"
+                          tick={{ fontSize: 12 }}
+                          interval={2}
+                        />
+                        <YAxis domain={['auto', 'auto']} tick={{ fontSize: 12 }} />
+                        <Tooltip />
+                        <Line
+                          type="monotone"
+                          dataKey="temperature"
+                          stroke="#3b82f6"
+                          dot={{ r: 1 }}
+                          name="Temperature °F"
+                        />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  </div>
+                </div>
+              ) : (
+                <p className="no-data-message">
+                  Click on the map to see weather data
+                </p>
+              )}
             </div>
-          ) : (
-            <p className="text-gray-500">
-              Click on the map to see weather data
-            </p>
-          )}
+          </div>
+
+          {/* Weather Graph Container */}
+          <div className="weather-graph-container">
+            <WeatherGraph weatherType={selectedVariable} />
+          </div>
+
+          {/* Timeline Slider */}
+          <TimelineSlider onTimeChange={handleTimeChange} />
         </div>
       </div>
-
-      {/* Weather Graph Container */}
-      <div className="weather-graph-container">
-        <WeatherGraph weatherType={selectedVariable} />
-      </div>
-
-      {/* Timeline Slider */}
-      <TimelineSlider onTimeChange={handleTimeChange} />
     </div>
   );
 };
