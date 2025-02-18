@@ -23,7 +23,7 @@ const ActionButtons = ({
         </button>
         <button className="add-base-button" onClick={handleAddBase}>
           <span className="add-button-plus">+</span>
-          Add New Base
+          <span className="add-button-text">Add Location</span>
         </button>
       </div>
 

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Star, X } from 'lucide-react';
 import { useUser } from '@clerk/clerk-react';
+import './AddLocationPopup.css';
 
 const AddLocationPopup = ({ isOpen, onClose, onLocationAdded }) => {
   const { isLoaded: userLoaded, user } = useUser();
@@ -67,6 +68,22 @@ const AddLocationPopup = ({ isOpen, onClose, onLocationAdded }) => {
         input,
         options
       );
+
+      // Set the position of the dropdown
+      const container = document.querySelector('.modal-container');
+      if (container) {
+        autoCompleteInstance.bindTo(
+          'bounds',
+          new window.google.maps.LatLngBounds()
+        );
+      }
+
+      // Ensure dropdown follows the input
+      const pacContainer = document.querySelector('.pac-container');
+      if (pacContainer) {
+        pacContainer.style.position = 'fixed';
+        pacContainer.style.zIndex = '9999';
+      }
 
       autoCompleteInstance.addListener('place_changed', () => {
         const place = autoCompleteInstance.getPlace();
