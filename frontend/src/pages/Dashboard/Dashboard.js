@@ -28,7 +28,7 @@ const Dashboard = ({ setCurrentPage }) => {
   };
 
   const handleLocationAdded = () => {
-    window.location.reload();
+    fetchLocations();
   };
 
   const fetchLocations = useCallback(async () => {

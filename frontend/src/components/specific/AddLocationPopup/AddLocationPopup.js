@@ -158,7 +158,7 @@ const AddLocationPopup = ({ isOpen, onClose, onLocationAdded }) => {
       <div className="bg-white rounded-lg p-6 w-96 relative">
         <button
           onClick={onClose}
-          className="absolute top-6 right-6 text-gray-500 hover:text-gray-700 text-xl font-bold hover:bg-gray-100 rounded"
+          className="absolute top-6 right-6 text-black-500 hover:text-black-700 text-xl font-bold hover:bg-gray-100 rounded"
         >
           <X className="w-6 h-6" />
         </button>
