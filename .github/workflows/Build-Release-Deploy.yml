@@ -1,0 +1,269 @@
+name: Build, Release and Deploy
+on:
+  push:
+    branches:
+      - main
+permissions:
+  contents: write
+  actions: write
+
+jobs:
+  version-bump:
+    runs-on: ubuntu-latest
+    if: "!contains(github.event.head_commit.message, '[skip ci]')"
+    
+    outputs:
+      new_version: ${{ steps.bump_version.outputs.new_version }}
+      
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.BACKEND_GITHUB_ACCESS_TOKEN }}
+          repository: Project-AirStorm/Airstorm-GFS
+          
+      - name: Get latest version
+        id: get_version
+        env:
+          GITHUB_TOKEN: ${{ secrets.BACKEND_GITHUB_ACCESS_TOKEN }}
+        run: |
+          LATEST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "0.0")
+          echo "LATEST_TAG=${LATEST_TAG}" >> $GITHUB_ENV
+          
+      - name: Bump version
+        id: bump_version
+        run: |
+          CURRENT_VERSION=${LATEST_TAG#v}
+          IFS='.' read -r -a version_parts <<< "$CURRENT_VERSION"
+          MINOR=$((${version_parts[1]} + 1))
+          NEW_VERSION="0.${MINOR}"
+          echo "new_version=${NEW_VERSION}" >> $GITHUB_OUTPUT
+          echo "NEW_VERSION=${NEW_VERSION}" >> $GITHUB_ENV
+
+      - name: Create tag
+        env:
+          GITHUB_TOKEN: ${{ secrets.BACKEND_GITHUB_ACCESS_TOKEN }}
+        run: |
+          git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git tag -a "v${NEW_VERSION}" -m "Release version ${NEW_VERSION}"
+          git push origin "v${NEW_VERSION}"
+
+  generate-notes:
+    needs: version-bump
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.BACKEND_GITHUB_ACCESS_TOKEN }}
+          repository: Project-AirStorm/Airstorm-GFS
+          
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      - name: Install dependencies
+        run: npm install axios
+
+      - name: Get commit messages
+        id: get_commits
+        env:
+          GITHUB_TOKEN: ${{ secrets.BACKEND_GITHUB_ACCESS_TOKEN }}
+        run: |
+          # Get the latest merge commit from dev to main
+          LATEST_MERGE=$(git log --merges --first-parent main --grep="Merge.*dev" -n 1 --format="%H")
+          
+          # Get the previous merge commit from dev to main
+          PREVIOUS_MERGE=$(git log --merges --first-parent main --grep="Merge.*dev" -n 2 --format="%H" | tail -n 1)
+          
+          if [ -z "$PREVIOUS_MERGE" ]; then
+            echo "No previous merge found, getting all commits up to latest merge"
+            echo "Changes since repository creation up to latest merge:" > changes.txt
+            git log --format="%h %s" $LATEST_MERGE > changes.txt
+          else
+            echo "Getting changes between $PREVIOUS_MERGE and $LATEST_MERGE"
+            echo "Changes since last dev merge:" > changes.txt
+            git log --format="%h %s" $PREVIOUS_MERGE..$LATEST_MERGE > changes.txt
+          fi
+          
+          # Debug output
+          echo "Latest merge commit: $LATEST_MERGE"
+          echo "Previous merge commit: $PREVIOUS_MERGE"
+          echo "Content of changes.txt:"
+          cat changes.txt
+          
+          # Escape content for JSON
+          CHANGES=$(cat changes.txt | jq -sRr @json)
+          echo "changes=${CHANGES}" >> $GITHUB_OUTPUT
+
+      - name: Generate release notes
+        id: generate_notes
+        uses: actions/github-script@v6
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          COMMITS: ${{ steps.get_commits.outputs.changes }}
+          NEW_VERSION: ${{ needs.version-bump.outputs.new_version }}
+        with:
+          script: |
+            const axios = require('axios');
+            
+            const prompt = `As a technical writer, create professional release notes from these git commits.
+            Format the output in the following structure:
+            
+            # Release v${process.env.NEW_VERSION}
+            
+            ## 🔄 Changes
+            
+            ${process.env.COMMITS}
+            
+            Please categorize the changes into:
+            - 🚀 New Features
+            - 🔨 Improvements
+            - 🐛 Bug Fixes
+            
+            Use clear, concise language and proper markdown formatting.
+            Include the commit hash in parentheses after each item.
+            Skip any commits that are purely administrative (like merge commits).`;
+            
+            try {
+              const response = await axios.post('https://generativelanguage.googleapis.com/v1/models/gemini-pro:generateContent', {
+                contents: [{
+                  parts: [{
+                    text: prompt
+                  }]
+                }],
+                generationConfig: {
+                  maxOutputTokens: 1024,
+                  temperature: 0.7,
+                  topK: 40,
+                  topP: 0.95
+                }
+              }, {
+                headers: {
+                  'Content-Type': 'application/json',
+                  'x-goog-api-key': process.env.GEMINI_API_KEY
+                }
+              });
+              
+              if (!response.data.candidates || !response.data.candidates[0]) {
+                throw new Error('No response from Gemini API');
+              }
+              
+              const releaseNotes = response.data.candidates[0].content.parts[0].text;
+              core.setOutput('notes', releaseNotes);
+              
+              // Debug output
+              console.log('Generated Release Notes:');
+              console.log(releaseNotes);
+            } catch (error) {
+              core.setFailed(`Error generating release notes: ${error.message}`);
+              throw error;
+            }
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: v${{ needs.version-bump.outputs.new_version }}
+          name: Release v${{ needs.version-bump.outputs.new_version }}
+          body: ${{ steps.generate_notes.outputs.notes }}
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.BACKEND_GITHUB_ACCESS_TOKEN }}
+          GH_TOKEN: ${{ secrets.BACKEND_GITHUB_ACCESS_TOKEN }}
+  
+  deploy:
+    needs: [version-bump, generate-notes]
+    name: Deploy
+    runs-on: ubuntu-latest
+    environment: production
+    env:
+      AWS_REGION: us-east-1
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Deploy to EC2
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.AWS_SSH_KEY }}
+          debug: true
+          script: |
+            # Print initial disk space
+            echo "Initial disk space:"
+            df -h /
+            # Aggressive Docker cleanup
+            echo "Performing Docker cleanup..."
+            docker system prune -af --volumes
+            docker volume rm $(docker volume ls -q) || true
+            # Stop and remove all running containers
+            echo "Stopping and removing containers..."
+            docker stop $(docker ps -a -q) || true
+            docker rm $(docker ps -a -q) || true
+            # Remove all images
+            echo "Removing Docker images..."
+            docker rmi -f $(docker images -aq) || true
+            # Print disk space after cleanup
+            echo "Disk space after cleanup:"
+            df -h /
+            cd ~/production/Airstorm-GFS
+            git pull
+            # Create .env file from GitHub Secrets
+            echo "Creating .env file..."
+            cat > .env << EOL
+            AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }}
+            AWS_REGION=${{ secrets.AWS_REGION }}
+            AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }}
+            BACKEND_GITHUB_ACCESS_TOKEN=${{ secrets.BACKEND_GITHUB_ACCESS_TOKEN }}
+            BACKEND_GITHUB_OWNER=${{ secrets.BACKEND_GITHUB_OWNER }}
+            BACKEND_GITHUB_REPO=${{ secrets.BACKEND_GITHUB_REPO }}
+            BACKEND_GOOGLE_MAPS_API_KEY=${{ secrets.BACKEND_GOOGLE_MAPS_API_KEY }}
+            BACKEND_METEOMATICS_PASSWORD=${{ secrets.BACKEND_METEOMATICS_PASSWORD }}
+            BACKEND_METEOMATICS_USERNAME=${{ secrets.BACKEND_METEOMATICS_USERNAME }}
+            BACKEND_METEOSOURCE_API_KEY=${{ secrets.BACKEND_METEOSOURCE_API_KEY }}
+            EC2_HOST=${{ secrets.EC2_HOST }}
+            EC2_USERNAME=${{ secrets.EC2_USERNAME }}
+            GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }}
+            MYSQL_DATABASE=${{ secrets.MYSQL_DATABASE }}
+            MYSQL_ENV=${{ secrets.MYSQL_ENV }}
+            MYSQL_HOST=${{ secrets.MYSQL_HOST }}
+            MYSQL_PASSWORD=${{ secrets.MYSQL_PASSWORD }}
+            MYSQL_PORT=${{ secrets.MYSQL_PORT }}
+            MYSQL_USER=${{ secrets.MYSQL_USER }}
+            REACT_APP_API_URL=${{ secrets.REACT_APP_API_URL }}
+            REACT_APP_GOOGLE_MAPS_API_KEY=${{ secrets.REACT_APP_GOOGLE_MAPS_API_KEY }}
+            REACT_APP_MAPTILER_API_KEY=${{ secrets.REACT_APP_MAPTILER_API_KEY }}
+            REACT_APP_MAPTILER_KEY=${{ secrets.REACT_APP_MAPTILER_KEY }}
+            REACT_APP_METEOSOURCE_API_KEY=${{ secrets.REACT_APP_METEOSOURCE_API_KEY }}
+            REACT_APP_VITE_CLERK_PUBLISHABLE_KEY=${{ secrets.REACT_APP_VITE_CLERK_PUBLISHABLE_KEY }}
+            REACT_APP_OPENMETEO_API_KEY=${{ secrets.REACT_APP_OPENMETEO_API_KEY }}
+            BACKEND_OPENMETEO_API_KEY=${{ secrets.BACKEND_OPENMETEO_API_KEY }}
+            EOL
+            # Verify .env file was created
+            if [ ! -f .env ]; then
+              echo "Error: .env file was not created"
+              exit 1
+            fi
+            echo "Building and starting containers..."
+            docker-compose up -d --build
+            # Verify containers are running
+            echo "Checking container status:"
+            docker ps
+            echo "Deployment complete"

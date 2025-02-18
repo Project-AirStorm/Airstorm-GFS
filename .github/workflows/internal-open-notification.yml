@@ -1,0 +1,92 @@
+name: Internal Support Team Notification
+
+on:
+  issues:
+    types: [opened]
+
+jobs:
+  send-team-notification:
+    runs-on: ubuntu-latest
+    if: contains(github.event.issue.labels.*.name, 'user-feedback')
+    
+    permissions:
+      issues: read
+      contents: read
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Extract ticket metadata
+        id: extract-metadata
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const issueBody = context.payload.issue.body;
+            const nameMatch = issueBody.match(/\*\*Name:\*\* ([^\n]+)/);
+            const emailMatch = issueBody.match(/\*\*Email:\*\* ([^\n]+)/);
+            const feedbackMatch = issueBody.match(/### Feedback Details\n([\s\S]+)$/);
+            
+            const name = nameMatch ? nameMatch[1].trim() : 'Anonymous User';
+            const email = emailMatch ? emailMatch[1].trim() : 'No email provided';
+            const feedbackDetails = feedbackMatch ? feedbackMatch[1].trim() : 'No details provided';
+            
+            const date = new Date().toLocaleDateString('en-US', {
+              weekday: 'long',
+              year: 'numeric',
+              month: 'long',
+              day: 'numeric',
+              hour: '2-digit',
+              minute: '2-digit'
+            });
+            
+            core.setOutput('submitter_name', name);
+            core.setOutput('submitter_email', email);
+            core.setOutput('issue_title', context.payload.issue.title);
+            core.setOutput('issue_number', context.payload.issue.number);
+            core.setOutput('feedback_details', feedbackDetails);
+            core.setOutput('submission_date', date);
+            core.setOutput('issue_url', context.payload.issue.html_url);
+
+      - name: Prepare email content
+        id: email-content
+        run: |
+          template=$(cat .github/email-templates/internal-open-notification.html)
+          
+          # Replace template variables with proper quoting
+          email_content="${template//\{\{name\}\}/'${{ steps.extract-metadata.outputs.submitter_name }}'}"
+          email_content="${email_content//\{\{email\}\}/'${{ steps.extract-metadata.outputs.submitter_email }}'}"
+          email_content="${email_content//\{\{issue_number\}\}/'${{ steps.extract-metadata.outputs.issue_number }}'}"
+          email_content="${email_content//\{\{issue_title\}\}/'${{ steps.extract-metadata.outputs.issue_title }}'}"
+          email_content="${email_content//\{\{submission_date\}\}/'${{ steps.extract-metadata.outputs.submission_date }}'}"
+          email_content="${email_content//\{\{feedback_details\}\}/'${{ steps.extract-metadata.outputs.feedback_details }}'}"
+          email_content="${email_content//\{\{issue_url\}\}/'${{ steps.extract-metadata.outputs.issue_url }}'}"
+          
+          # Escape content for JSON
+          email_content_escaped=$(echo "$email_content" | jq -aRs .)
+          echo "EMAIL_CONTENT=$email_content_escaped" >> $GITHUB_ENV
+
+      - name: Send internal notification
+        run: |
+          aws ses send-email \
+            --from "support@projectairstorm.com" \
+            --destination "ToAddresses=support@projectairstorm.com,francisj24@lsus.edu,mataa98@lsus.edu,gafforde82@lsus.edu,zittrauerc49@lsus.edu,khawaldehd68@lsus.edu,hartlinev49@lsus.edu" \
+            --message "{
+              \"Subject\": {
+                \"Data\": \"[New Support Ticket] ${{ steps.extract-metadata.outputs.issue_title }} (#${{ steps.extract-metadata.outputs.issue_number }})\",
+                \"Charset\": \"UTF-8\"
+              },
+              \"Body\": {
+                \"Html\": {
+                  \"Data\": $EMAIL_CONTENT,
+                  \"Charset\": \"UTF-8\"
+                }
+              }
+            }"
