@@ -1,80 +1,80 @@
-// Logs.js
-import React, { useState } from 'react';
-// import PropTypes from 'prop-types';
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
 import { Search, Filter, Download } from 'lucide-react';
 import './Logs.css';
 
-/**
- * Logs page component for displaying system logs and activity history
- * @component
- * @param {Object} props - Component properties
- * @param {Function} props.setCurrentPage - Function to update current page in parent component
- * @returns {JSX.Element} Logs component
- */
-const Logs = ({ setCurrentPage }) => {
+const REACT_APP_API_URL = process.env.REACT_APP_API_URL;
+
+const Logs = () => {
+  const [logs, setLogs] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedLogType, setSelectedLogType] = useState('all');
   const [selectedTimeframe, setSelectedTimeframe] = useState('24h');
 
-  // Sample log data - in a real app, this would come from an API
-  const logs = [
-    {
-      id: 1,
-      timestamp: '2025-01-27T10:30:00',
-      type: 'system',
-      severity: 'info',
-      message: 'System startup completed successfully',
-      source: 'System',
-    },
-    {
-      id: 2,
-      timestamp: '2025-01-27T10:35:00',
-      type: 'weather',
-      severity: 'warning',
-      message: 'High wind alert triggered for Barksdale AFB',
-      source: 'Weather Service',
-    },
-    {
-      id: 3,
-      timestamp: '2025-01-27T10:40:00',
-      type: 'user',
-      severity: 'error',
-      message: 'Failed login attempt detected',
-      source: 'Auth Service',
-    },
-  ];
+  useEffect(() => {
+    const fetchLogs = async () => {
+      try {
+        const response = await axios.get(`${REACT_APP_API_URL}/api/logs`);
+        
+        // Parse the logs into structured format
+        const parsedLogs = response.data.map(log => {
+          const parts = log.split('|').map(part => part.trim());
+          return {
+            timestamp: parts[0],
+            type: getLogType(parts[1] || ''),
+            severity: getSeverity(parts[1] || ''),
+            message: parts[2] || parts[1] || log, // fallback if parsing fails
+          };
+        });
 
-  const logTypes = [
-    { id: 'all', label: 'All Logs' },
-    { id: 'system', label: 'System' },
-    { id: 'weather', label: 'Weather' },
-    { id: 'user', label: 'User Activity' },
-  ];
+        setLogs(parsedLogs);
+        setLoading(false);
+      } catch (err) {
+        console.error('Error fetching logs:', err);
+        setError('Failed to fetch logs');
+        setLoading(false);
+      }
+    };
 
-  const timeframes = [
-    { id: '1h', label: 'Last Hour' },
-    { id: '24h', label: 'Last 24 Hours' },
-    { id: '7d', label: 'Last 7 Days' },
-    { id: '30d', label: 'Last 30 Days' },
-  ];
+    fetchLogs();
+    const interval = setInterval(fetchLogs, 30000);
+    return () => clearInterval(interval);
+  }, []);
 
-  const handleSearch = (event) => {
-    setSearchTerm(event.target.value);
+  const getLogType = (message) => {
+    if (message.includes('weather')) return 'weather';
+    if (message.includes('user')) return 'user';
+    return 'system';
+  };
+
+  const getSeverity = (message) => {
+    if (message.includes('ERROR')) return 'error';
+    if (message.includes('WARNING')) return 'warning';
+    return 'info';
   };
 
   const handleExport = () => {
+    // Implementation for exporting logs
     console.log('Exporting logs...');
   };
 
-  // Filter logs based on search term and filters
-  const filteredLogs = logs.filter((log) => {
-    const matchesSearch =
+  const filteredLogs = logs.filter(log => {
+    const matchesSearch = 
       log.message.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      log.source.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesType =
-      selectedLogType === 'all' || log.type === selectedLogType;
+      log.timestamp.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesType = selectedLogType === 'all' || log.type === selectedLogType;
     return matchesSearch && matchesType;
   });
+
+  if (loading) {
+    return <div className="logs-body">Loading logs...</div>;
+  }
+
+  if (error) {
+    return <div className="logs-body error">{error}</div>;
+  }
 
   return (
     <div className="dashboard-container">
@@ -103,7 +103,7 @@ const Logs = ({ setCurrentPage }) => {
                 type="text"
                 placeholder="Search logs..."
                 value={searchTerm}
-                onChange={handleSearch}
+                onChange={(e) => setSearchTerm(e.target.value)}
                 className="search-input"
               />
             </div>
@@ -115,11 +115,10 @@ const Logs = ({ setCurrentPage }) => {
                 onChange={(e) => setSelectedLogType(e.target.value)}
                 className="filter-select"
               >
-                {logTypes.map((type) => (
-                  <option key={type.id} value={type.id}>
-                    {type.label}
-                  </option>
-                ))}
+                <option value="all">All Types</option>
+                <option value="system">System</option>
+                <option value="weather">Weather</option>
+                <option value="user">User Activity</option>
               </select>
 
               <select
@@ -127,11 +126,10 @@ const Logs = ({ setCurrentPage }) => {
                 onChange={(e) => setSelectedTimeframe(e.target.value)}
                 className="filter-select"
               >
-                {timeframes.map((time) => (
-                  <option key={time.id} value={time.id}>
-                    {time.label}
-                  </option>
-                ))}
+                <option value="1h">Last Hour</option>
+                <option value="24h">Last 24 Hours</option>
+                <option value="7d">Last 7 Days</option>
+                <option value="30d">Last 30 Days</option>
               </select>
             </div>
           </div>
@@ -144,13 +142,12 @@ const Logs = ({ setCurrentPage }) => {
                   <th>Type</th>
                   <th>Severity</th>
                   <th>Message</th>
-                  <th>Source</th>
                 </tr>
               </thead>
               <tbody>
-                {filteredLogs.map((log) => (
-                  <tr key={log.id} className={`severity-${log.severity}`}>
-                    <td>{new Date(log.timestamp).toLocaleString()}</td>
+                {filteredLogs.map((log, index) => (
+                  <tr key={index} className={`severity-${log.severity}`}>
+                    <td>{log.timestamp}</td>
                     <td>
                       <span className={`log-type ${log.type}`}>{log.type}</span>
                     </td>
@@ -160,7 +157,6 @@ const Logs = ({ setCurrentPage }) => {
                       </span>
                     </td>
                     <td>{log.message}</td>
-                    <td>{log.source}</td>
                   </tr>
                 ))}
               </tbody>
@@ -171,9 +167,5 @@ const Logs = ({ setCurrentPage }) => {
     </div>
   );
 };
-
-// Logs.propTypes = {
-//   setCurrentPage: PropTypes.func.isRequired
-// };
 
 export default Logs;
