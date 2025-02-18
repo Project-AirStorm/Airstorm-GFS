@@ -97,6 +97,8 @@ def get_location_info():
     try:
         lat = request.args.get("lat", type=float)
         lon = request.args.get("lon", type=float)
+        max_retries = 3
+        retry_delay = 1  # seconds
 
         logger.info(f"Geocoding request for lat={lat}, lon={lon}")
 
@@ -105,66 +107,103 @@ def get_location_info():
 
         if not BACKEND_GOOGLE_MAPS_API_KEY:
             logger.error("Google Maps API key not configured")
-            return jsonify({"error": "Geocoding service not configured", "details": "Missing API key"}), 503
+            return jsonify({
+                "formatted_address": "Location data unavailable",
+                "components": {
+                    "city": "Unknown",
+                    "state": "Unknown",
+                    "state_code": "NA",
+                    "county": "Unknown",
+                    "country": "Unknown",
+                    "country_code": "NA",
+                }
+            })
 
-        url = "https://maps.googleapis.com/maps/api/geocode/json"
-        params = {
-            "latlng": f"{lat},{lon}",
-            "key": BACKEND_GOOGLE_MAPS_API_KEY,
-            "language": "en",
-        }
+        for attempt in range(max_retries):
+            try:
+                url = "https://maps.googleapis.com/maps/api/geocode/json"
+                params = {
+                    "latlng": f"{lat},{lon}",
+                    "key": BACKEND_GOOGLE_MAPS_API_KEY,
+                    "language": "en",
+                }
 
-        response = requests.get(url, params=params)
-        data = response.json()
+                response = requests.get(url, params=params)
+                data = response.json()
 
-        status = data.get("status")
-        error_message = data.get("error_message", "No results found")
-        logger.error(f"Geocoding API error: {status} - {error_message}")
+                if data.get("status") == "OK" and data.get("results"):
+                    result = data["results"][0]
+                    location_info = {
+                        "formatted_address": result.get("formatted_address", "Address unavailable"),
+                        "components": {
+                            "city": "",
+                            "state": "",
+                            "state_code": "",
+                            "county": "",
+                            "country": "",
+                            "country_code": "",
+                        }
+                    }
 
-        if status != "OK" or not data.get("results"):
-            return jsonify({"error": "Geocoding failed", "details": error_message}), 503
+                    for component in result.get("address_components", []):
+                        types = component["types"]
 
-        location_info = {
-            "formatted_address": "",
+                        if "locality" in types:
+                            location_info["components"]["city"] = component["long_name"]
+                        elif "administrative_area_level_1" in types:
+                            location_info["components"]["state"] = component["long_name"]
+                            location_info["components"]["state_code"] = component["short_name"]
+                        elif "administrative_area_level_2" in types:
+                            location_info["components"]["county"] = component["long_name"]
+                        elif "country" in types:
+                            location_info["components"]["country"] = component["long_name"]
+                            location_info["components"]["country_code"] = component["short_name"]
+
+                    # If we got a result, even if some fields are empty, return it
+                    logger.debug(f"Processed location info: {location_info}")
+                    return jsonify(location_info)
+
+                # If we get here, the API responded but didn't give us results
+                if attempt < max_retries - 1:
+                    logger.warning(
+                        f"Attempt {attempt + 1} failed, retrying in {retry_delay} seconds...")
+                    time.sleep(retry_delay)
+                    continue
+
+            except requests.exceptions.RequestException as e:
+                if attempt < max_retries - 1:
+                    logger.warning(
+                        f"Request failed on attempt {attempt + 1}: {str(e)}, retrying...")
+                    time.sleep(retry_delay)
+                    continue
+                logger.error(f"All request attempts failed: {str(e)}")
+
+        # If we get here, all attempts failed. Return a fallback response
+        return jsonify({
+            "formatted_address": f"Location at {lat}, {lon}",
             "components": {
-                "city": "",
-                "state": "",
-                "state_code": "",
-                "county": "",
-                "country": "",
-                "country_code": "",
-            },
-        }
+                "city": "Unknown City",
+                "state": "Unknown State",
+                "state_code": "NA",
+                "county": "Unknown County",
+                "country": "Unknown Country",
+                "country_code": "NA",
+            }
+        })
 
-        result = next((r for r in data["results"]
-                      if r.get("address_components")), None)
-
-        if result:
-            location_info["formatted_address"] = result["formatted_address"]
-
-            for component in result["address_components"]:
-                types = component["types"]
-
-                if "locality" in types:
-                    location_info["components"]["city"] = component["long_name"]
-                elif "administrative_area_level_1" in types:
-                    location_info["components"]["state"] = component["long_name"]
-                    location_info["components"]["state_code"] = component["short_name"]
-                elif "administrative_area_level_2" in types:
-                    location_info["components"]["county"] = component["long_name"]
-                elif "country" in types:
-                    location_info["components"]["country"] = component["long_name"]
-                    location_info["components"]["country_code"] = component["short_name"]
-
-        logger.debug(f"Processed location info: {location_info}")
-        return jsonify(location_info)
-
-    except requests.exceptions.RequestException as e:
-        logger.error(f"Request error in geocoding: {str(e)}")
-        return jsonify({"error": "Geocoding service unavailable", "details": str(e)}), 503
     except Exception as e:
         logger.error(f"Unexpected error in geocoding: {str(e)}")
-        return jsonify({"error": "Internal server error", "details": str(e)}), 500
+        return jsonify({
+            "formatted_address": "Error retrieving location",
+            "components": {
+                "city": "Error",
+                "state": "Error",
+                "state_code": "ERR",
+                "county": "Error",
+                "country": "Error",
+                "country_code": "ERR",
+            }
+        })
 
 
 @external_api_bp.route('/api/google-maps-init')
