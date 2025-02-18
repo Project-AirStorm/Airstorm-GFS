@@ -1,0 +1,23 @@
+.add-base-popup {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: white;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  z-index: 1000;
+}
+
+.add-base-popup input,
+.add-base-popup button {
+  margin: 10px 0;
+  padding: 5px;
+}
+
+.add-base-popup label {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}

@@ -48,18 +48,36 @@ def get_locations():
 # Retrives locations from the database
 @internal_api_bp.route("/api/locations", methods=["POST"])
 def save_location():
-    data = request.json
-    if not all(k in data for k in ("userId", "name", "latitude", "longitude")):
-        return jsonify({"error": "Missing required fields"}), 400
+    try:
+        data = request.json
+        print("Received data in backend:", data)  # Debug log
 
-    success = database_service.save_location(
-        data["userId"],
-        data["name"],
-        data["latitude"],
-        data["longitude"],
-        data.get("isFavorite", False),
-    )
-    return jsonify({"success": success})
+        required_fields = ["userId", "name", "latitude", "longitude"]
+        missing_fields = [
+            field for field in required_fields if field not in data]
+
+        if missing_fields:
+            print(f"Missing fields: {missing_fields}")  # Debug log
+            return jsonify({
+                "error": f"Missing required fields: {', '.join(missing_fields)}",
+                "received_data": data
+            }), 400
+
+        success = database_service.save_location(
+            data["userId"],
+            data["name"],
+            data["latitude"],
+            data["longitude"],
+            data.get("isFavorite", False),
+        )
+
+        if success:
+            return jsonify({"success": True})
+        return jsonify({"error": "Failed to save location"}), 500
+
+    except Exception as e:
+        print(f"Error saving location: {str(e)}")
+        return jsonify({"error": str(e)}), 500
 
 
 # Deletes locations from React WeatherCard
