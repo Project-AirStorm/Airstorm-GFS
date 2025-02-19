@@ -201,7 +201,7 @@ const GraphCastForecast = () => {
   };
 
   return (
-    <div>
+    <div className="graphcast-container">
       <div className="graphcast-header">
         <div>
           <div className="graphcast-location">
@@ -215,6 +215,12 @@ const GraphCastForecast = () => {
           </div>
         </div>
         <div className="current-weather">
+          <div className="temperature-display">
+            <IoThermometerOutline className="mr-1 text-blue-600" />
+            <span className="text-xl">
+              {forecast.current.temperature_2m.toFixed(1)}°F
+            </span>
+          </div>
           <div className="weather-stats">
             <div className="weather-stat">
               <IoWaterOutline className="mr-1" />
