@@ -240,7 +240,7 @@ const GraphCastForecast = () => {
             data={forecast.daily}
             margin={{ top: 20, right: 30, left: 20, bottom: 10 }}
           >
-            <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+            <CartesianGrid strokeDasharray="7 7" stroke="#d3d5d8" />
             <XAxis
               dataKey="time"
               stroke="#6b7280"
@@ -251,9 +251,11 @@ const GraphCastForecast = () => {
               stroke="#6b7280"
               tick={{ fill: '#6b7280', fontSize: 12 }}
               label={{
-                value: 'Temperature (°F)',
+                value: 'Temp. (°F) / Prob. (%) / Precip. (in)',
+                offset: 10,
                 angle: -90,
-                position: 'insideLeft',
+                position: 'insideBottomLeft',
+                offset: 10,
                 fill: '#6b7280',
               }}
             />
@@ -263,7 +265,7 @@ const GraphCastForecast = () => {
               stroke="#6b7280"
               tick={{ fill: '#6b7280', fontSize: 12 }}
               label={{
-                value: 'Probability (%) / Precipitation (in)',
+                value: '',
                 angle: 90,
                 position: 'insideRight',
                 fill: '#6b7280',
