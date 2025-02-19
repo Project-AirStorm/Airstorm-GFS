@@ -1,0 +1,25 @@
+.pac-container {
+  z-index: 9999 !important;
+  position: fixed !important;
+  background-color: white;
+  border-radius: 0.375rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
+    0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  margin-top: 4px;
+  border: 1px solid rgb(229, 231, 235);
+}
+
+.pac-item {
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.pac-item:hover {
+  background-color: rgb(243, 244, 246);
+}
+
+.pac-item-query {
+  font-size: 0.875rem;
+  color: rgb(17, 24, 39);
+}
