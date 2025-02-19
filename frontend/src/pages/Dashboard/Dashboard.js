@@ -18,6 +18,18 @@ const Dashboard = ({ setCurrentPage }) => {
   const [locations, setLocations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  // Define the handlers
+  const handleTimeframeChange = () => {
+    console.log('Timeframe changed');
+  };
+
+  const handleAddBase = () => {
+    console.log('Add base clicked');
+  };
+
+  const handleLocationAdded = () => {
+    fetchLocations();
+  };
 
   const fetchLocations = useCallback(async () => {
     try {
@@ -97,9 +109,10 @@ const Dashboard = ({ setCurrentPage }) => {
           />
 
           <ActionButtons
-            onTimeframeChange={() => console.log('Timeframe changed')}
-            onAddBase={() => console.log('Add base clicked')}
+            onTimeframeChange={handleTimeframeChange} // Use the defined handler
+            onAddBase={handleAddBase} // Use the defined handler
             timeframe="Week"
+            onLocationAdded={handleLocationAdded} // Add the location refresh handler
           />
         </div>
 
