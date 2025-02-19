@@ -124,10 +124,7 @@ const Dashboard = ({ setCurrentPage }) => {
         </div>
 
         <div className="chart-section">
-          <h3 className="chart-title">Local Weather Conditions</h3>
-          <p className="chart-description">
-            Customize the chart to compare weather condition trends.
-          </p>
+          <h3 className="chart-title">Local Weather Forecast (16 Days)</h3>
           <GraphCastForecast />
         </div>
 

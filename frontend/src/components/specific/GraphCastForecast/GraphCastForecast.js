@@ -201,10 +201,9 @@ const GraphCastForecast = () => {
   };
 
   return (
-    <div className="graphcast-container">
+    <div>
       <div className="graphcast-header">
         <div>
-          <h2 className="graphcast-title">16-Day Weather Forecast</h2>
           <div className="graphcast-location">
             <IoLocationOutline className="mr-1" />
             <span>
