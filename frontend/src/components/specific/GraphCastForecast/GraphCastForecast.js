@@ -205,7 +205,7 @@ const GraphCastForecast = () => {
       <div className="graphcast-header">
         <div>
           <div className="graphcast-location">
-            <IoLocationOutline className="mr-1" />
+            <IoLocationOutline className="mr-1 text-red-600" />
             <span>
               {locationName ||
                 `${userLocation?.latitude.toFixed(
