@@ -247,7 +247,7 @@ const GraphCastForecast = () => {
             />
 
             <Line
-              yAxisId="right"
+              yAxisId="left"
               type="monotone"
               dataKey="precipitationProb"
               name="Precipitation Chance"
@@ -258,7 +258,7 @@ const GraphCastForecast = () => {
             />
 
             <Line
-              yAxisId="right"
+              yAxisId="left"
               type="monotone"
               dataKey="precipitationSum"
               name="Precipitation Amount"
@@ -269,7 +269,7 @@ const GraphCastForecast = () => {
             />
 
             <Line
-              yAxisId="right"
+              yAxisId="left"
               type="monotone"
               dataKey="cloudCover"
               name="Cloud Cover"
