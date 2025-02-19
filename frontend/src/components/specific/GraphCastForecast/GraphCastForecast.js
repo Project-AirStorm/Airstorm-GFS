@@ -23,6 +23,35 @@ const GraphCastForecast = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [userLocation, setUserLocation] = useState(null);
+  const [locationName, setLocationName] = useState('');
+
+  const fetchLocationName = async (latitude, longitude) => {
+    try {
+      const response = await axios.get(
+        `https://maps.googleapis.com/maps/api/geocode/json?latlng=${latitude},${longitude}&key=${process.env.REACT_APP_GOOGLE_MAPS_API_KEY}`
+      );
+
+      if (response.data.results && response.data.results.length > 0) {
+        const addressComponents = response.data.results[0].address_components;
+        const city = addressComponents.find((component) =>
+          component.types.includes('locality')
+        )?.long_name;
+        const state = addressComponents.find((component) =>
+          component.types.includes('administrative_area_level_1')
+        )?.short_name;
+        const country = addressComponents.find((component) =>
+          component.types.includes('country')
+        )?.long_name;
+
+        const formattedLocation = [city, state, country]
+          .filter(Boolean)
+          .join(', ');
+        setLocationName(formattedLocation);
+      }
+    } catch (err) {
+      console.error('Error fetching location name:', err);
+    }
+  };
 
   useEffect(() => {
     if ('geolocation' in navigator) {
@@ -30,6 +59,37 @@ const GraphCastForecast = () => {
         async (position) => {
           const { latitude, longitude } = position.coords;
           setUserLocation({ latitude, longitude });
+
+          // Fetch location name
+          try {
+            const response = await axios.get(
+              `https://maps.googleapis.com/maps/api/geocode/json?latlng=${latitude},${longitude}&key=${process.env.REACT_APP_GOOGLE_MAPS_API_KEY}`
+            );
+
+            if (response.data.results && response.data.results.length > 0) {
+              const addressComponents =
+                response.data.results[0].address_components;
+              const city = addressComponents.find((component) =>
+                component.types.includes('locality')
+              )?.long_name;
+              const state = addressComponents.find((component) =>
+                component.types.includes('administrative_area_level_1')
+              )?.short_name;
+              const country = addressComponents.find((component) =>
+                component.types.includes('country')
+              )?.long_name;
+
+              const formattedLocation = [city, state, country]
+                .filter(Boolean)
+                .join(', ');
+              setLocationName(formattedLocation);
+            }
+          } catch (err) {
+            console.error('Error fetching location name:', err);
+          }
+
+          // Fetch location name
+          await fetchLocationName(latitude, longitude);
 
           try {
             const response = await axios.get(
@@ -148,18 +208,14 @@ const GraphCastForecast = () => {
           <div className="graphcast-location">
             <IoLocationOutline className="mr-1" />
             <span>
-              {userLocation?.latitude.toFixed(2)}°N,{' '}
-              {userLocation?.longitude.toFixed(2)}°W
+              {locationName ||
+                `${userLocation?.latitude.toFixed(
+                  2
+                )}°N, ${userLocation?.longitude.toFixed(2)}°W`}
             </span>
           </div>
         </div>
         <div className="current-weather">
-          <div className="temperature-display">
-            <IoThermometerOutline className="mr-1 text-blue-600" />
-            <span className="text-xl">
-              {forecast.current.temperature_2m.toFixed(1)}°F
-            </span>
-          </div>
           <div className="weather-stats">
             <div className="weather-stat">
               <IoWaterOutline className="mr-1" />
