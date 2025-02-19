@@ -2240,3 +2240,313 @@
 2025-02-18 01:46:06,184 | root | INFO | Log request received
 2025-02-18 01:46:06,199 | werkzeug | INFO | 172.18.0.1 - - [18/Feb/2025 01:46:06] "GET /api/logs HTTP/1.1" 200 -
 2025-02-18 01:46:06,199 | werkzeug | INFO | 172.18.0.1 - - [18/Feb/2025 01:46:06] "GET /api/logs HTTP/1.1" 200 -
+2025-02-18 01:46:36,152 | root | INFO | Log request received
+2025-02-18 01:46:36,164 | werkzeug | INFO | 172.18.0.1 - - [18/Feb/2025 01:46:36] "GET /api/logs HTTP/1.1" 200 -
+2025-02-18 01:46:36,164 | werkzeug | INFO | 172.18.0.1 - - [18/Feb/2025 01:46:36] "GET /api/logs HTTP/1.1" 200 -
+2025-02-18 01:50:21,809 | root | INFO | Log request received
+2025-02-18 01:50:21,912 | werkzeug | INFO | 172.18.0.1 - - [18/Feb/2025 01:50:21] "GET /api/logs HTTP/1.1" 200 -
+2025-02-18 01:50:21,912 | werkzeug | INFO | 172.18.0.1 - - [18/Feb/2025 01:50:21] "GET /api/logs HTTP/1.1" 200 -
+2025-02-18 02:50:25,328 | root | INFO | Log request received
+2025-02-18 02:50:25,600 | werkzeug | INFO | 172.18.0.1 - - [18/Feb/2025 02:50:25] "GET /api/logs HTTP/1.1" 200 -
+2025-02-18 02:50:25,600 | werkzeug | INFO | 172.18.0.1 - - [18/Feb/2025 02:50:25] "GET /api/logs HTTP/1.1" 200 -
+2025-02-18 03:44:37,839 | root | INFO | Log request received
+2025-02-18 03:44:40,889 | werkzeug | INFO | 172.18.0.1 - - [18/Feb/2025 03:44:40] "GET /api/logs HTTP/1.1" 200 -
+2025-02-18 03:44:40,889 | werkzeug | INFO | 172.18.0.1 - - [18/Feb/2025 03:44:40] "GET /api/logs HTTP/1.1" 200 -
+2025-02-19 21:26:51,576 | root | INFO | Initializing MySQL database schema
+2025-02-19 21:26:52,245 | root | INFO | MySQL database and tables initialized.
+2025-02-19 21:26:52,276 | werkzeug | INFO | [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://172.18.0.3:5000
+2025-02-19 21:26:52,276 | werkzeug | INFO | [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://172.18.0.3:5000
+2025-02-19 21:26:52,278 | werkzeug | INFO | [33mPress CTRL+C to quit[0m
+2025-02-19 21:26:52,278 | werkzeug | INFO | [33mPress CTRL+C to quit[0m
+2025-02-19 21:26:52,290 | werkzeug | INFO |  * Restarting with watchdog (inotify)
+2025-02-19 21:26:52,290 | werkzeug | INFO |  * Restarting with watchdog (inotify)
+2025-02-19 21:26:53,024 | root | INFO | Initializing MySQL database schema
+2025-02-19 21:26:53,596 | root | INFO | MySQL database and tables initialized.
+2025-02-19 21:26:53,604 | werkzeug | WARNING |  * Debugger is active!
+2025-02-19 21:26:53,604 | werkzeug | WARNING |  * Debugger is active!
+2025-02-19 21:26:53,606 | werkzeug | INFO |  * Debugger PIN: 373-180-570
+2025-02-19 21:26:53,606 | werkzeug | INFO |  * Debugger PIN: 373-180-570
+2025-02-19 21:28:37,453 | werkzeug | INFO | 172.18.0.1 - - [19/Feb/2025 21:28:37] "OPTIONS /api/save-user HTTP/1.1" 200 -
+2025-02-19 21:28:37,453 | werkzeug | INFO | 172.18.0.1 - - [19/Feb/2025 21:28:37] "OPTIONS /api/save-user HTTP/1.1" 200 -
+2025-02-19 21:28:37,476 | werkzeug | INFO | 172.18.0.1 - - [19/Feb/2025 21:28:37] "OPTIONS /api/save-user HTTP/1.1" 200 -
+2025-02-19 21:28:37,476 | werkzeug | INFO | 172.18.0.1 - - [19/Feb/2025 21:28:37] "OPTIONS /api/save-user HTTP/1.1" 200 -
+2025-02-19 21:28:37,464 | werkzeug | INFO | 172.18.0.1 - - [19/Feb/2025 21:28:37] "OPTIONS /api/save-user HTTP/1.1" 200 -
+2025-02-19 21:28:37,464 | werkzeug | INFO | 172.18.0.1 - - [19/Feb/2025 21:28:37] "OPTIONS /api/save-user HTTP/1.1" 200 -
+2025-02-19 21:28:37,483 | werkzeug | INFO | 172.18.0.1 - - [19/Feb/2025 21:28:37] "OPTIONS /api/save-user HTTP/1.1" 200 -
+2025-02-19 21:28:37,483 | werkzeug | INFO | 172.18.0.1 - - [19/Feb/2025 21:28:37] "OPTIONS /api/save-user HTTP/1.1" 200 -
+2025-02-19 21:28:37,674 | werkzeug | INFO | 172.18.0.1 - - [19/Feb/2025 21:28:37] "OPTIONS /api/save-user HTTP/1.1" 200 -
+2025-02-19 21:28:37,674 | werkzeug | INFO | 172.18.0.1 - - [19/Feb/2025 21:28:37] "OPTIONS /api/save-user HTTP/1.1" 200 -
+2025-02-19 21:28:37,990 | werkzeug | INFO | 172.18.0.1 - - [19/Feb/2025 21:28:37] "GET /api/locations?userId=user_2spbTMDhwH9wcaHFZTOuQtN5thi HTTP/1.1" 200 -
+2025-02-19 21:28:37,990 | werkzeug | INFO | 172.18.0.1 - - [19/Feb/2025 21:28:37] "GET /api/locations?userId=user_2spbTMDhwH9wcaHFZTOuQtN5thi HTTP/1.1" 200 -
+2025-02-19 21:28:38,091 | werkzeug | INFO | 172.18.0.1 - - [19/Feb/2025 21:28:38] "POST /api/save-user HTTP/1.1" 200 -
+2025-02-19 21:28:38,091 | werkzeug | INFO | 172.18.0.1 - - [19/Feb/2025 21:28:38] "POST /api/save-user HTTP/1.1" 200 -
+2025-02-19 21:28:38,102 | werkzeug | INFO | 172.18.0.1 - - [19/Feb/2025 21:28:38] "POST /api/save-user HTTP/1.1" 200 -
+2025-02-19 21:28:38,112 | werkzeug | INFO | 172.18.0.1 - - [19/Feb/2025 21:28:38] "POST /api/save-user HTTP/1.1" 200 -
+2025-02-19 21:28:38,112 | werkzeug | INFO | 172.18.0.1 - - [19/Feb/2025 21:28:38] "POST /api/save-user HTTP/1.1" 200 -
+2025-02-19 21:28:38,102 | werkzeug | INFO | 172.18.0.1 - - [19/Feb/2025 21:28:38] "POST /api/save-user HTTP/1.1" 200 -
+2025-02-19 21:28:38,114 | werkzeug | INFO | 172.18.0.1 - - [19/Feb/2025 21:28:38] "POST /api/save-user HTTP/1.1" 200 -
+2025-02-19 21:28:38,114 | werkzeug | INFO | 172.18.0.1 - - [19/Feb/2025 21:28:38] "POST /api/save-user HTTP/1.1" 200 -
+2025-02-19 21:28:38,537 | werkzeug | INFO | 172.18.0.1 - - [19/Feb/2025 21:28:38] "POST /api/save-user HTTP/1.1" 200 -
+2025-02-19 21:28:38,537 | werkzeug | INFO | 172.18.0.1 - - [19/Feb/2025 21:28:38] "POST /api/save-user HTTP/1.1" 200 -
+2025-02-19 21:28:38,646 | werkzeug | INFO | 172.18.0.1 - - [19/Feb/2025 21:28:38] "GET /api/locations?userId=user_2spbTMDhwH9wcaHFZTOuQtN5thi HTTP/1.1" 200 -
+2025-02-19 21:28:38,646 | werkzeug | INFO | 172.18.0.1 - - [19/Feb/2025 21:28:38] "GET /api/locations?userId=user_2spbTMDhwH9wcaHFZTOuQtN5thi HTTP/1.1" 200 -
+2025-02-19 21:28:38,857 | api.external_api | INFO | Found state NV for location Las Vegas
+2025-02-19 21:28:39,070 | werkzeug | INFO | 172.18.0.1 - - [19/Feb/2025 21:28:39] "GET /api/weather?lat=36.2372&lon=-114.9859 HTTP/1.1" 200 -
+2025-02-19 21:28:39,070 | werkzeug | INFO | 172.18.0.1 - - [19/Feb/2025 21:28:39] "GET /api/weather?lat=36.2372&lon=-114.9859 HTTP/1.1" 200 -
+2025-02-19 21:28:39,082 | werkzeug | INFO | 172.18.0.1 - - [19/Feb/2025 21:28:39] "GET /api/weather?lat=32.4678&lon=-93.7454 HTTP/1.1" 200 -
+2025-02-19 21:28:39,082 | werkzeug | INFO | 172.18.0.1 - - [19/Feb/2025 21:28:39] "GET /api/weather?lat=32.4678&lon=-93.7454 HTTP/1.1" 200 -
+2025-02-19 21:28:39,095 | werkzeug | INFO | 172.18.0.1 - - [19/Feb/2025 21:28:39] "GET /api/weather?lat=32.3658&lon=-96.5469 HTTP/1.1" 200 -
+2025-02-19 21:28:39,095 | werkzeug | INFO | 172.18.0.1 - - [19/Feb/2025 21:28:39] "GET /api/weather?lat=32.3658&lon=-96.5469 HTTP/1.1" 200 -
+2025-02-19 21:28:39,097 | werkzeug | INFO | 172.18.0.1 - - [19/Feb/2025 21:28:39] "GET /api/weather?lat=36.2372&lon=-114.9859 HTTP/1.1" 200 -
+2025-02-19 21:28:39,100 | werkzeug | INFO | 172.18.0.1 - - [19/Feb/2025 21:28:39] "GET /api/weather?lat=32.4678&lon=-93.7454 HTTP/1.1" 200 -
+2025-02-19 21:28:39,097 | werkzeug | INFO | 172.18.0.1 - - [19/Feb/2025 21:28:39] "GET /api/weather?lat=36.2372&lon=-114.9859 HTTP/1.1" 200 -
+2025-02-19 21:28:39,109 | werkzeug | INFO | 172.18.0.1 - - [19/Feb/2025 21:28:39] "GET /api/weather?lat=32.3658&lon=-96.5469 HTTP/1.1" 200 -
+2025-02-19 21:28:39,100 | werkzeug | INFO | 172.18.0.1 - - [19/Feb/2025 21:28:39] "GET /api/weather?lat=32.4678&lon=-93.7454 HTTP/1.1" 200 -
+2025-02-19 21:28:39,109 | werkzeug | INFO | 172.18.0.1 - - [19/Feb/2025 21:28:39] "GET /api/weather?lat=32.3658&lon=-96.5469 HTTP/1.1" 200 -
+2025-02-19 21:28:39,256 | api.external_api | INFO | Found state TX for location Dallas-ish
+2025-02-19 21:28:39,706 | api.external_api | INFO | Geocoding request for lat=36.2372, lon=-114.9859
+2025-02-19 21:28:39,711 | api.external_api | INFO | Geocoding request for lat=32.4678, lon=-93.7454
+2025-02-19 21:28:39,714 | api.external_api | INFO | Geocoding request for lat=32.3658, lon=-96.5469
+2025-02-19 21:28:40,021 | api.external_api | INFO | Found state LA for location Shreveport
+2025-02-19 21:28:40,348 | api.external_api | ERROR | Geocoding API error: OK - No results found
+2025-02-19 21:28:40,353 | werkzeug | INFO | 172.18.0.1 - - [19/Feb/2025 21:28:40] "GET /api/geocode?lat=32.3658&lon=-96.5469 HTTP/1.1" 200 -
+2025-02-19 21:28:40,353 | werkzeug | INFO | 172.18.0.1 - - [19/Feb/2025 21:28:40] "GET /api/geocode?lat=32.3658&lon=-96.5469 HTTP/1.1" 200 -
+2025-02-19 21:28:40,354 | api.external_api | ERROR | Geocoding API error: OK - No results found
+2025-02-19 21:28:40,360 | werkzeug | INFO | 172.18.0.1 - - [19/Feb/2025 21:28:40] "GET /api/geocode?lat=32.4678&lon=-93.7454 HTTP/1.1" 200 -
+2025-02-19 21:28:40,363 | api.external_api | INFO | Geocoding request for lat=32.3658, lon=-96.5469
+2025-02-19 21:28:40,360 | werkzeug | INFO | 172.18.0.1 - - [19/Feb/2025 21:28:40] "GET /api/geocode?lat=32.4678&lon=-93.7454 HTTP/1.1" 200 -
+2025-02-19 21:28:40,374 | api.external_api | INFO | Geocoding request for lat=32.4678, lon=-93.7454
+2025-02-19 21:28:40,537 | api.external_api | ERROR | Geocoding API error: OK - No results found
+2025-02-19 21:28:40,549 | werkzeug | INFO | 172.18.0.1 - - [19/Feb/2025 21:28:40] "GET /api/geocode?lat=36.2372&lon=-114.9859 HTTP/1.1" 200 -
+2025-02-19 21:28:40,549 | werkzeug | INFO | 172.18.0.1 - - [19/Feb/2025 21:28:40] "GET /api/geocode?lat=36.2372&lon=-114.9859 HTTP/1.1" 200 -
+2025-02-19 21:28:40,572 | api.external_api | INFO | Geocoding request for lat=36.2372, lon=-114.9859
+2025-02-19 21:28:41,042 | api.external_api | INFO | Found 3 alerts for state NV
+2025-02-19 21:28:41,055 | api.external_api | ERROR | Geocoding API error: OK - No results found
+2025-02-19 21:28:41,064 | werkzeug | INFO | 172.18.0.1 - - [19/Feb/2025 21:28:41] "GET /api/geocode?lat=32.3658&lon=-96.5469 HTTP/1.1" 200 -
+2025-02-19 21:28:41,064 | werkzeug | INFO | 172.18.0.1 - - [19/Feb/2025 21:28:41] "GET /api/geocode?lat=32.3658&lon=-96.5469 HTTP/1.1" 200 -
+2025-02-19 21:28:41,201 | api.external_api | ERROR | Geocoding API error: OK - No results found
+2025-02-19 21:28:41,204 | werkzeug | INFO | 172.18.0.1 - - [19/Feb/2025 21:28:41] "GET /api/geocode?lat=32.4678&lon=-93.7454 HTTP/1.1" 200 -
+2025-02-19 21:28:41,204 | werkzeug | INFO | 172.18.0.1 - - [19/Feb/2025 21:28:41] "GET /api/geocode?lat=32.4678&lon=-93.7454 HTTP/1.1" 200 -
+2025-02-19 21:28:41,379 | api.external_api | ERROR | Geocoding API error: OK - No results found
+2025-02-19 21:28:41,383 | werkzeug | INFO | 172.18.0.1 - - [19/Feb/2025 21:28:41] "GET /api/geocode?lat=36.2372&lon=-114.9859 HTTP/1.1" 200 -
+2025-02-19 21:28:41,383 | werkzeug | INFO | 172.18.0.1 - - [19/Feb/2025 21:28:41] "GET /api/geocode?lat=36.2372&lon=-114.9859 HTTP/1.1" 200 -
+2025-02-19 21:28:44,625 | api.external_api | INFO | Found 47 alerts for state TX
+2025-02-19 21:28:45,358 | werkzeug | INFO | 172.18.0.1 - - [19/Feb/2025 21:28:45] "OPTIONS /api/save-user HTTP/1.1" 200 -
+2025-02-19 21:28:45,358 | werkzeug | INFO | 172.18.0.1 - - [19/Feb/2025 21:28:45] "OPTIONS /api/save-user HTTP/1.1" 200 -
+2025-02-19 21:28:45,362 | werkzeug | INFO | 172.18.0.1 - - [19/Feb/2025 21:28:45] "OPTIONS /api/save-user HTTP/1.1" 200 -
+2025-02-19 21:28:45,362 | werkzeug | INFO | 172.18.0.1 - - [19/Feb/2025 21:28:45] "OPTIONS /api/save-user HTTP/1.1" 200 -
+2025-02-19 21:28:45,374 | werkzeug | INFO | 172.18.0.1 - - [19/Feb/2025 21:28:45] "OPTIONS /api/save-user HTTP/1.1" 200 -
+2025-02-19 21:28:45,374 | werkzeug | INFO | 172.18.0.1 - - [19/Feb/2025 21:28:45] "OPTIONS /api/save-user HTTP/1.1" 200 -
+2025-02-19 21:28:45,369 | root | INFO | Log request received
+2025-02-19 21:28:45,434 | werkzeug | INFO | 172.18.0.1 - - [19/Feb/2025 21:28:45] "GET /api/logs HTTP/1.1" 200 -
+2025-02-19 21:28:45,434 | werkzeug | INFO | 172.18.0.1 - - [19/Feb/2025 21:28:45] "GET /api/logs HTTP/1.1" 200 -
+2025-02-19 21:28:45,449 | root | INFO | Log request received
+2025-02-19 21:28:45,463 | werkzeug | INFO | 172.18.0.1 - - [19/Feb/2025 21:28:45] "GET /api/logs HTTP/1.1" 200 -
+2025-02-19 21:28:45,463 | werkzeug | INFO | 172.18.0.1 - - [19/Feb/2025 21:28:45] "GET /api/logs HTTP/1.1" 200 -
+2025-02-19 21:28:45,661 | api.external_api | INFO | Found state NV for location Las Vegas
+2025-02-19 21:28:45,664 | api.external_api | INFO | Found state TX for location Dallas-ish
+2025-02-19 21:28:45,665 | api.external_api | INFO | Found state LA for location Shreveport
+2025-02-19 21:28:45,665 | api.external_api | INFO | Found 3 alerts for state NV
+2025-02-19 21:28:45,666 | api.external_api | INFO | Found 47 alerts for state TX
+2025-02-19 21:28:45,761 | werkzeug | INFO | 172.18.0.1 - - [19/Feb/2025 21:28:45] "POST /api/save-user HTTP/1.1" 200 -
+2025-02-19 21:28:45,761 | werkzeug | INFO | 172.18.0.1 - - [19/Feb/2025 21:28:45] "POST /api/save-user HTTP/1.1" 200 -
+2025-02-19 21:28:45,765 | werkzeug | INFO | 172.18.0.1 - - [19/Feb/2025 21:28:45] "POST /api/save-user HTTP/1.1" 200 -
+2025-02-19 21:28:45,765 | werkzeug | INFO | 172.18.0.1 - - [19/Feb/2025 21:28:45] "POST /api/save-user HTTP/1.1" 200 -
+2025-02-19 21:28:45,793 | werkzeug | INFO | 172.18.0.1 - - [19/Feb/2025 21:28:45] "POST /api/save-user HTTP/1.1" 200 -
+2025-02-19 21:28:45,793 | werkzeug | INFO | 172.18.0.1 - - [19/Feb/2025 21:28:45] "POST /api/save-user HTTP/1.1" 200 -
+2025-02-19 21:28:47,995 | api.external_api | INFO | Found 20 alerts for state LA
+2025-02-19 21:28:47,997 | api.external_api | INFO | Returning 70 total alerts across all locations
+2025-02-19 21:28:47,999 | werkzeug | INFO | 172.18.0.1 - - [19/Feb/2025 21:28:47] "GET /api/external/alerts?userId=user_2spbTMDhwH9wcaHFZTOuQtN5thi HTTP/1.1" 200 -
+2025-02-19 21:28:47,999 | werkzeug | INFO | 172.18.0.1 - - [19/Feb/2025 21:28:47] "GET /api/external/alerts?userId=user_2spbTMDhwH9wcaHFZTOuQtN5thi HTTP/1.1" 200 -
+2025-02-19 21:28:48,261 | api.external_api | INFO | Found state NV for location Las Vegas
+2025-02-19 21:28:48,262 | api.external_api | INFO | Found state TX for location Dallas-ish
+2025-02-19 21:28:48,263 | api.external_api | INFO | Found state LA for location Shreveport
+2025-02-19 21:28:48,263 | api.external_api | INFO | Found 3 alerts for state NV
+2025-02-19 21:28:48,264 | api.external_api | INFO | Found 47 alerts for state TX
+2025-02-19 21:28:48,264 | api.external_api | INFO | Found 20 alerts for state LA
+2025-02-19 21:28:48,265 | api.external_api | INFO | Returning 70 total alerts across all locations
+2025-02-19 21:28:48,270 | werkzeug | INFO | 172.18.0.1 - - [19/Feb/2025 21:28:48] "GET /api/external/alerts?userId=user_2spbTMDhwH9wcaHFZTOuQtN5thi HTTP/1.1" 200 -
+2025-02-19 21:28:48,270 | werkzeug | INFO | 172.18.0.1 - - [19/Feb/2025 21:28:48] "GET /api/external/alerts?userId=user_2spbTMDhwH9wcaHFZTOuQtN5thi HTTP/1.1" 200 -
+2025-02-19 21:28:49,072 | werkzeug | INFO | 172.18.0.1 - - [19/Feb/2025 21:28:49] "GET /api/locations?userId=user_2spbTMDhwH9wcaHFZTOuQtN5thi HTTP/1.1" 200 -
+2025-02-19 21:28:49,072 | werkzeug | INFO | 172.18.0.1 - - [19/Feb/2025 21:28:49] "GET /api/locations?userId=user_2spbTMDhwH9wcaHFZTOuQtN5thi HTTP/1.1" 200 -
+2025-02-19 21:28:49,333 | werkzeug | INFO | 172.18.0.1 - - [19/Feb/2025 21:28:49] "GET /api/locations?userId=user_2spbTMDhwH9wcaHFZTOuQtN5thi HTTP/1.1" 200 -
+2025-02-19 21:28:49,333 | werkzeug | INFO | 172.18.0.1 - - [19/Feb/2025 21:28:49] "GET /api/locations?userId=user_2spbTMDhwH9wcaHFZTOuQtN5thi HTTP/1.1" 200 -
+2025-02-19 21:28:52,237 | api.external_api | INFO | Found 20 alerts for state LA
+2025-02-19 21:28:52,238 | api.external_api | INFO | Returning 70 total alerts across all locations
+2025-02-19 21:28:52,241 | werkzeug | INFO | 172.18.0.1 - - [19/Feb/2025 21:28:52] "GET /api/external/alerts?userId=user_2spbTMDhwH9wcaHFZTOuQtN5thi HTTP/1.1" 200 -
+2025-02-19 21:28:52,241 | werkzeug | INFO | 172.18.0.1 - - [19/Feb/2025 21:28:52] "GET /api/external/alerts?userId=user_2spbTMDhwH9wcaHFZTOuQtN5thi HTTP/1.1" 200 -
+2025-02-19 21:28:52,735 | root | INFO | Log request received
+2025-02-19 21:28:52,759 | werkzeug | INFO | 172.18.0.1 - - [19/Feb/2025 21:28:52] "GET /api/logs HTTP/1.1" 200 -
+2025-02-19 21:28:52,759 | werkzeug | INFO | 172.18.0.1 - - [19/Feb/2025 21:28:52] "GET /api/logs HTTP/1.1" 200 -
+2025-02-19 21:28:54,664 | root | INFO | Log request received
+2025-02-19 21:28:54,670 | werkzeug | INFO | 172.18.0.1 - - [19/Feb/2025 21:28:54] "GET /api/logs HTTP/1.1" 200 -
+2025-02-19 21:28:54,670 | werkzeug | INFO | 172.18.0.1 - - [19/Feb/2025 21:28:54] "GET /api/logs HTTP/1.1" 200 -
+2025-02-19 21:28:54,721 | werkzeug | INFO | 172.18.0.1 - - [19/Feb/2025 21:28:54] "[33mGET /favicon.ico HTTP/1.1[0m" 404 -
+2025-02-19 21:28:54,721 | werkzeug | INFO | 172.18.0.1 - - [19/Feb/2025 21:28:54] "[33mGET /favicon.ico HTTP/1.1[0m" 404 -
+2025-02-19 21:29:16,118 | root | INFO | Log request received
+2025-02-19 21:29:16,138 | werkzeug | INFO | 172.18.0.1 - - [19/Feb/2025 21:29:16] "GET /api/logs HTTP/1.1" 200 -
+2025-02-19 21:29:16,138 | werkzeug | INFO | 172.18.0.1 - - [19/Feb/2025 21:29:16] "GET /api/logs HTTP/1.1" 200 -
+2025-02-19 21:29:46,097 | root | INFO | Log request received
+2025-02-19 21:29:46,110 | werkzeug | INFO | 172.18.0.1 - - [19/Feb/2025 21:29:46] "GET /api/logs HTTP/1.1" 200 -
+2025-02-19 21:29:46,110 | werkzeug | INFO | 172.18.0.1 - - [19/Feb/2025 21:29:46] "GET /api/logs HTTP/1.1" 200 -
+2025-02-19 21:30:16,096 | root | INFO | Log request received
+2025-02-19 21:30:16,102 | werkzeug | INFO | 172.18.0.1 - - [19/Feb/2025 21:30:16] "GET /api/logs HTTP/1.1" 200 -
+2025-02-19 21:30:16,102 | werkzeug | INFO | 172.18.0.1 - - [19/Feb/2025 21:30:16] "GET /api/logs HTTP/1.1" 200 -
+2025-02-19 21:30:46,094 | root | INFO | Log request received
+2025-02-19 21:30:46,100 | werkzeug | INFO | 172.18.0.1 - - [19/Feb/2025 21:30:46] "GET /api/logs HTTP/1.1" 200 -
+2025-02-19 21:30:46,100 | werkzeug | INFO | 172.18.0.1 - - [19/Feb/2025 21:30:46] "GET /api/logs HTTP/1.1" 200 -
+2025-02-19 21:32:15,096 | root | INFO | Log request received
+2025-02-19 21:32:15,104 | werkzeug | INFO | 172.18.0.1 - - [19/Feb/2025 21:32:15] "GET /api/logs HTTP/1.1" 200 -
+2025-02-19 21:32:15,104 | werkzeug | INFO | 172.18.0.1 - - [19/Feb/2025 21:32:15] "GET /api/logs HTTP/1.1" 200 -
+2025-02-19 21:33:15,131 | root | INFO | Log request received
+2025-02-19 21:33:15,146 | werkzeug | INFO | 172.18.0.1 - - [19/Feb/2025 21:33:15] "GET /api/logs HTTP/1.1" 200 -
+2025-02-19 21:33:15,146 | werkzeug | INFO | 172.18.0.1 - - [19/Feb/2025 21:33:15] "GET /api/logs HTTP/1.1" 200 -
+2025-02-19 21:34:15,120 | root | INFO | Log request received
+2025-02-19 21:34:15,141 | werkzeug | INFO | 172.18.0.1 - - [19/Feb/2025 21:34:15] "GET /api/logs HTTP/1.1" 200 -
+2025-02-19 21:34:15,141 | werkzeug | INFO | 172.18.0.1 - - [19/Feb/2025 21:34:15] "GET /api/logs HTTP/1.1" 200 -
+2025-02-19 21:35:15,128 | root | INFO | Log request received
+2025-02-19 21:35:15,160 | werkzeug | INFO | 172.18.0.1 - - [19/Feb/2025 21:35:15] "GET /api/logs HTTP/1.1" 200 -
+2025-02-19 21:35:15,160 | werkzeug | INFO | 172.18.0.1 - - [19/Feb/2025 21:35:15] "GET /api/logs HTTP/1.1" 200 -
+2025-02-19 21:36:15,105 | root | INFO | Log request received
+2025-02-19 21:36:15,114 | werkzeug | INFO | 172.18.0.1 - - [19/Feb/2025 21:36:15] "GET /api/logs HTTP/1.1" 200 -
+2025-02-19 21:36:15,114 | werkzeug | INFO | 172.18.0.1 - - [19/Feb/2025 21:36:15] "GET /api/logs HTTP/1.1" 200 -
+2025-02-19 21:50:14,761 | root | INFO | Log request received
+2025-02-19 21:50:14,783 | werkzeug | INFO | 172.18.0.1 - - [19/Feb/2025 21:50:14] "OPTIONS /api/save-user HTTP/1.1" 200 -
+2025-02-19 21:50:14,822 | werkzeug | INFO | 172.18.0.1 - - [19/Feb/2025 21:50:14] "OPTIONS /api/save-user HTTP/1.1" 200 -
+2025-02-19 21:50:14,783 | werkzeug | INFO | 172.18.0.1 - - [19/Feb/2025 21:50:14] "OPTIONS /api/save-user HTTP/1.1" 200 -
+2025-02-19 21:50:14,838 | werkzeug | INFO | 172.18.0.1 - - [19/Feb/2025 21:50:14] "OPTIONS /api/save-user HTTP/1.1" 200 -
+2025-02-19 21:50:14,822 | werkzeug | INFO | 172.18.0.1 - - [19/Feb/2025 21:50:14] "OPTIONS /api/save-user HTTP/1.1" 200 -
+2025-02-19 21:50:14,838 | werkzeug | INFO | 172.18.0.1 - - [19/Feb/2025 21:50:14] "OPTIONS /api/save-user HTTP/1.1" 200 -
+2025-02-19 21:50:14,897 | werkzeug | INFO | 172.18.0.1 - - [19/Feb/2025 21:50:14] "GET /api/logs HTTP/1.1" 200 -
+2025-02-19 21:50:14,897 | werkzeug | INFO | 172.18.0.1 - - [19/Feb/2025 21:50:14] "GET /api/logs HTTP/1.1" 200 -
+2025-02-19 21:50:14,917 | root | INFO | Log request received
+2025-02-19 21:50:14,926 | werkzeug | INFO | 172.18.0.1 - - [19/Feb/2025 21:50:14] "GET /api/logs HTTP/1.1" 200 -
+2025-02-19 21:50:14,926 | werkzeug | INFO | 172.18.0.1 - - [19/Feb/2025 21:50:14] "GET /api/logs HTTP/1.1" 200 -
+2025-02-19 21:50:15,240 | api.external_api | INFO | Found state NV for location Las Vegas
+2025-02-19 21:50:15,241 | api.external_api | INFO | Found state TX for location Dallas-ish
+2025-02-19 21:50:15,241 | api.external_api | INFO | Found state LA for location Shreveport
+2025-02-19 21:50:15,340 | werkzeug | INFO | 172.18.0.1 - - [19/Feb/2025 21:50:15] "POST /api/save-user HTTP/1.1" 200 -
+2025-02-19 21:50:15,340 | werkzeug | INFO | 172.18.0.1 - - [19/Feb/2025 21:50:15] "POST /api/save-user HTTP/1.1" 200 -
+2025-02-19 21:50:15,353 | werkzeug | INFO | 172.18.0.1 - - [19/Feb/2025 21:50:15] "POST /api/save-user HTTP/1.1" 200 -
+2025-02-19 21:50:15,357 | werkzeug | INFO | 172.18.0.1 - - [19/Feb/2025 21:50:15] "POST /api/save-user HTTP/1.1" 200 -
+2025-02-19 21:50:15,353 | werkzeug | INFO | 172.18.0.1 - - [19/Feb/2025 21:50:15] "POST /api/save-user HTTP/1.1" 200 -
+2025-02-19 21:50:15,357 | werkzeug | INFO | 172.18.0.1 - - [19/Feb/2025 21:50:15] "POST /api/save-user HTTP/1.1" 200 -
+2025-02-19 21:50:16,180 | api.external_api | INFO | Found 3 alerts for state NV
+2025-02-19 21:50:16,385 | api.external_api | INFO | Found 47 alerts for state TX
+2025-02-19 21:50:17,000 | api.external_api | INFO | Found 20 alerts for state LA
+2025-02-19 21:50:17,001 | api.external_api | INFO | Returning 70 total alerts across all locations
+2025-02-19 21:50:17,004 | werkzeug | INFO | 172.18.0.1 - - [19/Feb/2025 21:50:17] "GET /api/external/alerts?userId=user_2spbTMDhwH9wcaHFZTOuQtN5thi HTTP/1.1" 200 -
+2025-02-19 21:50:17,004 | werkzeug | INFO | 172.18.0.1 - - [19/Feb/2025 21:50:17] "GET /api/external/alerts?userId=user_2spbTMDhwH9wcaHFZTOuQtN5thi HTTP/1.1" 200 -
+2025-02-19 21:50:17,252 | api.external_api | INFO | Found state NV for location Las Vegas
+2025-02-19 21:50:17,253 | api.external_api | INFO | Found state TX for location Dallas-ish
+2025-02-19 21:50:17,254 | api.external_api | INFO | Found state LA for location Shreveport
+2025-02-19 21:50:17,255 | api.external_api | INFO | Found 3 alerts for state NV
+2025-02-19 21:50:17,255 | api.external_api | INFO | Found 47 alerts for state TX
+2025-02-19 21:50:17,256 | api.external_api | INFO | Found 20 alerts for state LA
+2025-02-19 21:50:17,257 | api.external_api | INFO | Returning 70 total alerts across all locations
+2025-02-19 21:50:17,261 | werkzeug | INFO | 172.18.0.1 - - [19/Feb/2025 21:50:17] "GET /api/external/alerts?userId=user_2spbTMDhwH9wcaHFZTOuQtN5thi HTTP/1.1" 200 -
+2025-02-19 21:50:17,261 | werkzeug | INFO | 172.18.0.1 - - [19/Feb/2025 21:50:17] "GET /api/external/alerts?userId=user_2spbTMDhwH9wcaHFZTOuQtN5thi HTTP/1.1" 200 -
+2025-02-19 21:50:17,676 | werkzeug | INFO | 172.18.0.1 - - [19/Feb/2025 21:50:17] "GET /api/locations?userId=user_2spbTMDhwH9wcaHFZTOuQtN5thi HTTP/1.1" 200 -
+2025-02-19 21:50:17,676 | werkzeug | INFO | 172.18.0.1 - - [19/Feb/2025 21:50:17] "GET /api/locations?userId=user_2spbTMDhwH9wcaHFZTOuQtN5thi HTTP/1.1" 200 -
+2025-02-19 21:50:17,943 | werkzeug | INFO | 172.18.0.1 - - [19/Feb/2025 21:50:17] "GET /api/locations?userId=user_2spbTMDhwH9wcaHFZTOuQtN5thi HTTP/1.1" 200 -
+2025-02-19 21:50:17,943 | werkzeug | INFO | 172.18.0.1 - - [19/Feb/2025 21:50:17] "GET /api/locations?userId=user_2spbTMDhwH9wcaHFZTOuQtN5thi HTTP/1.1" 200 -
+2025-02-19 21:50:44,741 | root | INFO | Log request received
+2025-02-19 21:50:44,748 | werkzeug | INFO | 172.18.0.1 - - [19/Feb/2025 21:50:44] "GET /api/logs HTTP/1.1" 200 -
+2025-02-19 21:50:44,748 | werkzeug | INFO | 172.18.0.1 - - [19/Feb/2025 21:50:44] "GET /api/logs HTTP/1.1" 200 -
+2025-02-19 21:51:15,209 | root | INFO | Log request received
+2025-02-19 21:51:15,269 | werkzeug | INFO | 172.18.0.1 - - [19/Feb/2025 21:51:15] "GET /api/logs HTTP/1.1" 200 -
+2025-02-19 21:51:15,269 | werkzeug | INFO | 172.18.0.1 - - [19/Feb/2025 21:51:15] "GET /api/logs HTTP/1.1" 200 -
+2025-02-19 21:51:45,077 | root | INFO | Log request received
+2025-02-19 21:51:45,087 | werkzeug | INFO | 172.18.0.1 - - [19/Feb/2025 21:51:45] "GET /api/logs HTTP/1.1" 200 -
+2025-02-19 21:51:45,087 | werkzeug | INFO | 172.18.0.1 - - [19/Feb/2025 21:51:45] "GET /api/logs HTTP/1.1" 200 -
+2025-02-19 21:52:14,742 | root | INFO | Log request received
+2025-02-19 21:52:14,751 | werkzeug | INFO | 172.18.0.1 - - [19/Feb/2025 21:52:14] "GET /api/logs HTTP/1.1" 200 -
+2025-02-19 21:52:14,751 | werkzeug | INFO | 172.18.0.1 - - [19/Feb/2025 21:52:14] "GET /api/logs HTTP/1.1" 200 -
+2025-02-19 21:52:45,095 | root | INFO | Log request received
+2025-02-19 21:52:45,102 | werkzeug | INFO | 172.18.0.1 - - [19/Feb/2025 21:52:45] "GET /api/logs HTTP/1.1" 200 -
+2025-02-19 21:52:45,102 | werkzeug | INFO | 172.18.0.1 - - [19/Feb/2025 21:52:45] "GET /api/logs HTTP/1.1" 200 -
+2025-02-19 21:53:07,358 | werkzeug | INFO | 172.18.0.1 - - [19/Feb/2025 21:53:07] "OPTIONS /api/save-user HTTP/1.1" 200 -
+2025-02-19 21:53:07,361 | werkzeug | INFO | 172.18.0.1 - - [19/Feb/2025 21:53:07] "OPTIONS /api/save-user HTTP/1.1" 200 -
+2025-02-19 21:53:07,368 | werkzeug | INFO | 172.18.0.1 - - [19/Feb/2025 21:53:07] "OPTIONS /api/save-user HTTP/1.1" 200 -
+2025-02-19 21:53:07,358 | werkzeug | INFO | 172.18.0.1 - - [19/Feb/2025 21:53:07] "OPTIONS /api/save-user HTTP/1.1" 200 -
+2025-02-19 21:53:07,382 | root | INFO | Log request received
+2025-02-19 21:53:07,361 | werkzeug | INFO | 172.18.0.1 - - [19/Feb/2025 21:53:07] "OPTIONS /api/save-user HTTP/1.1" 200 -
+2025-02-19 21:53:07,368 | werkzeug | INFO | 172.18.0.1 - - [19/Feb/2025 21:53:07] "OPTIONS /api/save-user HTTP/1.1" 200 -
+2025-02-19 21:53:07,445 | werkzeug | INFO | 172.18.0.1 - - [19/Feb/2025 21:53:07] "GET /api/logs HTTP/1.1" 200 -
+2025-02-19 21:53:07,445 | werkzeug | INFO | 172.18.0.1 - - [19/Feb/2025 21:53:07] "GET /api/logs HTTP/1.1" 200 -
+2025-02-19 21:53:07,480 | root | INFO | Log request received
+2025-02-19 21:53:07,498 | werkzeug | INFO | 172.18.0.1 - - [19/Feb/2025 21:53:07] "GET /api/logs HTTP/1.1" 200 -
+2025-02-19 21:53:07,498 | werkzeug | INFO | 172.18.0.1 - - [19/Feb/2025 21:53:07] "GET /api/logs HTTP/1.1" 200 -
+2025-02-19 21:53:07,743 | api.external_api | INFO | Found state NV for location Las Vegas
+2025-02-19 21:53:07,745 | api.external_api | INFO | Found state TX for location Dallas-ish
+2025-02-19 21:53:07,746 | api.external_api | INFO | Found state LA for location Shreveport
+2025-02-19 21:53:07,748 | api.external_api | INFO | Found 3 alerts for state NV
+2025-02-19 21:53:07,749 | api.external_api | INFO | Found 47 alerts for state TX
+2025-02-19 21:53:07,750 | api.external_api | INFO | Found 20 alerts for state LA
+2025-02-19 21:53:07,758 | api.external_api | INFO | Returning 70 total alerts across all locations
+2025-02-19 21:53:07,785 | werkzeug | INFO | 172.18.0.1 - - [19/Feb/2025 21:53:07] "GET /api/external/alerts?userId=user_2spbTMDhwH9wcaHFZTOuQtN5thi HTTP/1.1" 200 -
+2025-02-19 21:53:07,785 | werkzeug | INFO | 172.18.0.1 - - [19/Feb/2025 21:53:07] "GET /api/external/alerts?userId=user_2spbTMDhwH9wcaHFZTOuQtN5thi HTTP/1.1" 200 -
+2025-02-19 21:53:07,865 | werkzeug | INFO | 172.18.0.1 - - [19/Feb/2025 21:53:07] "POST /api/save-user HTTP/1.1" 200 -
+2025-02-19 21:53:07,866 | werkzeug | INFO | 172.18.0.1 - - [19/Feb/2025 21:53:07] "POST /api/save-user HTTP/1.1" 200 -
+2025-02-19 21:53:07,868 | werkzeug | INFO | 172.18.0.1 - - [19/Feb/2025 21:53:07] "POST /api/save-user HTTP/1.1" 200 -
+2025-02-19 21:53:07,865 | werkzeug | INFO | 172.18.0.1 - - [19/Feb/2025 21:53:07] "POST /api/save-user HTTP/1.1" 200 -
+2025-02-19 21:53:07,866 | werkzeug | INFO | 172.18.0.1 - - [19/Feb/2025 21:53:07] "POST /api/save-user HTTP/1.1" 200 -
+2025-02-19 21:53:07,868 | werkzeug | INFO | 172.18.0.1 - - [19/Feb/2025 21:53:07] "POST /api/save-user HTTP/1.1" 200 -
+2025-02-19 21:53:08,193 | api.external_api | INFO | Found state NV for location Las Vegas
+2025-02-19 21:53:08,224 | api.external_api | INFO | Found state TX for location Dallas-ish
+2025-02-19 21:53:08,224 | api.external_api | INFO | Found state LA for location Shreveport
+2025-02-19 21:53:08,225 | api.external_api | INFO | Found 3 alerts for state NV
+2025-02-19 21:53:08,226 | api.external_api | INFO | Found 47 alerts for state TX
+2025-02-19 21:53:08,226 | api.external_api | INFO | Found 20 alerts for state LA
+2025-02-19 21:53:08,227 | api.external_api | INFO | Returning 70 total alerts across all locations
+2025-02-19 21:53:08,258 | werkzeug | INFO | 172.18.0.1 - - [19/Feb/2025 21:53:08] "GET /api/external/alerts?userId=user_2spbTMDhwH9wcaHFZTOuQtN5thi HTTP/1.1" 200 -
+2025-02-19 21:53:08,258 | werkzeug | INFO | 172.18.0.1 - - [19/Feb/2025 21:53:08] "GET /api/external/alerts?userId=user_2spbTMDhwH9wcaHFZTOuQtN5thi HTTP/1.1" 200 -
+2025-02-19 21:53:08,652 | werkzeug | INFO | 172.18.0.1 - - [19/Feb/2025 21:53:08] "GET /api/locations?userId=user_2spbTMDhwH9wcaHFZTOuQtN5thi HTTP/1.1" 200 -
+2025-02-19 21:53:08,652 | werkzeug | INFO | 172.18.0.1 - - [19/Feb/2025 21:53:08] "GET /api/locations?userId=user_2spbTMDhwH9wcaHFZTOuQtN5thi HTTP/1.1" 200 -
+2025-02-19 21:53:08,927 | werkzeug | INFO | 172.18.0.1 - - [19/Feb/2025 21:53:08] "GET /api/locations?userId=user_2spbTMDhwH9wcaHFZTOuQtN5thi HTTP/1.1" 200 -
+2025-02-19 21:53:08,927 | werkzeug | INFO | 172.18.0.1 - - [19/Feb/2025 21:53:08] "GET /api/locations?userId=user_2spbTMDhwH9wcaHFZTOuQtN5thi HTTP/1.1" 200 -
+2025-02-19 21:53:37,168 | root | INFO | Log request received
+2025-02-19 21:53:37,178 | werkzeug | INFO | 172.18.0.1 - - [19/Feb/2025 21:53:37] "GET /api/logs HTTP/1.1" 200 -
+2025-02-19 21:53:37,178 | werkzeug | INFO | 172.18.0.1 - - [19/Feb/2025 21:53:37] "GET /api/logs HTTP/1.1" 200 -
+2025-02-19 21:54:07,169 | root | INFO | Log request received
+2025-02-19 21:54:07,177 | werkzeug | INFO | 172.18.0.1 - - [19/Feb/2025 21:54:07] "GET /api/logs HTTP/1.1" 200 -
+2025-02-19 21:54:07,177 | werkzeug | INFO | 172.18.0.1 - - [19/Feb/2025 21:54:07] "GET /api/logs HTTP/1.1" 200 -
+2025-02-19 21:54:38,081 | root | INFO | Log request received
+2025-02-19 21:54:38,092 | werkzeug | INFO | 172.18.0.1 - - [19/Feb/2025 21:54:38] "GET /api/logs HTTP/1.1" 200 -
+2025-02-19 21:54:38,092 | werkzeug | INFO | 172.18.0.1 - - [19/Feb/2025 21:54:38] "GET /api/logs HTTP/1.1" 200 -
+2025-02-19 21:55:08,089 | root | INFO | Log request received
+2025-02-19 21:55:08,094 | werkzeug | INFO | 172.18.0.1 - - [19/Feb/2025 21:55:08] "GET /api/logs HTTP/1.1" 200 -
+2025-02-19 21:55:08,094 | werkzeug | INFO | 172.18.0.1 - - [19/Feb/2025 21:55:08] "GET /api/logs HTTP/1.1" 200 -
+2025-02-19 21:56:15,350 | root | INFO | Log request received
+2025-02-19 21:56:15,362 | werkzeug | INFO | 172.18.0.1 - - [19/Feb/2025 21:56:15] "GET /api/logs HTTP/1.1" 200 -
+2025-02-19 21:56:15,362 | werkzeug | INFO | 172.18.0.1 - - [19/Feb/2025 21:56:15] "GET /api/logs HTTP/1.1" 200 -
+2025-02-19 22:01:11,153 | root | INFO | Log request received
+2025-02-19 22:01:11,162 | werkzeug | INFO | 172.18.0.1 - - [19/Feb/2025 22:01:11] "GET /api/logs HTTP/1.1" 200 -
+2025-02-19 22:01:11,162 | werkzeug | INFO | 172.18.0.1 - - [19/Feb/2025 22:01:11] "GET /api/logs HTTP/1.1" 200 -
+2025-02-19 22:02:11,141 | root | INFO | Log request received
+2025-02-19 22:02:11,151 | werkzeug | INFO | 172.18.0.1 - - [19/Feb/2025 22:02:11] "GET /api/logs HTTP/1.1" 200 -
+2025-02-19 22:02:11,151 | werkzeug | INFO | 172.18.0.1 - - [19/Feb/2025 22:02:11] "GET /api/logs HTTP/1.1" 200 -
+2025-02-19 22:02:33,173 | root | INFO | Log request received
+2025-02-19 22:02:33,185 | werkzeug | INFO | 172.18.0.1 - - [19/Feb/2025 22:02:33] "GET /api/logs HTTP/1.1" 200 -
+2025-02-19 22:02:33,185 | werkzeug | INFO | 172.18.0.1 - - [19/Feb/2025 22:02:33] "GET /api/logs HTTP/1.1" 200 -
+2025-02-19 22:03:03,157 | root | INFO | Log request received
+2025-02-19 22:03:03,165 | werkzeug | INFO | 172.18.0.1 - - [19/Feb/2025 22:03:03] "GET /api/logs HTTP/1.1" 200 -
+2025-02-19 22:03:03,165 | werkzeug | INFO | 172.18.0.1 - - [19/Feb/2025 22:03:03] "GET /api/logs HTTP/1.1" 200 -
+2025-02-19 22:03:33,164 | root | INFO | Log request received
+2025-02-19 22:03:33,171 | werkzeug | INFO | 172.18.0.1 - - [19/Feb/2025 22:03:33] "GET /api/logs HTTP/1.1" 200 -
+2025-02-19 22:03:33,171 | werkzeug | INFO | 172.18.0.1 - - [19/Feb/2025 22:03:33] "GET /api/logs HTTP/1.1" 200 -
+2025-02-19 22:04:03,173 | root | INFO | Log request received
+2025-02-19 22:04:03,186 | werkzeug | INFO | 172.18.0.1 - - [19/Feb/2025 22:04:03] "GET /api/logs HTTP/1.1" 200 -
+2025-02-19 22:04:03,186 | werkzeug | INFO | 172.18.0.1 - - [19/Feb/2025 22:04:03] "GET /api/logs HTTP/1.1" 200 -
+2025-02-19 22:04:33,222 | root | INFO | Log request received
+2025-02-19 22:04:33,233 | werkzeug | INFO | 172.18.0.1 - - [19/Feb/2025 22:04:33] "GET /api/logs HTTP/1.1" 200 -
+2025-02-19 22:04:33,233 | werkzeug | INFO | 172.18.0.1 - - [19/Feb/2025 22:04:33] "GET /api/logs HTTP/1.1" 200 -
+2025-02-19 22:05:03,158 | root | INFO | Log request received
+2025-02-19 22:05:03,167 | werkzeug | INFO | 172.18.0.1 - - [19/Feb/2025 22:05:03] "GET /api/logs HTTP/1.1" 200 -
+2025-02-19 22:05:03,167 | werkzeug | INFO | 172.18.0.1 - - [19/Feb/2025 22:05:03] "GET /api/logs HTTP/1.1" 200 -

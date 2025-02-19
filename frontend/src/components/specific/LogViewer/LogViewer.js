@@ -1,59 +1,22 @@
+// LogViewer.js
 import React from 'react';
+import PropTypes from 'prop-types';
+import LogEntry from "../../../../src/utils/LogEntry";
 
-/**
- * LogViewer component for displaying formatted application logs
- * @component
- */
-const LogViewer = ({ logs }) => {
-  // Group logs by source (frontend/backend)
-  const groupedLogs = logs.reduce((acc, log) => {
-    const source = log.source || 'unknown';
-    if (!acc[source]) {
-      acc[source] = [];
-    }
-    acc[source].push(log);
-    return acc;
-  }, {});
+const LogViewer = ({ logs }) => (
+  <div className="logs-viewer">
+    {logs.length === 0 ? (
+      <div className="logs-empty-state">No logs to display</div>
+    ) : (
+      logs.map((log, index) => (
+        <LogEntry key={`log-${index}`} logLine={log} />
+      ))
+    )}
+  </div>
+);
 
-  const getLogTypeColor = (log) => {
-    if (log.message.includes('ERROR')) return 'text-red-600';
-    if (log.message.includes('WARNING')) return 'text-yellow-600';
-    if (log.message.includes('INFO')) return 'text-blue-600';
-    return 'text-gray-600';
-  };
-
-  const getLogTypeIcon = (log) => {
-    if (log.message.includes('ERROR')) return '❌';
-    if (log.message.includes('WARNING')) return '⚠️';
-    if (log.message.includes('INFO')) return 'ℹ️';
-    return '•';
-  };
-
-  return (
-    <div className="logs-viewer">
-      {Object.entries(groupedLogs).map(([source, sourceLogs]) => (
-        <div key={source} className="log-group">
-          <div className="log-group-header">
-            <h3 className="log-source-title">{source}</h3>
-          </div>
-          <div className="log-entries">
-            {sourceLogs.map((log, index) => (
-              <div key={index} className={`log-entry ${getLogTypeColor(log)}`}>
-                <span className="log-icon">{getLogTypeIcon(log)}</span>
-                <span className="log-timestamp">{log.timestamp}</span>
-                <span className="log-message">{log.message}</span>
-                {log.method && log.path && (
-                  <span className="log-request">
-                    {log.method} {log.path} → {log.status}
-                  </span>
-                )}
-              </div>
-            ))}
-          </div>
-        </div>
-      ))}
-    </div>
-  );
+LogViewer.propTypes = {
+  logs: PropTypes.arrayOf(PropTypes.string).isRequired
 };
 
 export default LogViewer;
