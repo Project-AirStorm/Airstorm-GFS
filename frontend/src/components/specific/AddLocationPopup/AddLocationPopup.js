@@ -1,105 +1,93 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Star, X } from 'lucide-react';
 import { useUser } from '@clerk/clerk-react';
-import './AddLocationPopup.css';
+import _ from 'lodash';
+import axios from 'axios';
+
+REACT_APP_API_URL = process.env.REACT_APP_API_URL;
 
 const AddLocationPopup = ({ isOpen, onClose, onLocationAdded }) => {
   const { isLoaded: userLoaded, user } = useUser();
   const [searchInput, setSearchInput] = useState('');
+  const [predictions, setPredictions] = useState([]);
   const [isFavorite, setIsFavorite] = useState(false);
-  const [autocomplete, setAutocomplete] = useState(null);
   const [error, setError] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
   const [selectedPlace, setSelectedPlace] = useState(null);
 
-  useEffect(() => {
-    if (!isOpen) return;
+  // Create a debounced function for API calls
+  const debouncedFetchPredictions = useRef(
+    _.debounce(async (input) => {
+      if (!input) {
+        setPredictions([]);
+        return;
+      }
 
-    const loadGoogleMaps = async () => {
       try {
-        setIsLoading(true);
-        setError('');
+        const response = await fetch(
+          `${REACT_APP_API_URL}/api/places/autocomplete?input=${encodeURIComponent(
+            input
+          )}`
+        );
+        const data = await response.json();
 
-        // Check if script is already loaded
-        if (!window.google) {
-          const script = document.createElement('script');
-          script.src = `https://maps.googleapis.com/maps/api/js?key=${process.env.REACT_APP_GOOGLE_MAPS_API_KEY}&libraries=places`;
-          script.async = true;
-
-          await new Promise((resolve, reject) => {
-            script.onload = resolve;
-            script.onerror = () =>
-              reject(new Error('Failed to load Google Maps'));
-            document.head.appendChild(script);
-          });
+        if (!response.ok) {
+          throw new Error(data.error || 'Failed to fetch predictions');
         }
 
-        // Initialize autocomplete
-        initAutocomplete();
-        setIsLoading(false);
+        if (data.predictions) {
+          setPredictions(data.predictions);
+        }
       } catch (err) {
-        console.error('Google Maps initialization error:', err);
-        setError('Failed to initialize location search');
-        setIsLoading(false);
+        // console.error('Error fetching predictions:', err);
+        // setError('Failed to fetch location suggestions');
       }
-    };
+    }, 300)
+  ).current;
 
-    loadGoogleMaps();
-
-    // Cleanup function
-    return () => {
+  useEffect(() => {
+    if (!isOpen) {
       setSearchInput('');
+      setPredictions([]);
       setSelectedPlace(null);
       setError('');
-    };
+    }
   }, [isOpen]);
 
-  const initAutocomplete = () => {
+  useEffect(() => {
+    debouncedFetchPredictions(searchInput);
+  }, [searchInput]);
+
+  const handlePlaceSelect = async (prediction) => {
     try {
-      const input = document.getElementById('location-search');
-      if (!input || !window.google?.maps?.places) return;
-
-      const options = {
-        types: ['(cities)'],
-      };
-
-      const autoCompleteInstance = new window.google.maps.places.Autocomplete(
-        input,
-        options
+      setIsLoading(true);
+      const response = await fetch(
+        `${REACT_APP_API_URL}/api/places/details?placeId=${encodeURIComponent(
+          prediction.place_id
+        )}`
       );
+      const data = await response.json();
 
-      // Set the position of the dropdown
-      const container = document.querySelector('.modal-container');
-      if (container) {
-        autoCompleteInstance.bindTo(
-          'bounds',
-          new window.google.maps.LatLngBounds()
-        );
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to fetch place details');
       }
 
-      // Ensure dropdown follows the input
-      const pacContainer = document.querySelector('.pac-container');
-      if (pacContainer) {
-        pacContainer.style.position = 'fixed';
-        pacContainer.style.zIndex = '9999';
+      if (data.result) {
+        const place = data.result;
+        setSelectedPlace({
+          name: place.name,
+          formatted_address: place.formatted_address,
+          geometry: place.geometry,
+        });
+        setSearchInput(place.formatted_address);
+        setPredictions([]);
       }
-
-      autoCompleteInstance.addListener('place_changed', () => {
-        const place = autoCompleteInstance.getPlace();
-        if (place.geometry) {
-          setSelectedPlace(place);
-          setSearchInput(place.formatted_address || place.name);
-        } else {
-          setSelectedPlace(null);
-          setError('Please select a location from the dropdown');
-        }
-      });
-
-      setAutocomplete(autoCompleteInstance);
     } catch (err) {
-      console.error('Autocomplete initialization error:', err);
-      setError('Failed to initialize location search');
+      // console.error('Error fetching place details:', err);
+      // setError('Failed to get location details');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -118,14 +106,12 @@ const AddLocationPopup = ({ isOpen, onClose, onLocationAdded }) => {
       const locationData = {
         userId: user.id,
         name: selectedPlace.name,
-        latitude: selectedPlace.geometry.location.lat(),
-        longitude: selectedPlace.geometry.location.lng(),
+        latitude: selectedPlace.geometry.location.lat,
+        longitude: selectedPlace.geometry.location.lng,
         isFavorite,
       };
 
-      console.log('Sending location data:', locationData);
-
-      const response = await fetch('http://localhost:5001/api/locations', {
+      const response = await fetch(`${REACT_APP_API_URL}/api/locations`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -134,15 +120,13 @@ const AddLocationPopup = ({ isOpen, onClose, onLocationAdded }) => {
       });
 
       const data = await response.json();
-      console.log('Response from server:', data);
 
       if (!response.ok) {
-        throw new Error(data.error || `Server error: ${response.status}`);
+        throw new Error(data.error || 'Failed to save location');
       }
 
       setSuccessMessage('Location added successfully!');
 
-      // Call the onLocationAdded callback if provided
       if (onLocationAdded) {
         onLocationAdded();
       }
@@ -155,16 +139,8 @@ const AddLocationPopup = ({ isOpen, onClose, onLocationAdded }) => {
         setSuccessMessage('');
       }, 1500);
     } catch (err) {
-      console.error('Save error:', err);
-      setError(err.message || 'Failed to save location');
-    }
-  };
-
-  const handleInputChange = (e) => {
-    setSearchInput(e.target.value);
-    // Clear selected place when user starts typing again
-    if (selectedPlace) {
-      setSelectedPlace(null);
+      // console.error('Save error:', err);
+      // setError(err.message || 'Failed to save location');
     }
   };
 
@@ -175,45 +151,51 @@ const AddLocationPopup = ({ isOpen, onClose, onLocationAdded }) => {
       <div className="bg-white rounded-lg p-6 w-96 relative">
         <button
           onClick={onClose}
-          className="absolute top-6 right-6 text-black-500 hover:text-black-700 text-xl font-bold hover:bg-gray-100 rounded"
+          className="absolute top-6 right-6 text-gray-500 hover:text-gray-700"
         >
           <X className="w-6 h-6" />
         </button>
 
         <h2 className="text-xl font-semibold mb-4">Add New Location</h2>
 
-        {isLoading ? (
-          <div className="text-center py-4">Loading location search...</div>
-        ) : (
-          <>
-            <div className="mb-4">
-              <input
-                id="location-search"
-                type="text"
-                value={searchInput}
-                onChange={handleInputChange}
-                placeholder="Search for a location..."
-                className="w-full p-2 border border-gray-300 rounded"
-                disabled={isLoading}
-              />
-            </div>
+        <div className="mb-4 relative">
+          <input
+            type="text"
+            value={searchInput}
+            onChange={(e) => setSearchInput(e.target.value)}
+            placeholder="Search for a location..."
+            className="w-full p-2 border border-gray-300 rounded"
+            disabled={isLoading}
+          />
 
-            <div className="flex items-center mb-4">
-              <button
-                onClick={() => setIsFavorite(!isFavorite)}
-                className="flex items-center gap-2 text-gray-600 hover:text-gray-800"
-                disabled={isLoading}
-              >
-                <Star
-                  className={`w-5 h-5 ${
-                    isFavorite ? 'fill-yellow-400 text-yellow-400' : ''
-                  }`}
-                />
-                {isFavorite ? 'Favorited' : 'Add to Favorites'}
-              </button>
+          {predictions.length > 0 && (
+            <div className="absolute w-full mt-1 bg-white border border-gray-300 rounded shadow-lg z-10 max-h-60 overflow-y-auto">
+              {predictions.map((prediction) => (
+                <div
+                  key={prediction.place_id}
+                  onClick={() => handlePlaceSelect(prediction)}
+                  className="p-2 hover:bg-gray-100 cursor-pointer"
+                >
+                  {prediction.description}
+                </div>
+              ))}
             </div>
-          </>
-        )}
+          )}
+        </div>
+
+        <div className="flex items-center mb-4">
+          <button
+            onClick={() => setIsFavorite(!isFavorite)}
+            className="flex items-center gap-2 text-gray-600 hover:text-gray-800"
+          >
+            <Star
+              className={`w-5 h-5 ${
+                isFavorite ? 'fill-yellow-400 text-yellow-400' : ''
+              }`}
+            />
+            {isFavorite ? 'Favorited' : 'Add to Favorites'}
+          </button>
+        </div>
 
         {error && (
           <div className="mb-4 p-3 bg-red-100 text-red-700 rounded">
@@ -236,7 +218,7 @@ const AddLocationPopup = ({ isOpen, onClose, onLocationAdded }) => {
           </button>
           <button
             onClick={handleSaveLocation}
-            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
             disabled={isLoading || !selectedPlace}
           >
             Add Location

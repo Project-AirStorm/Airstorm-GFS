@@ -206,6 +206,70 @@ def get_location_info():
         })
 
 
+@external_api_bp.route('/api/places/autocomplete', methods=['GET'])
+def places_autocomplete():
+    try:
+        input_text = request.args.get('input')
+        if not input_text:
+            return jsonify({"error": "Input text is required"}), 400
+
+        api_key = os.getenv('BACKEND_GOOGLE_MAPS_API_KEY')
+        if not api_key:
+            logger.error("Google Maps API key not configured")
+            return jsonify({"error": "Service configuration error"}), 500
+
+        url = "https://maps.googleapis.com/maps/api/place/autocomplete/json"
+        params = {
+            "input": input_text,
+            "types": "(cities)",
+            "key": api_key
+        }
+
+        response = requests.get(url, params=params)
+        response.raise_for_status()
+
+        return jsonify(response.json())
+
+    except requests.RequestException as e:
+        logger.error(f"Google Places API error: {str(e)}")
+        return jsonify({"error": "Failed to fetch places data"}), 500
+    except Exception as e:
+        logger.error(f"Unexpected error in places autocomplete: {str(e)}")
+        return jsonify({"error": "Internal server error"}), 500
+
+
+@external_api_bp.route('/api/places/details', methods=['GET'])
+def place_details():
+    try:
+        place_id = request.args.get('placeId')
+        if not place_id:
+            return jsonify({"error": "Place ID is required"}), 400
+
+        api_key = os.getenv('BACKEND_GOOGLE_MAPS_API_KEY')
+        if not api_key:
+            logger.error("Google Maps API key not configured")
+            return jsonify({"error": "Service configuration error"}), 500
+
+        url = "https://maps.googleapis.com/maps/api/place/details/json"
+        params = {
+            "place_id": place_id,
+            "fields": "name,geometry,formatted_address",
+            "key": api_key
+        }
+
+        response = requests.get(url, params=params)
+        response.raise_for_status()
+
+        return jsonify(response.json())
+
+    except requests.RequestException as e:
+        logger.error(f"Google Places API error: {str(e)}")
+        return jsonify({"error": "Failed to fetch place details"}), 500
+    except Exception as e:
+        logger.error(f"Unexpected error in place details: {str(e)}")
+        return jsonify({"error": "Internal server error"}), 500
+
+
 @external_api_bp.route('/api/google-maps-init')
 def google_maps_init():
     try:
