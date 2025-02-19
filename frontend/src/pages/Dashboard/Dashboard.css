@@ -119,15 +119,15 @@
   .weather-grid > * {
     max-width: 100%;
   }
-  
+
   .bottom-grid {
     grid-template-columns: 1fr;
   }
-  
+
   .chart-section {
     padding: 1rem;
   }
-  
+
   .bottom-card {
     padding: 1rem;
   }
