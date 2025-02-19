@@ -4,7 +4,7 @@ import { useUser } from '@clerk/clerk-react';
 import _ from 'lodash';
 import axios from 'axios';
 
-REACT_APP_API_URL = process.env.REACT_APP_API_URL;
+const REACT_APP_API_URL = process.env.REACT_APP_API_URL;
 
 const AddLocationPopup = ({ isOpen, onClose, onLocationAdded }) => {
   const { isLoaded: userLoaded, user } = useUser();
@@ -25,19 +25,15 @@ const AddLocationPopup = ({ isOpen, onClose, onLocationAdded }) => {
       }
 
       try {
-        const response = await fetch(
-          `${REACT_APP_API_URL}/api/places/autocomplete?input=${encodeURIComponent(
-            input
-          )}`
+        const response = await axios.get(
+          `${REACT_APP_API_URL}/api/places/autocomplete`,
+          {
+            params: { input },
+          }
         );
-        const data = await response.json();
 
-        if (!response.ok) {
-          throw new Error(data.error || 'Failed to fetch predictions');
-        }
-
-        if (data.predictions) {
-          setPredictions(data.predictions);
+        if (response.data.predictions) {
+          setPredictions(response.data.predictions);
         }
       } catch (err) {
         // console.error('Error fetching predictions:', err);
@@ -57,24 +53,20 @@ const AddLocationPopup = ({ isOpen, onClose, onLocationAdded }) => {
 
   useEffect(() => {
     debouncedFetchPredictions(searchInput);
-  }, [searchInput]);
+  }, [searchInput, debouncedFetchPredictions]);
 
   const handlePlaceSelect = async (prediction) => {
     try {
       setIsLoading(true);
-      const response = await fetch(
-        `${REACT_APP_API_URL}/api/places/details?placeId=${encodeURIComponent(
-          prediction.place_id
-        )}`
+      const response = await axios.get(
+        `${REACT_APP_API_URL}/api/places/details`,
+        {
+          params: { placeId: prediction.place_id },
+        }
       );
-      const data = await response.json();
 
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to fetch place details');
-      }
-
-      if (data.result) {
-        const place = data.result;
+      if (response.data.result) {
+        const place = response.data.result;
         setSelectedPlace({
           name: place.name,
           formatted_address: place.formatted_address,
@@ -111,36 +103,29 @@ const AddLocationPopup = ({ isOpen, onClose, onLocationAdded }) => {
         isFavorite,
       };
 
-      const response = await fetch(`${REACT_APP_API_URL}/api/locations`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(locationData),
-      });
+      const response = await axios.post(
+        `${REACT_APP_API_URL}/api/locations`,
+        locationData
+      );
 
-      const data = await response.json();
+      if (response.data) {
+        setSuccessMessage('Location added successfully!');
 
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to save location');
+        if (onLocationAdded) {
+          onLocationAdded();
+        }
+
+        setTimeout(() => {
+          onClose();
+          setSearchInput('');
+          setSelectedPlace(null);
+          setIsFavorite(false);
+          setSuccessMessage('');
+        }, 1500);
       }
-
-      setSuccessMessage('Location added successfully!');
-
-      if (onLocationAdded) {
-        onLocationAdded();
-      }
-
-      setTimeout(() => {
-        onClose();
-        setSearchInput('');
-        setSelectedPlace(null);
-        setIsFavorite(false);
-        setSuccessMessage('');
-      }, 1500);
     } catch (err) {
       // console.error('Save error:', err);
-      // setError(err.message || 'Failed to save location');
+      // setError(err.response?.data?.error || 'Failed to save location');
     }
   };
 
