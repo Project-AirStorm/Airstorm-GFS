@@ -1,6 +1,7 @@
 // LogEntry.js
 import React from 'react';
 import PropTypes from 'prop-types';
+import { Badge } from "@/components/ui/badge";
 
 /**
  * Parses a log line into structured data
@@ -70,4 +71,24 @@ LogEntry.propTypes = {
   logLine: PropTypes.string.isRequired
 };
 
+const LogEntryComponent = ({ logLine }) => {
+  const [timestamp, level, source, message] = logLine.split('|').map(s => s.trim());
+  
+  return (
+    <div className="log-entry">
+      <span className="log-timestamp">{timestamp}</span>
+      <Badge className={`log-level level-${level.toLowerCase()}`}>
+        {level}
+      </Badge>
+      <span className="log-message">{message}</span>
+      <span className="log-source">{source}</span>
+    </div>
+  );
+};
+
+LogEntryComponent.propTypes = {
+  logLine: PropTypes.string.isRequired
+};
+
+export { LogEntryComponent };
 export default LogEntry;

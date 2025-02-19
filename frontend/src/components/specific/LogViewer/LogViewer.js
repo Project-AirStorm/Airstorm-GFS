@@ -1,15 +1,18 @@
 // LogViewer.js
 import React from 'react';
 import PropTypes from 'prop-types';
-import LogEntry from "../../../../src/utils/LogEntry";
+import { Badge } from "@/components/ui/badge";
+import { LogEntryComponent } from "../../../../src/utils/LogEntry";
 
 const LogViewer = ({ logs }) => (
-  <div className="logs-viewer">
+  <div className="space-y-1">
     {logs.length === 0 ? (
-      <div className="logs-empty-state">No logs to display</div>
+      <div className="text-center p-8 text-gray-500">
+        No logs to display
+      </div>
     ) : (
       logs.map((log, index) => (
-        <LogEntry key={`log-${index}`} logLine={log} />
+        <LogEntryComponent key={`log-${index}`} logLine={log} />
       ))
     )}
   </div>
