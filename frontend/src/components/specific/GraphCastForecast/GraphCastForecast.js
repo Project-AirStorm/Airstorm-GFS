@@ -18,6 +18,8 @@ import {
 } from 'react-icons/io5';
 import './GraphCastForecast.css';
 
+const REACT_APP_API_URL = process.env.REACT_APP_API_URL;
+
 const GraphCastForecast = () => {
   const [forecast, setForecast] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -27,27 +29,14 @@ const GraphCastForecast = () => {
 
   const fetchLocationName = async (latitude, longitude) => {
     try {
-      const response = await axios.get(
-        `https://maps.googleapis.com/maps/api/geocode/json?latlng=${latitude},${longitude}&key=${process.env.REACT_APP_GOOGLE_MAPS_API_KEY}`
+      const locationResponse = await axios.get(
+        `${REACT_APP_API_URL}/api/geocode`,
+        {
+          params: { lat: latitude, lon: longitude },
+        }
       );
-
-      if (response.data.results && response.data.results.length > 0) {
-        const addressComponents = response.data.results[0].address_components;
-        const city = addressComponents.find((component) =>
-          component.types.includes('locality')
-        )?.long_name;
-        const state = addressComponents.find((component) =>
-          component.types.includes('administrative_area_level_1')
-        )?.short_name;
-        const country = addressComponents.find((component) =>
-          component.types.includes('country')
-        )?.long_name;
-
-        const formattedLocation = [city, state, country]
-          .filter(Boolean)
-          .join(', ');
-        setLocationName(formattedLocation);
-      }
+      // Extract the formatted_address from the response
+      setLocationName(locationResponse.data.formatted_address);
     } catch (err) {
       console.error('Error fetching location name:', err);
     }
@@ -59,34 +48,6 @@ const GraphCastForecast = () => {
         async (position) => {
           const { latitude, longitude } = position.coords;
           setUserLocation({ latitude, longitude });
-
-          // Fetch location name
-          try {
-            const response = await axios.get(
-              `https://maps.googleapis.com/maps/api/geocode/json?latlng=${latitude},${longitude}&key=${process.env.REACT_APP_GOOGLE_MAPS_API_KEY}`
-            );
-
-            if (response.data.results && response.data.results.length > 0) {
-              const addressComponents =
-                response.data.results[0].address_components;
-              const city = addressComponents.find((component) =>
-                component.types.includes('locality')
-              )?.long_name;
-              const state = addressComponents.find((component) =>
-                component.types.includes('administrative_area_level_1')
-              )?.short_name;
-              const country = addressComponents.find((component) =>
-                component.types.includes('country')
-              )?.long_name;
-
-              const formattedLocation = [city, state, country]
-                .filter(Boolean)
-                .join(', ');
-              setLocationName(formattedLocation);
-            }
-          } catch (err) {
-            console.error('Error fetching location name:', err);
-          }
 
           // Fetch location name
           await fetchLocationName(latitude, longitude);
