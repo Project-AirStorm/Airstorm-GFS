@@ -61,3 +61,4 @@ coverage/
 .pnp
 .pnp.js
 
+backend/logs/app.log
