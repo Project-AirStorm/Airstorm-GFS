@@ -10,7 +10,7 @@ import {
   ChannelList,
 } from 'stream-chat-react';
 import { UserSession } from '../../utils/UserSession';
-import { MessageSquarePlus } from 'lucide-react';
+import { MessageSquarePlus, Edit } from 'lucide-react';
 import axios from 'axios';
 import 'stream-chat-react/dist/css/v2/index.css';
 import './Chat.css';
@@ -18,26 +18,90 @@ import NewChatModal from '../../components/specific/NewChatModal/NewChatModal';
 
 const chatClient = StreamChat.getInstance(process.env.REACT_APP_STREAM_KEY);
 
-const CustomChannelPreview = ({ channel, active, setActiveChannel }) => {
+const CustomChannelPreview = ({ channel, activeChannel, setActiveChannel }) => {
+  const [editingName, setEditingName] = useState(false);
+  const [channelName, setChannelName] = useState(channel.data.name || '');
   const { messages } = channel.state;
   const lastMessage = messages[messages.length - 1];
 
-  // Get the other member's name for display
+  // Determine channel display name
   const otherMembers = Object.values(channel.state.members).filter(
     (member) => member.user?.id !== chatClient.userID
   );
-  const otherMember = otherMembers[0]?.user;
+
+  const getDefaultChannelName = () => {
+    // For group chats (team type)
+    if (channel.data.type === 'team') {
+      const memberNames = otherMembers
+        .map((m) => m.user?.name || 'Unknown')
+        .slice(0, 3);
+
+      return memberNames.length > 1
+        ? memberNames.slice(0, 2).join(', ') +
+            (memberNames.length > 2
+              ? `, and ${memberNames.length - 2} other${
+                  memberNames.length > 3 ? 's' : ''
+                }`
+              : '')
+        : memberNames[0];
+    }
+
+    // For one-on-one chats or any other type
+    return otherMembers[0]?.user?.name || 'Unknown User';
+  };
+
+  const handleNameChange = async () => {
+    try {
+      await channel.update({
+        name: channelName,
+      });
+      setEditingName(false);
+    } catch (error) {
+      console.error('Error updating channel name:', error);
+      // Revert to original name if update fails
+      setChannelName(channel.data.name || getDefaultChannelName());
+    }
+  };
+
+  const isActive = activeChannel?.id === channel.id;
 
   return (
     <div
-      className={`channel-preview ${active ? 'channel-preview-active' : ''}`}
+      className={`channel-preview ${isActive ? 'channel-preview-active' : ''}`}
       onClick={() => setActiveChannel(channel)}
     >
       <div className="channel-preview-content">
         <div className="channel-preview-header">
-          <span className="channel-preview-name">
-            {otherMember?.name || 'Unknown User'}
-          </span>
+          {editingName ? (
+            <div className="channel-name-edit">
+              <input
+                type="text"
+                value={channelName}
+                onChange={(e) => setChannelName(e.target.value)}
+                onBlur={handleNameChange}
+                onKeyDown={(e) => e.key === 'Enter' && handleNameChange()}
+                autoFocus
+              />
+              <button onClick={handleNameChange}>Save</button>
+            </div>
+          ) : (
+            <div className="channel-name-display">
+              <span className="channel-preview-name">
+                {channelName || getDefaultChannelName()}
+              </span>
+              {channel.data.type === 'team' && (
+                <button
+                  className="edit-name-button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setEditingName(true);
+                  }}
+                >
+                  <Edit size={16} />
+                </button>
+              )}
+            </div>
+          )}
           {lastMessage && (
             <span className="channel-preview-time">
               {new Date(lastMessage.created_at).toLocaleTimeString([], {
@@ -108,7 +172,6 @@ const Chat = () => {
   }
 
   const filters = {
-    type: 'messaging',
     members: { $in: [user.id] },
   };
   const sort = { last_message_at: -1 };
@@ -136,6 +199,7 @@ const Chat = () => {
                   Preview={(props) => (
                     <CustomChannelPreview
                       {...props}
+                      activeChannel={activeChannel}
                       setActiveChannel={setActiveChannel}
                     />
                   )}

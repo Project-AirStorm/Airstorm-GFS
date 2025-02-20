@@ -6,6 +6,7 @@
   height: calc(100vh - 160px);
   overflow: hidden;
   margin: 1rem 0;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 }
 
 .chat-wrapper {
@@ -89,39 +90,67 @@
   white-space: nowrap;
 }
 
-/* Message Styles */
-.str-chat__message-text {
-  font-size: 0.875rem !important;
+/* Stream Chat Overrides */
+.str-chat {
+  height: 100%;
 }
 
-.str-chat__message--me {
-  background-color: rgb(37 99 235) !important;
-  color: white !important;
+.str-chat__channel-list {
+  width: 100%;
+  background: transparent !important;
+}
+
+.str-chat__message-list {
+  background: transparent !important;
+  padding: 1rem !important;
 }
 
 .str-chat__message-input {
+  background: white !important;
   border-top: 1px solid rgb(229 231 235) !important;
   padding: 1rem !important;
+  box-shadow: none !important;
 }
 
 .str-chat__message-input-inner {
   background: transparent !important;
 }
 
-.chat-channels-header {
-  padding: 1rem;
-  border-bottom: 1px solid rgb(229 231 235);
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+.str-chat__message {
+  border-radius: 0.75rem !important;
+  padding: 0.75rem 1rem !important;
+  box-shadow: none !important;
+  border: 1px solid rgba(0, 0, 0, 0.05) !important;
 }
 
-.chat-channels-header h2 {
-  font-size: 1.125rem;
-  font-weight: 600;
-  color: rgb(31 41 55);
+.str-chat__message--regular {
+  background: white !important;
 }
 
+.str-chat__message--me {
+  background: rgb(37 99 235) !important;
+  color: white !important;
+}
+
+.str-chat__message-data {
+  margin-bottom: 0.25rem !important;
+}
+
+.str-chat__avatar {
+  border-radius: 50% !important;
+}
+
+/* Remove focus outlines */
+.str-chat *:focus {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+.str-chat__message-input-textarea {
+  border: none !important;
+}
+
+/* New Chat Button */
 .new-chat-button {
   display: flex;
   align-items: center;
@@ -141,22 +170,6 @@
 }
 
 /* Empty State Styles */
-.str-chat__empty-channel {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  height: 100%;
-  padding: 2rem;
-  text-align: center;
-  color: rgb(107 114 128);
-}
-
-.str-chat__empty-channel p {
-  margin: 1rem 0;
-  font-size: 0.875rem;
-}
-
 .empty-channel {
   display: flex;
   justify-content: center;
@@ -164,12 +177,6 @@
   height: 100%;
   color: #6b7280;
   font-size: 0.875rem;
-}
-
-.chat-main {
-  flex: 1;
-  height: 100%;
-  background-color: rgb(249 250 251);
 }
 
 .chat-loading {
@@ -196,94 +203,54 @@
   }
 }
 
-/* Channel Preview Styles */
-.channel-preview {
-  padding: 1rem;
-  cursor: pointer;
-  border-bottom: 1px solid rgb(229 231 235);
-  transition: background-color 0.2s ease;
-}
-
-.channel-preview:hover {
-  background-color: rgb(249 250 251);
-}
-
-.channel-preview-active {
-  background-color: rgb(243 244 246);
-}
-
-.channel-preview-content {
+.channel-name-display {
   display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-}
-
-.channel-preview-header {
-  display: flex;
-  justify-content: space-between;
   align-items: center;
+  gap: 8px;
 }
 
-.channel-preview-name {
-  font-weight: 600;
-  color: rgb(31 41 55);
+.edit-name-button {
+  background: none;
+  border: none;
+  color: #6b7280;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.2s;
 }
 
-.channel-preview-time {
-  font-size: 0.75rem;
-  color: rgb(107 114 128);
+.channel-preview:hover .edit-name-button {
+  opacity: 1;
 }
 
-.channel-preview-message {
+.edit-name-button:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+.channel-name-edit {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.channel-name-edit input {
+  flex-grow: 1;
+  padding: 4px 8px;
+  border: 1px solid #e5e7eb;
+  border-radius: 4px;
   font-size: 0.875rem;
-  color: rgb(75 85 99);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
 
-/* Stream Chat Overrides */
-.str-chat {
-  height: 100%;
-}
-
-.str-chat__channel-list {
-  width: 100%;
-  background: transparent !important;
-}
-
-.str-chat__message-list {
-  background: transparent !important;
-  padding: 1rem !important;
-}
-
-.str-chat__message-input {
-  background: white !important;
-  border-top: 1px solid rgb(229 231 235) !important;
-  padding: 1rem !important;
-}
-
-.str-chat__message-input-inner {
-  background: transparent !important;
-}
-
-.str-chat__message {
-  border-radius: 1rem !important;
-  padding: 0.75rem 1rem !important;
-}
-
-.str-chat__message--regular {
-  background: white !important;
-}
-
-.str-chat__message--me {
-  background: rgb(37 99 235) !important;
-}
-
-.str-chat__message-data {
-  margin-bottom: 0.25rem !important;
-}
-
-.str-chat__avatar {
-  border-radius: 50% !important;
+.channel-name-edit button {
+  padding: 4px 8px;
+  background-color: #2563eb;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  cursor: pointer;
 }

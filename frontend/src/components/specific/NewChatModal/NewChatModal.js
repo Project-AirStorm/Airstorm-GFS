@@ -14,7 +14,9 @@ const NewChatModal = ({
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState([]);
+  const [selectedUsers, setSelectedUsers] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [isGroupChat, setIsGroupChat] = useState(false);
 
   const handleSearch = async (e) => {
     const query = e.target.value;
@@ -39,45 +41,100 @@ const NewChatModal = ({
     setIsLoading(false);
   };
 
-  const startConversation = async (otherUser) => {
-    try {
-      // Ensure both users exist in StreamChat
-      await Promise.all([
-        axios.post(`${process.env.REACT_APP_API_URL}/api/chat/users/create`, {
-          user_id: otherUser.id,
-          name: otherUser.name,
-          username: otherUser.username,
-        }),
-        axios.post(`${process.env.REACT_APP_API_URL}/api/chat/users/create`, {
-          user_id: currentUser.id,
-          name: `${currentUser.firstName} ${currentUser.lastName}`,
-          username: currentUser.username,
-        }),
-      ]);
+  const toggleUserSelection = (user) => {
+    setSelectedUsers((prev) => {
+      const isAlreadySelected = prev.some(
+        (selectedUser) => selectedUser.id === user.id
+      );
+      if (isAlreadySelected) {
+        return prev.filter((selectedUser) => selectedUser.id !== user.id);
+      }
+      return [...prev, user];
+    });
+  };
 
-      // Create a unique channel ID for the two users
-      const userIds = [currentUser.id, otherUser.id].sort();
-      const channelId = CryptoJS.SHA256(userIds.join('-'))
-        .toString(CryptoJS.enc.Hex)
-        .substring(0, 64);
+  const generateGroupName = (users) => {
+    const allUsers = [
+      { name: `${currentUser.firstName} ${currentUser.lastName}` },
+      ...users,
+    ];
+
+    const memberNames = allUsers.map((u) => u.name);
+
+    if (memberNames.length <= 3) {
+      return memberNames.join(', ');
+    }
+
+    return `${memberNames.slice(0, 2).join(', ')}, and ${
+      memberNames.length - 2
+    } other${memberNames.length > 3 ? 's' : ''}`;
+  };
+
+  const startConversation = async () => {
+    try {
+      // Ensure all users exist in StreamChat
+      const userIds = [currentUser.id, ...selectedUsers.map((user) => user.id)];
+
+      await Promise.all(
+        userIds.map((userId) => {
+          const user =
+            userId === currentUser.id
+              ? currentUser
+              : selectedUsers.find((u) => u.id === userId);
+
+          return axios.post(
+            `${process.env.REACT_APP_API_URL}/api/chat/users/create`,
+            {
+              user_id: user.id,
+              name:
+                user.id === currentUser.id
+                  ? `${user.firstName} ${user.lastName}`
+                  : user.name,
+              username: user.username,
+            }
+          );
+        })
+      );
+
+      // Create a unique channel ID
+      const channelId = isGroupChat
+        ? CryptoJS.SHA256(userIds.sort().join('-'))
+            .toString(CryptoJS.enc.Hex)
+            .substring(0, 64)
+        : CryptoJS.SHA256(userIds.sort().join('-'))
+            .toString(CryptoJS.enc.Hex)
+            .substring(0, 64);
+
+      // Prepare channel name
+      const channelName = isGroupChat
+        ? generateGroupName(selectedUsers)
+        : selectedUsers[0].name;
 
       // Create a new channel or get existing one
-      const channel = chatClient.channel('messaging', channelId, {
-        members: [currentUser.id, otherUser.id], // Both users are added as members
-        name: `${currentUser.firstName} ${currentUser.lastName}, ${otherUser.name}`,
-      });
+      const channel = chatClient.channel(
+        isGroupChat ? 'team' : 'messaging',
+        channelId,
+        {
+          members: userIds,
+          name: channelName,
+          image: isGroupChat
+            ? `https://ui-avatars.com/api/?name=${encodeURIComponent(
+                channelName
+              )}&background=random`
+            : undefined,
+        }
+      );
 
-      // Create the channel and ensure both users are added
+      // Create the channel and ensure all users are added
       await channel.create();
-
-      // Add members explicitly
-      await channel.addMembers([currentUser.id, otherUser.id]);
-
-      // Watch the channel for both users
+      await channel.addMembers(userIds);
       await channel.watch();
 
+      // Reset modal state
       setSearchQuery('');
       setSearchResults([]);
+      setSelectedUsers([]);
+      setIsGroupChat(false);
       onClose();
 
       // Pass the created channel back to the parent component
@@ -93,19 +150,48 @@ const NewChatModal = ({
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-content" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
-          <h3>New Conversation</h3>
+          <h3>{isGroupChat ? 'New Group Chat' : 'New Conversation'}</h3>
           <button onClick={onClose} className="modal-close">
             <X />
           </button>
         </div>
 
         <div className="modal-body">
+          {/* Group Chat Toggle */}
+          <div className="group-chat-toggle">
+            <label>
+              <input
+                type="checkbox"
+                checked={isGroupChat}
+                onChange={() => {
+                  setIsGroupChat(!isGroupChat);
+                  setSelectedUsers([]);
+                }}
+              />
+              Create Group Chat
+            </label>
+          </div>
+
+          {/* Selected Users */}
+          {selectedUsers.length > 0 && (
+            <div className="selected-users">
+              {selectedUsers.map((user) => (
+                <div key={user.id} className="selected-user-chip">
+                  {user.name}
+                  <button onClick={() => toggleUserSelection(user)}>×</button>
+                </div>
+              ))}
+            </div>
+          )}
+
           <div className="search-container">
             <Search className="search-icon" />
             <input
               type="text"
               className="search-input"
-              placeholder="Type a name to search for users"
+              placeholder={`Search for ${
+                isGroupChat ? 'group members' : 'a user'
+              }`}
               value={searchQuery}
               onChange={handleSearch}
               autoFocus
@@ -117,7 +203,15 @@ const NewChatModal = ({
               <div className="loading-state">Searching...</div>
             ) : searchResults.length > 0 ? (
               searchResults.map((user) => (
-                <div key={user.id} className="user-item">
+                <div
+                  key={user.id}
+                  className={`user-item ${
+                    selectedUsers.some((u) => u.id === user.id)
+                      ? 'selected'
+                      : ''
+                  }`}
+                  onClick={() => toggleUserSelection(user)}
+                >
                   <div className="user-info">
                     <div className="user-avatar">
                       <img
@@ -132,13 +226,9 @@ const NewChatModal = ({
                       <span className="user-username">@{user.username}</span>
                     </div>
                   </div>
-                  <button
-                    onClick={() => startConversation(user)}
-                    className="chat-button"
-                  >
-                    <MessageSquare size={16} />
-                    <span>Chat</span>
-                  </button>
+                  {selectedUsers.some((u) => u.id === user.id) && (
+                    <div className="selection-indicator">✓</div>
+                  )}
                 </div>
               ))
             ) : searchQuery.length > 0 ? (
@@ -149,6 +239,20 @@ const NewChatModal = ({
               </div>
             )}
           </div>
+
+          {/* Start Conversation/Group Chat Button */}
+          {selectedUsers.length > (isGroupChat ? 1 : 0) && (
+            <div className="start-chat-container">
+              <button onClick={startConversation} className="start-chat-button">
+                <MessageSquare size={16} />
+                <span>
+                  {isGroupChat
+                    ? `Create Group Chat (${selectedUsers.length + 1} members)`
+                    : 'Start Conversation'}
+                </span>
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </div>
