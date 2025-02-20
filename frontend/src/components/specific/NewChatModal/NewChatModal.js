@@ -158,17 +158,14 @@ const NewChatModal = ({
 
         <div className="modal-body">
           {/* Group Chat Toggle */}
-          <div className="group-chat-toggle">
-            <label>
+          <div className="create-group-option">
+            <label className="create-group-checkbox">
               <input
                 type="checkbox"
                 checked={isGroupChat}
-                onChange={() => {
-                  setIsGroupChat(!isGroupChat);
-                  setSelectedUsers([]);
-                }}
+                onChange={() => setIsGroupChat(!isGroupChat)}
               />
-              Create Group Chat
+              <span>Create Group Chat</span>
             </label>
           </div>
 
