@@ -6,7 +6,7 @@
   transform: translateX(-50%);
   width: 70%;
   min-width: 600px;
-  background: rgba(255, 255, 255, 0.95);
+  background: rgba(0, 0, 0, 0.65);
   padding: 20px;
   border-radius: 12px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
@@ -62,7 +62,7 @@
   left: 50%;
   transform: translateX(-50%);
   font-size: 0.8em;
-  color: #444;
+  color: rgba(255, 255, 255, 0.8);
 }
 
 .current-time {
@@ -70,4 +70,25 @@
   font-weight: 500;
   color: #1d4ed8;
   margin-top: 8px;
+}
+
+/* Media Query for Responsiveness */
+@media screen and (max-width: 768px) {
+  .timeline-container {
+    width: 95%;
+    min-width: auto;
+    padding: 15px;
+  }
+
+  .timeline-slider {
+    margin: 10px 0;
+  }
+
+  .timeline-labels {
+    height: 25px;
+  }
+
+  .label-text {
+    font-size: 0.7em;
+  }
 }
