@@ -1,229 +1,158 @@
-// src/pages/Feedback/Feedback.js
-import React, { useState } from 'react';
-// import PropTypes from 'prop-types';
+// src/pages/Chat/Chat.js
+import React, { useEffect, useState } from 'react';
+import { StreamChat } from 'stream-chat';
+import {
+  Chat as StreamChatComponent,
+  Channel,
+  Window,
+  MessageList,
+  MessageInput,
+  ChannelList,
+} from 'stream-chat-react';
+import { UserSession } from '../../utils/UserSession';
+import { MessageSquarePlus } from 'lucide-react';
 import axios from 'axios';
+import 'stream-chat-react/dist/css/v2/index.css';
 import './Chat.css';
+import NewChatModal from '../../components/specific/NewChatModal/NewChatModal';
 
-/**
- * Feedback component for collecting and submitting user feedback to GitHub Issues
- * @component
- * @param {Object} props - Component properties
- * @param {Function} props.setCurrentPage - Function to update current page in parent component
- * @returns {JSX.Element} Feedback form component
- */
-const Chat = ({ setCurrentPage }) => {
-  // Form state
-  const [formData, setFormData] = useState({
-    ticketName: '',
-    name: '',
-    email: '',
-    description: '',
-    tag: 'question', // Default tag
-  });
+const chatClient = StreamChat.getInstance(process.env.REACT_APP_STREAM_KEY);
 
-  // UI state
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
-  const [success, setSuccess] = useState(false);
+// Move CustomChannelPreview outside the main component
+const CustomChannelPreview = ({ channel, active }) => {
+  const { messages } = channel.state;
+  const lastMessage = messages[messages.length - 1];
 
-  // Available tags for feedback
-  const availableTags = [
-    { value: 'question', label: 'Question' },
-    { value: 'feature', label: 'Feature Request' },
-    { value: 'bug', label: 'Bug' },
-  ];
-
-  /**
-   * Sanitizes input by removing potentially problematic characters
-   * @param {string} input - Raw input string
-   * @returns {string} Sanitized output
-   */
-  const sanitizeInput = (input) => {
-    return input
-      .trim()
-      .replace(/[<>"',]/g, '') // Remove specified special characters
-      .replace(/\s+/g, ' '); // Collapse multiple spaces to single
-  };
-
-  /**
-   * Handle input changes in the form
-   * @param {Event} e - Input change event
-   */
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-  };
-
-  /**
-   * Submit feedback to GitHub Issues via backend
-   * @param {Event} e - Form submission event
-   */
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    setError(null);
-
-    try {
-      // Sanitize all user inputs
-      const sanitizedData = {
-        ...formData,
-        ticketName: `[User Feedback] ${sanitizeInput(formData.ticketName)}`,
-        name: sanitizeInput(formData.name),
-        email: sanitizeInput(formData.email),
-        description: sanitizeInput(formData.description),
-      };
-
-      // Validate essential fields after sanitization
-      if (
-        !sanitizedData.ticketName.replace('[User Feedback] ', '') ||
-        !sanitizedData.name ||
-        !sanitizedData.description
-      ) {
-        throw new Error('Please fill in all required fields');
-      }
-
-      const response = await axios.post(
-        `${process.env.REACT_APP_API_URL}/api/feedback`,
-        sanitizedData
-      );
-
-      if (response.data.message) {
-        setSuccess(true);
-        setFormData({
-          ticketName: '',
-          name: '',
-          email: '',
-          description: '',
-          tag: 'question',
-        });
-      }
-    } catch (err) {
-      setError(
-        err.response?.data?.message ||
-          err.message ||
-          'Failed to submit feedback'
-      );
-      console.error('Feedback submission error:', err);
-    } finally {
-      setLoading(false);
-    }
-  };
+  // Get the other member's name for display
+  const otherMembers = Object.values(channel.state.members).filter(
+    (member) => member.user?.id !== chatClient.userID
+  );
+  const otherMember = otherMembers[0]?.user;
 
   return (
-    <div className="dashboard-container">
-      <div className="main-content">
-        <div className="feedback-container">
-          <div className="feedback-header">
-            <h2 className="feedback-title">Submit Feedback</h2>
-            <p className="feedback-description">
-              Help us improve by sharing your thoughts and suggestions.
-            </p>
-          </div>
-
-          {success ? (
-            <div className="feedback-success">
-              <h3>Thank you for your feedback!</h3>
-              <p>
-                Your feedback has been successfully submitted. Our team will
-                reach out with a response as soon as possible.
-              </p>
-              <button
-                className="feedback-new-button"
-                onClick={() => setSuccess(false)}
-              >
-                Submit Another Feedback
-              </button>
-            </div>
-          ) : (
-            <form onSubmit={handleSubmit} className="feedback-form">
-              <div className="form-group">
-                <label htmlFor="ticketName">Title</label>
-                <input
-                  type="text"
-                  id="ticketName"
-                  name="ticketName"
-                  value={formData.ticketName}
-                  onChange={handleInputChange}
-                  required
-                  placeholder="Brief description of your feedback"
-                />
-              </div>
-
-              <div className="form-group">
-                <label htmlFor="name">Your Name</label>
-                <input
-                  type="text"
-                  id="name"
-                  name="name"
-                  value={formData.name}
-                  onChange={handleInputChange}
-                  required
-                />
-              </div>
-
-              <div className="form-group">
-                <label htmlFor="email">Email Address</label>
-                <input
-                  type="email"
-                  id="email"
-                  name="email"
-                  value={formData.email}
-                  onChange={handleInputChange}
-                  required
-                />
-              </div>
-
-              <div className="form-group">
-                <label htmlFor="tag">Feedback Type</label>
-                <select
-                  id="tag"
-                  name="tag"
-                  value={formData.tag}
-                  onChange={handleInputChange}
-                >
-                  {availableTags.map((tag) => (
-                    <option key={tag.value} value={tag.value}>
-                      {tag.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="form-group">
-                <label htmlFor="description">Description</label>
-                <textarea
-                  id="description"
-                  name="description"
-                  value={formData.description}
-                  onChange={handleInputChange}
-                  required
-                  rows="5"
-                  placeholder="Please provide detailed feedback so we may assist with your request!"
-                />
-              </div>
-
-              {error && <div className="feedback-error">Error: {error}</div>}
-
-              <button
-                type="submit"
-                className="submit-button"
-                disabled={loading}
-              >
-                {loading ? 'Submitting...' : 'Submit Feedback'}
-              </button>
-            </form>
+    <div
+      className={`channel-preview ${active ? 'channel-preview-active' : ''}`}
+    >
+      <div className="channel-preview-content">
+        <div className="channel-preview-header">
+          <span className="channel-preview-name">
+            {otherMember?.name || 'Unknown User'}
+          </span>
+          {lastMessage && (
+            <span className="channel-preview-time">
+              {new Date(lastMessage.created_at).toLocaleTimeString([], {
+                hour: '2-digit',
+                minute: '2-digit',
+              })}
+            </span>
           )}
+        </div>
+        <div className="channel-preview-message">
+          {lastMessage ? lastMessage.text : 'No messages yet'}
         </div>
       </div>
     </div>
   );
 };
 
-// Feedback.propTypes = {
-//   setCurrentPage: PropTypes.func.isRequired,
-// };
+const Chat = () => {
+  const { user } = UserSession();
+  const [clientReady, setClientReady] = useState(false);
+  const [showNewChatModal, setShowNewChatModal] = useState(false);
+
+  useEffect(() => {
+    const initChat = async () => {
+      try {
+        const response = await axios.get(
+          `${process.env.REACT_APP_API_URL}/api/chat/token?userId=${user.id}`
+        );
+        const { token } = response.data;
+
+        await chatClient.connectUser(
+          {
+            id: user.id,
+            name: `${user.firstName} ${user.lastName}`,
+            username: user.username,
+            image: `https://ui-avatars.com/api/?name=${user.firstName}+${user.lastName}&background=random`,
+          },
+          token
+        );
+
+        setClientReady(true);
+      } catch (error) {
+        console.error('Error initializing chat:', error);
+      }
+    };
+
+    if (user) {
+      initChat();
+    }
+
+    return () => {
+      chatClient.disconnectUser();
+    };
+  }, [user]);
+
+  if (!clientReady) {
+    return (
+      <div className="dashboard-container">
+        <div className="main-content">
+          <div className="chat-loading">
+            <div className="chat-loading-spinner"></div>
+            <p>Loading chat...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  const filters = { members: { $in: [user.id] } };
+  const sort = { last_message_at: -1 };
+
+  return (
+    <div className="dashboard-container">
+      <div className="main-content">
+        <div className="chat-container">
+          <StreamChatComponent client={chatClient} theme="messaging light">
+            <div className="chat-wrapper">
+              <div className="chat-channels">
+                <div className="chat-channels-header">
+                  <h2>Conversations</h2>
+                  <button
+                    className="new-chat-button"
+                    onClick={() => setShowNewChatModal(true)}
+                  >
+                    <MessageSquarePlus className="w-5 h-5" />
+                    New Chat
+                  </button>
+                </div>
+                <ChannelList
+                  filters={filters}
+                  sort={sort}
+                  Preview={CustomChannelPreview}
+                />
+              </div>
+              <div className="chat-main">
+                <Channel>
+                  <Window>
+                    <MessageList />
+                    <MessageInput />
+                  </Window>
+                </Channel>
+              </div>
+            </div>
+          </StreamChatComponent>
+        </div>
+
+        <NewChatModal
+          isOpen={showNewChatModal}
+          onClose={() => setShowNewChatModal(false)}
+          chatClient={chatClient}
+          currentUser={user}
+        />
+      </div>
+    </div>
+  );
+};
 
 export default Chat;

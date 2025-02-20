@@ -7,6 +7,7 @@ from db.database_initializer import DatabaseInitializer
 # Import blueprints correctly
 from api.external_api import external_api_bp
 from api.internal_api import internal_api_bp
+from api.chat_api import chat_api_bp
 
 # Load environment variables
 load_dotenv()
@@ -20,6 +21,7 @@ CORS(app, resources={r"/api/*": {"origins": "http://localhost:3000"}})
 # Register blueprints
 app.register_blueprint(external_api_bp)
 app.register_blueprint(internal_api_bp)
+app.register_blueprint(chat_api_bp)
 
 # Creates the datbase
 db_initializer = DatabaseInitializer()

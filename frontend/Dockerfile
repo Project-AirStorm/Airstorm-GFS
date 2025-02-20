@@ -1,5 +1,5 @@
-# Use an official Node.js image
-FROM node:16-alpine
+# Use a newer Node.js image
+FROM node:18-alpine
 
 # Set the working directory
 WORKDIR /app
@@ -7,20 +7,25 @@ WORKDIR /app
 # Copy package.json and package-lock.json first
 COPY package*.json ./
 
-# Install dependencies
+# Install dependencies - combine all npm installs into one command to reduce layers
 RUN npm cache clean --force && \
     npm install && \
     npm install -g react-scripts && \
-    npm install --save lucide-react@0.263.1 && \
-    npm install --save react-icons@4.x.x && \
-    npm install --save @maptiler/sdk && \
-    npm install --save recharts && \
-    npm install --save maplibre-gl && \
-    npm install --save axios && \
-    npm install react-feather && \
-    npm install @clerk/themes && \
-    npm install three && \
-    npm install dotenv
+    npm install --save \
+    lucide-react@0.263.1 \
+    react-icons@4.x.x \
+    @maptiler/sdk \
+    recharts \
+    maplibre-gl \
+    axios \
+    react-feather \
+    @clerk/themes \
+    three \
+    dotenv \
+    stream-chat \
+    stream-chat-react \
+    @stream-io/stream-chat-css \
+    crypto-js
 
 # Hotfix ESLINT error
 RUN mkdir -p node_modules/.cache && chmod -R 777 node_modules/.cache

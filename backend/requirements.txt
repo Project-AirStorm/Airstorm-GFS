@@ -17,3 +17,4 @@ openmeteo-requests
 pandas
 cryptography
 pymysql
+stream-chat

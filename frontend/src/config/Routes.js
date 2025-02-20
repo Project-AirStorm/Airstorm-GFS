@@ -9,7 +9,7 @@ import Logs from '../pages/Logs/Logs';
 import Feedback from '../pages/Feedback/Feedback';
 import NotFound from '../pages/NotFound/NotFound';
 import Signup from '../pages/Signup/Signup';
-import Chat from '../pages/Chat/Chat';
+import ChatComponent from '../pages/Chat/Chat';
 
 // Unused imports for now
 // import Maps from '../pages/Maps/Maps';
@@ -60,7 +60,7 @@ export const ROUTES = {
   chat: {
     path: '/chat',
     title: 'Chat',
-    element: Chat,
+    element: ChatComponent,
   },
   settings: {
     path: '/settings',
