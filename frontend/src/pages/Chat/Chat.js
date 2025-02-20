@@ -107,7 +107,10 @@ const Chat = () => {
     );
   }
 
-  const filters = { members: { $in: [user.id] } };
+  const filters = {
+    type: 'messaging',
+    members: { $in: [user.id] },
+  };
   const sort = { last_message_at: -1 };
 
   return (

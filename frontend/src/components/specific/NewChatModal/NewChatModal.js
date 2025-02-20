@@ -41,15 +41,19 @@ const NewChatModal = ({
 
   const startConversation = async (otherUser) => {
     try {
-      // Ensure the other user exists in StreamChat
-      await axios.post(
-        `${process.env.REACT_APP_API_URL}/api/chat/users/create`,
-        {
+      // Ensure both users exist in StreamChat
+      await Promise.all([
+        axios.post(`${process.env.REACT_APP_API_URL}/api/chat/users/create`, {
           user_id: otherUser.id,
           name: otherUser.name,
           username: otherUser.username,
-        }
-      );
+        }),
+        axios.post(`${process.env.REACT_APP_API_URL}/api/chat/users/create`, {
+          user_id: currentUser.id,
+          name: `${currentUser.firstName} ${currentUser.lastName}`,
+          username: currentUser.username,
+        }),
+      ]);
 
       // Create a unique channel ID for the two users
       const userIds = [currentUser.id, otherUser.id].sort();
@@ -60,11 +64,18 @@ const NewChatModal = ({
       // Create a new channel or get existing one
       const channel = chatClient.channel('messaging', channelId, {
         members: [currentUser.id, otherUser.id], // Both users are added as members
-        name: otherUser.name,
+        name: `${currentUser.firstName} ${currentUser.lastName}, ${otherUser.name}`,
       });
 
+      // Create the channel and ensure both users are added
       await channel.create();
+
+      // Add members explicitly
+      await channel.addMembers([currentUser.id, otherUser.id]);
+
+      // Watch the channel for both users
       await channel.watch();
+
       setSearchQuery('');
       setSearchResults([]);
       onClose();
