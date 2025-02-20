@@ -1,4 +1,3 @@
-// src/pages/Chat/Chat.js
 import React, { useState, useEffect, useCallback } from 'react';
 import { StreamChat } from 'stream-chat';
 import {
@@ -14,6 +13,7 @@ import {
   MessageSquarePlus,
   Edit,
   UserPlus,
+  UserMinus,
   Trash2,
   X,
   Search,
@@ -25,7 +25,7 @@ import NewChatModal from '../../components/specific/NewChatModal/NewChatModal';
 
 const chatClient = StreamChat.getInstance(process.env.REACT_APP_STREAM_KEY);
 
-// Add Members Modal Component
+// Add Members Modal Component - at the top level
 const AddMembersModal = ({
   isOpen,
   onClose,
@@ -52,8 +52,6 @@ const AddMembersModal = ({
       const response = await axios.get(
         `${process.env.REACT_APP_API_URL}/api/chat/users/search?query=${query}`
       );
-
-      // Filter out existing channel members and current user
       const existingMemberIds = Object.keys(channel.state.members);
       setSearchResults(
         response.data.users.filter(
@@ -78,7 +76,6 @@ const AddMembersModal = ({
 
   const addMembers = async () => {
     try {
-      // Ensure users exist in Stream Chat
       await Promise.all(
         selectedUsers.map((user) =>
           axios.post(`${process.env.REACT_APP_API_URL}/api/chat/users/create`, {
@@ -88,15 +85,9 @@ const AddMembersModal = ({
           })
         )
       );
-
-      // Add members to the channel
       const userIds = selectedUsers.map((user) => user.id);
       await channel.addMembers(userIds);
-
-      // Callback to parent component
       onMembersAdded(selectedUsers);
-
-      // Reset and close modal
       setSelectedUsers([]);
       setSearchQuery('');
       onClose();
@@ -189,7 +180,102 @@ const AddMembersModal = ({
   );
 };
 
-// Confirmation Modal Component
+// Remove Members Modal Component - at the top level
+const RemoveMembersModal = ({
+  isOpen,
+  onClose,
+  channel,
+  currentUser,
+  onMembersRemoved,
+}) => {
+  const [selectedUsers, setSelectedUsers] = useState([]);
+  const members = Object.values(channel.state.members).filter(
+    (member) => member.user.id !== currentUser.id
+  );
+
+  const toggleUserSelection = (user) => {
+    setSelectedUsers((prev) => {
+      const isAlreadySelected = prev.some((u) => u.id === user.id);
+      return isAlreadySelected
+        ? prev.filter((u) => u.id !== user.id)
+        : [...prev, user];
+    });
+  };
+
+  const removeMembers = async () => {
+    try {
+      const userIdsToRemove = selectedUsers.map((user) => user.id);
+      await channel.removeMembers(userIdsToRemove);
+      onMembersRemoved(selectedUsers);
+      setSelectedUsers([]);
+      onClose();
+    } catch (error) {
+      console.error('Error removing members:', error);
+    }
+  };
+
+  if (!isOpen) return null;
+
+  return (
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+        <div className="modal-header">
+          <h3>Remove Members from Group</h3>
+          <button onClick={onClose} className="modal-close">
+            <X />
+          </button>
+        </div>
+
+        <div className="modal-body">
+          <div className="users-list">
+            {members.map((member) => (
+              <div
+                key={member.user.id}
+                className={`user-item ${
+                  selectedUsers.some((u) => u.id === member.user.id)
+                    ? 'selected'
+                    : ''
+                }`}
+                onClick={() => toggleUserSelection(member.user)}
+              >
+                <div className="user-info">
+                  <div className="user-avatar">
+                    <img
+                      src={`https://ui-avatars.com/api/?name=${encodeURIComponent(
+                        member.user.name
+                      )}&background=random`}
+                      alt={member.user.name}
+                    />
+                  </div>
+                  <div className="user-details">
+                    <span className="user-name">{member.user.name}</span>
+                  </div>
+                </div>
+                {selectedUsers.some((u) => u.id === member.user.id) && (
+                  <div className="selection-indicator">✓</div>
+                )}
+              </div>
+            ))}
+          </div>
+
+          {selectedUsers.length > 0 && (
+            <div className="start-chat-container">
+              <button onClick={removeMembers} className="remove-members-button">
+                <Trash2 size={16} />
+                <span>
+                  Remove {selectedUsers.length} Member
+                  {selectedUsers.length > 1 ? 's' : ''}
+                </span>
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// Confirmation Modal Component - at the top level
 const ConfirmationModal = ({ isOpen, onClose, onConfirm, title, message }) => {
   if (!isOpen) return null;
 
@@ -218,6 +304,29 @@ const ConfirmationModal = ({ isOpen, onClose, onConfirm, title, message }) => {
   );
 };
 
+// Channel Members Component - at the top level
+const ChannelMembers = ({ channel }) => {
+  const members = Object.values(channel.state.members);
+
+  return (
+    <div className="channel-members">
+      {members.map((member) => (
+        <div key={member.user.id} className="channel-member">
+          <img
+            src={`https://ui-avatars.com/api/?name=${encodeURIComponent(
+              member.user.name
+            )}&background=random`}
+            alt={member.user.name}
+            className="member-avatar"
+          />
+          <span className="member-name">{member.user.name}</span>
+        </div>
+      ))}
+    </div>
+  );
+};
+
+// Custom Channel Preview Component - at the top level
 const CustomChannelPreview = ({
   channel,
   activeChannel,
@@ -227,17 +336,21 @@ const CustomChannelPreview = ({
   const [editingName, setEditingName] = useState(false);
   const [channelName, setChannelName] = useState(channel.data.name || '');
   const [showAddMembersModal, setShowAddMembersModal] = useState(false);
+  const [showRemoveMembersModal, setShowRemoveMembersModal] = useState(false);
   const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
+
   const { messages } = channel.state;
   const lastMessage = messages[messages.length - 1];
 
-  // Determine channel display name
+  const isActive = activeChannel?.id === channel.id;
+  const isEditable = channel.data.type === 'team';
+  const isGroupChat = channel.data.type === 'team';
+
   const otherMembers = Object.values(channel.state.members).filter(
     (member) => member.user?.id !== chatClient.userID
   );
 
   const getDefaultChannelName = useCallback(() => {
-    // For group chats (team type)
     if (channel.data.type === 'team') {
       const memberNames = otherMembers
         .map((m) => m.user?.name || 'Unknown')
@@ -252,14 +365,11 @@ const CustomChannelPreview = ({
               : '')
         : memberNames[0];
     }
-
-    // For one-on-one chats or any other type
     return otherMembers[0]?.user?.name || 'Unknown User';
   }, [channel, otherMembers]);
 
   const handleNameChange = async () => {
     try {
-      // Only allow editing for team (group) chats
       if (channel.data.type === 'team') {
         await channel.update({
           name: channelName,
@@ -268,22 +378,16 @@ const CustomChannelPreview = ({
       setEditingName(false);
     } catch (error) {
       console.error('Error updating channel name:', error);
-      // Revert to original name if update fails
       setChannelName(channel.data.name || getDefaultChannelName());
     }
   };
 
   const handleDeleteChannel = async () => {
     try {
-      // Hide the channel for the current user
       await channel.hide();
-
-      // If it's a group chat, partially delete it
       if (channel.data.type === 'team') {
         await channel.removeMembers([currentUser.id]);
       }
-
-      // Close the active channel
       setActiveChannel(null);
     } catch (error) {
       console.error('Error deleting channel:', error);
@@ -291,14 +395,12 @@ const CustomChannelPreview = ({
   };
 
   const handleMembersAdded = (newMembers) => {
-    // Optional: You could add some notification or UI feedback here
     console.log('New members added:', newMembers);
   };
 
-  const isActive = activeChannel?.id === channel.id;
-  const isEditable = channel.data.type === 'team';
-  const isGroupChat = channel.data.type === 'team';
-
+  const handleMembersRemoved = (removedMembers) => {
+    console.log('Members removed:', removedMembers);
+  };
   return (
     <>
       <div
@@ -339,15 +441,26 @@ const CustomChannelPreview = ({
                     </button>
                   )}
                   {isGroupChat && (
-                    <button
-                      className="add-members-button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setShowAddMembersModal(true);
-                      }}
-                    >
-                      <UserPlus size={16} />
-                    </button>
+                    <>
+                      <button
+                        className="add-members-button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setShowAddMembersModal(true);
+                        }}
+                      >
+                        <UserPlus size={16} />
+                      </button>
+                      <button
+                        className="remove-members-button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setShowRemoveMembersModal(true);
+                        }}
+                      >
+                        <UserMinus size={16} />
+                      </button>
+                    </>
                   )}
                   <button
                     className="delete-channel-button"
@@ -383,7 +496,13 @@ const CustomChannelPreview = ({
         currentUser={currentUser}
         onMembersAdded={handleMembersAdded}
       />
-
+      <RemoveMembersModal
+        isOpen={showRemoveMembersModal}
+        onClose={() => setShowRemoveMembersModal(false)}
+        channel={channel}
+        currentUser={currentUser}
+        onMembersRemoved={handleMembersRemoved}
+      />
       <ConfirmationModal
         isOpen={showDeleteConfirmation}
         onClose={() => setShowDeleteConfirmation(false)}
@@ -397,6 +516,7 @@ const CustomChannelPreview = ({
   );
 };
 
+// Main Chat Component
 const Chat = () => {
   const { user } = UserSession();
   const [clientReady, setClientReady] = useState(false);
@@ -486,6 +606,9 @@ const Chat = () => {
                 {activeChannel ? (
                   <Channel channel={activeChannel}>
                     <Window>
+                      {activeChannel.data.type === 'team' && (
+                        <ChannelMembers channel={activeChannel} />
+                      )}
                       <MessageList />
                       <MessageInput />
                     </Window>

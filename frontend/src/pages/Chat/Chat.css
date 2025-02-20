@@ -269,7 +269,8 @@
 
 .edit-name-button,
 .add-members-button,
-.delete-channel-button {
+.delete-channel-button,
+.remove-members-button {
   background: none;
   border: none;
   color: #6b7280;
@@ -283,7 +284,8 @@
 
 .edit-name-button:hover,
 .add-members-button:hover,
-.delete-channel-button:hover {
+.delete-channel-button:hover,
+.remove-members-button:hover {
   background-color: rgba(0, 0, 0, 0.05);
 }
 
@@ -319,4 +321,30 @@
 .confirm-button {
   background-color: #ef4444;
   color: white;
+}
+
+.channel-members {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px;
+  background-color: #f9fafb;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.channel-member {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.member-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+}
+
+.member-name {
+  font-size: 0.875rem;
+  color: #4b5563;
 }
