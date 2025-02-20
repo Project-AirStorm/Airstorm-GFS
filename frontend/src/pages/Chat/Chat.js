@@ -1,5 +1,5 @@
 // src/pages/Chat/Chat.js
-import React, { useEffect, useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { StreamChat } from 'stream-chat';
 import {
   Chat as StreamChatComponent,
@@ -29,7 +29,7 @@ const CustomChannelPreview = ({ channel, activeChannel, setActiveChannel }) => {
     (member) => member.user?.id !== chatClient.userID
   );
 
-  const getDefaultChannelName = () => {
+  const getDefaultChannelName = useCallback(() => {
     // For group chats (team type)
     if (channel.data.type === 'team') {
       const memberNames = otherMembers
@@ -48,13 +48,16 @@ const CustomChannelPreview = ({ channel, activeChannel, setActiveChannel }) => {
 
     // For one-on-one chats or any other type
     return otherMembers[0]?.user?.name || 'Unknown User';
-  };
+  }, [channel, otherMembers]);
 
   const handleNameChange = async () => {
     try {
-      await channel.update({
-        name: channelName,
-      });
+      // Only allow editing for team (group) chats
+      if (channel.data.type === 'team') {
+        await channel.update({
+          name: channelName,
+        });
+      }
       setEditingName(false);
     } catch (error) {
       console.error('Error updating channel name:', error);
@@ -64,6 +67,7 @@ const CustomChannelPreview = ({ channel, activeChannel, setActiveChannel }) => {
   };
 
   const isActive = activeChannel?.id === channel.id;
+  const isEditable = channel.data.type === 'team';
 
   return (
     <div
@@ -89,7 +93,7 @@ const CustomChannelPreview = ({ channel, activeChannel, setActiveChannel }) => {
               <span className="channel-preview-name">
                 {channelName || getDefaultChannelName()}
               </span>
-              {channel.data.type === 'team' && (
+              {isEditable && (
                 <button
                   className="edit-name-button"
                   onClick={(e) => {
