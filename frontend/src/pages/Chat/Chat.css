@@ -254,3 +254,69 @@
   font-size: 0.75rem;
   cursor: pointer;
 }
+
+.channel-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.channel-preview:hover .channel-actions {
+  opacity: 1;
+}
+
+.edit-name-button,
+.add-members-button,
+.delete-channel-button {
+  background: none;
+  border: none;
+  color: #6b7280;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.edit-name-button:hover,
+.add-members-button:hover,
+.delete-channel-button:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+.delete-channel-button {
+  color: #ef4444;
+}
+
+.delete-channel-button:hover {
+  background-color: rgba(239, 68, 68, 0.1);
+}
+
+.confirmation-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.cancel-button,
+.confirm-button {
+  padding: 8px 16px;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  font-size: 0.875rem;
+}
+
+.cancel-button {
+  background-color: #f3f4f6;
+  color: #1f2937;
+}
+
+.confirm-button {
+  background-color: #ef4444;
+  color: white;
+}
