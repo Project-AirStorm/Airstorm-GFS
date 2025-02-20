@@ -35,6 +35,16 @@ const NewChatModal = ({ isOpen, onClose, chatClient, currentUser }) => {
 
   const startConversation = async (otherUser) => {
     try {
+      // Ensure the other user exists in StreamChat
+      await axios.post(
+        `${process.env.REACT_APP_API_URL}/api/chat/users/create`,
+        {
+          user_id: otherUser.id,
+          name: otherUser.name,
+          username: otherUser.username,
+        }
+      );
+
       // Create a unique channel ID for the two users
       const userIds = [currentUser.id, otherUser.id].sort();
       const channelId = CryptoJS.SHA256(userIds.join('-'))

@@ -76,3 +76,30 @@ def search_users():
     except Exception as e:
         logger.error(f"Error searching users: {str(e)}")
         return jsonify({"error": "Failed to search users"}), 500
+
+
+@chat_api_bp.route("/api/chat/users/create", methods=["POST"])
+def create_chat_user():
+    """Create or update a user in Stream Chat"""
+    try:
+        user_data = request.json
+        user_id = user_data.get("user_id")
+        name = user_data.get("name")
+        username = user_data.get("username")
+
+        if not user_id or not name or not username:
+            return jsonify({"error": "User ID, name, and username are required"}), 400
+
+        # Create or update the user in Stream Chat
+        stream_client.update_user({
+            "id": user_id,
+            "name": name,
+            "username": username,
+            "role": "user"
+        })
+
+        return jsonify({"message": "User created/updated successfully in Stream Chat"}), 200
+
+    except Exception as e:
+        logger.error(f"Error creating/updating user in Stream Chat: {str(e)}")
+        return jsonify({"error": "Failed to create/update user in Stream Chat"}), 500
