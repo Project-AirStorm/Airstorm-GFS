@@ -18,8 +18,7 @@ import NewChatModal from '../../components/specific/NewChatModal/NewChatModal';
 
 const chatClient = StreamChat.getInstance(process.env.REACT_APP_STREAM_KEY);
 
-// Move CustomChannelPreview outside the main component
-const CustomChannelPreview = ({ channel, active }) => {
+const CustomChannelPreview = ({ channel, active, setActiveChannel }) => {
   const { messages } = channel.state;
   const lastMessage = messages[messages.length - 1];
 
@@ -32,6 +31,7 @@ const CustomChannelPreview = ({ channel, active }) => {
   return (
     <div
       className={`channel-preview ${active ? 'channel-preview-active' : ''}`}
+      onClick={() => setActiveChannel(channel)}
     >
       <div className="channel-preview-content">
         <div className="channel-preview-header">
@@ -130,8 +130,12 @@ const Chat = () => {
                 <ChannelList
                   filters={filters}
                   sort={sort}
-                  Preview={CustomChannelPreview}
-                  onSelect={(channel) => setActiveChannel(channel)}
+                  Preview={(props) => (
+                    <CustomChannelPreview
+                      {...props}
+                      setActiveChannel={setActiveChannel}
+                    />
+                  )}
                 />
               </div>
               <div className="chat-main">
@@ -157,7 +161,10 @@ const Chat = () => {
           onClose={() => setShowNewChatModal(false)}
           chatClient={chatClient}
           currentUser={user}
-          onChannelCreated={(channel) => setActiveChannel(channel)}
+          onChannelCreated={(channel) => {
+            setActiveChannel(channel);
+            setShowNewChatModal(false);
+          }}
         />
       </div>
     </div>
