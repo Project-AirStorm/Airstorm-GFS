@@ -5,7 +5,13 @@ import axios from 'axios';
 import CryptoJS from 'crypto-js';
 import './NewChatModal.css';
 
-const NewChatModal = ({ isOpen, onClose, chatClient, currentUser }) => {
+const NewChatModal = ({
+  isOpen,
+  onClose,
+  chatClient,
+  currentUser,
+  onChannelCreated,
+}) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -53,7 +59,7 @@ const NewChatModal = ({ isOpen, onClose, chatClient, currentUser }) => {
 
       // Create a new channel or get existing one
       const channel = chatClient.channel('messaging', channelId, {
-        members: [currentUser.id, otherUser.id],
+        members: [currentUser.id, otherUser.id], // Both users are added as members
         name: otherUser.name,
       });
 
@@ -62,6 +68,9 @@ const NewChatModal = ({ isOpen, onClose, chatClient, currentUser }) => {
       setSearchQuery('');
       setSearchResults([]);
       onClose();
+
+      // Pass the created channel back to the parent component
+      onChannelCreated(channel);
     } catch (error) {
       console.error('Error creating chat:', error);
     }

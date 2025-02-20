@@ -59,6 +59,7 @@ const Chat = () => {
   const { user } = UserSession();
   const [clientReady, setClientReady] = useState(false);
   const [showNewChatModal, setShowNewChatModal] = useState(false);
+  const [activeChannel, setActiveChannel] = useState(null);
 
   useEffect(() => {
     const initChat = async () => {
@@ -130,15 +131,22 @@ const Chat = () => {
                   filters={filters}
                   sort={sort}
                   Preview={CustomChannelPreview}
+                  onSelect={(channel) => setActiveChannel(channel)}
                 />
               </div>
               <div className="chat-main">
-                <Channel>
-                  <Window>
-                    <MessageList />
-                    <MessageInput />
-                  </Window>
-                </Channel>
+                {activeChannel ? (
+                  <Channel channel={activeChannel}>
+                    <Window>
+                      <MessageList />
+                      <MessageInput />
+                    </Window>
+                  </Channel>
+                ) : (
+                  <div className="empty-channel">
+                    <p>Select a conversation to start chatting</p>
+                  </div>
+                )}
               </div>
             </div>
           </StreamChatComponent>
@@ -149,6 +157,7 @@ const Chat = () => {
           onClose={() => setShowNewChatModal(false)}
           chatClient={chatClient}
           currentUser={user}
+          onChannelCreated={(channel) => setActiveChannel(channel)}
         />
       </div>
     </div>

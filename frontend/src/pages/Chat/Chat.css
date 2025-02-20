@@ -157,6 +157,15 @@
   font-size: 0.875rem;
 }
 
+.empty-channel {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+  color: #6b7280;
+  font-size: 0.875rem;
+}
+
 .chat-main {
   flex: 1;
   height: 100%;
