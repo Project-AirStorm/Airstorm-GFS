@@ -9,6 +9,7 @@ import Logs from '../pages/Logs/Logs';
 import Feedback from '../pages/Feedback/Feedback';
 import NotFound from '../pages/NotFound/NotFound';
 import Signup from '../pages/Signup/Signup';
+import ChatComponent from '../pages/Chat/Chat';
 
 // Unused imports for now
 // import Maps from '../pages/Maps/Maps';
@@ -55,6 +56,11 @@ export const ROUTES = {
     path: '/analysis',
     title: 'Analysis',
     element: Analysis,
+  },
+  chat: {
+    path: '/chat',
+    title: 'Chat',
+    element: ChatComponent,
   },
   settings: {
     path: '/settings',
