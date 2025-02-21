@@ -11,6 +11,7 @@ import {
   FileText,
   Grid,
   Sticker,
+  MessageCircle,
 } from 'lucide-react';
 import profilePic from '../../../assets/sample-profile-pic.jpeg';
 import afgscLogo from '../../../assets/afgsc-logo.png';
@@ -122,6 +123,11 @@ const Sidebar = () => {
       icon: <FileText className="w-4 h-4" />,
       label: 'Analysis',
       page: '/analysis',
+    },
+    {
+      icon: <MessageCircle className="w-4 h-4" />,
+      label: 'Chat',
+      page: '/chat',
     },
     {
       icon: <Settings className="w-4 h-4" />,
