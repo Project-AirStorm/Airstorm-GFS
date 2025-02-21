@@ -255,6 +255,9 @@ jobs:
             REACT_APP_VITE_CLERK_PUBLISHABLE_KEY=${{ secrets.REACT_APP_VITE_CLERK_PUBLISHABLE_KEY }}
             REACT_APP_OPENMETEO_API_KEY=${{ secrets.REACT_APP_OPENMETEO_API_KEY }}
             BACKEND_OPENMETEO_API_KEY=${{ secrets.BACKEND_OPENMETEO_API_KEY }}
+            STREAM_API_KEY={{ secrets.STREAM_API_KEY }}
+            STREAM_API_SECRET = {{ secrets.STREAM_API_SECRET }}
+            REACT_APP_STREAM_KEY = {{ secrets.REACT_APP_STREAM_KEY }}
             EOL
             # Verify .env file was created
             if [ ! -f .env ]; then
