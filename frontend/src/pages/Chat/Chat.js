@@ -18,10 +18,12 @@ import ChannelMembers from './components/ChannelMembers';
 import 'stream-chat-react/dist/css/v2/index.css';
 import './Chat.css';
 
+const REACT_APP_STREAM_KEY = process.env.REACT_APP_STREAM_KEY;
+const REACT_APP_API_URL = process.env.REACT_APP_API_URL;
+const AvatarURL = `https://ui-avatars.com`;
+
 // Create singleton instance of StreamChat
-export const chatClient = StreamChat.getInstance(
-  process.env.REACT_APP_STREAM_KEY
-);
+export const chatClient = StreamChat.getInstance(REACT_APP_STREAM_KEY);
 
 const Chat = () => {
   const { user } = UserSession();
@@ -34,7 +36,7 @@ const Chat = () => {
       try {
         // Get user token from API
         const response = await axios.get(
-          `${process.env.REACT_APP_API_URL}/api/chat/token?userId=${user.id}`
+          `${REACT_APP_API_URL}/api/chat/token?userId=${user.id}`
         );
         const { token } = response.data;
 
@@ -44,7 +46,7 @@ const Chat = () => {
             id: user.id,
             name: `${user.firstName} ${user.lastName}`,
             username: user.username,
-            image: `https://ui-avatars.com/api/?name=${user.firstName}+${user.lastName}&background=random`,
+            image: `${AvatarURL}/api/?name=${user.firstName}+${user.lastName}&background=random`,
           },
           token
         );

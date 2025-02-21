@@ -2,6 +2,8 @@
 import React, { useState } from 'react';
 import { X, UserMinus } from 'lucide-react';
 
+const AvatarURL = `https://ui-avatars.com`;
+
 const RemoveMembersModal = ({
   isOpen,
   onClose,
@@ -64,7 +66,7 @@ const RemoveMembersModal = ({
                 <div className="user-info">
                   <div className="user-avatar">
                     <img
-                      src={`https://ui-avatars.com/api/?name=${encodeURIComponent(
+                      src={`${AvatarURL}/api/?name=${encodeURIComponent(
                         member.user.name
                       )}&background=random`}
                       alt={member.user.name}

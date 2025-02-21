@@ -5,6 +5,9 @@ import axios from 'axios';
 import CryptoJS from 'crypto-js';
 import './NewChatModal.css';
 
+const REACT_APP_API_URL = process.env.REACT_APP_API_URL;
+const AvatarURL = `https://ui-avatars.com`;
+
 const NewChatModal = ({
   isOpen,
   onClose,
@@ -30,7 +33,7 @@ const NewChatModal = ({
     setIsLoading(true);
     try {
       const response = await axios.get(
-        `${process.env.REACT_APP_API_URL}/api/chat/users/search?query=${query}`
+        `${REACT_APP_API_URL}/api/chat/users/search?query=${query}`
       );
       setSearchResults(
         response.data.users.filter((user) => user.id !== currentUser.id)
@@ -82,17 +85,14 @@ const NewChatModal = ({
               ? currentUser
               : selectedUsers.find((u) => u.id === userId);
 
-          return axios.post(
-            `${process.env.REACT_APP_API_URL}/api/chat/users/create`,
-            {
-              user_id: user.id,
-              name:
-                user.id === currentUser.id
-                  ? `${user.firstName} ${user.lastName}`
-                  : user.name,
-              username: user.username,
-            }
-          );
+          return axios.post(`${REACT_APP_API_URL}/api/chat/users/create`, {
+            user_id: user.id,
+            name:
+              user.id === currentUser.id
+                ? `${user.firstName} ${user.lastName}`
+                : user.name,
+            username: user.username,
+          });
         })
       );
 
@@ -118,7 +118,7 @@ const NewChatModal = ({
           members: userIds,
           name: channelName,
           image: isGroupChat
-            ? `https://ui-avatars.com/api/?name=${encodeURIComponent(
+            ? `${AvatarURL}/api/?name=${encodeURIComponent(
                 channelName
               )}&background=random`
             : undefined,
@@ -212,7 +212,7 @@ const NewChatModal = ({
                   <div className="user-info">
                     <div className="user-avatar">
                       <img
-                        src={`https://ui-avatars.com/api/?name=${encodeURIComponent(
+                        src={`${AvatarURL}/api/?name=${encodeURIComponent(
                           user.name
                         )}&background=random`}
                         alt={user.name}

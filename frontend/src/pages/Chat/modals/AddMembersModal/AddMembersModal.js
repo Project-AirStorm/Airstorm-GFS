@@ -3,6 +3,9 @@ import React, { useState } from 'react';
 import { X, UserPlus, Search } from 'lucide-react';
 import axios from 'axios';
 
+const REACT_APP_API_URL = process.env.REACT_APP_API_URL;
+const AvatarURL = `https://ui-avatars.com`;
+
 const AddMembersModal = ({
   isOpen,
   onClose,
@@ -27,7 +30,7 @@ const AddMembersModal = ({
     setIsLoading(true);
     try {
       const response = await axios.get(
-        `${process.env.REACT_APP_API_URL}/api/chat/users/search?query=${query}`
+        `${REACT_APP_API_URL}/api/chat/users/search?query=${query}`
       );
 
       const existingMemberIds = Object.keys(channel.state.members);
@@ -107,7 +110,7 @@ const AddMembersModal = ({
                   <div className="user-info">
                     <div className="user-avatar">
                       <img
-                        src={`https://ui-avatars.com/api/?name=${encodeURIComponent(
+                        src={`${AvatarURL}/api/?name=${encodeURIComponent(
                           user.name
                         )}&background=random`}
                         alt={user.name}
