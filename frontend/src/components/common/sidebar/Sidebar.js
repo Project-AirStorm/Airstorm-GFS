@@ -12,6 +12,8 @@ import {
   Grid,
   Sticker,
   MessageCircle,
+  FileSearch2,
+  AreaChart,
 } from 'lucide-react';
 import profilePic from '../../../assets/sample-profile-pic.jpeg';
 import afgscLogo from '../../../assets/afgsc-logo.png';
@@ -120,7 +122,7 @@ const Sidebar = () => {
       badge: alertCount,
     },
     {
-      icon: <FileText className="w-4 h-4" />,
+      icon: <AreaChart className="w-4 h-4" />,
       label: 'Analysis',
       page: '/analysis',
     },
@@ -128,6 +130,11 @@ const Sidebar = () => {
       icon: <MessageCircle className="w-4 h-4" />,
       label: 'Chat',
       page: '/chat',
+    },
+    {
+      icon: <FileSearch2 className="w-4 h-4" />,
+      label: 'Resources',
+      page: '/resources',
     },
     {
       icon: <Settings className="w-4 h-4" />,
