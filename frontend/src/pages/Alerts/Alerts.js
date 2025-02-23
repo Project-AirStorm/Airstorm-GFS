@@ -3,13 +3,7 @@ import AlertsComponent from './AlertsComponent';
 import './Alerts.css';
 
 const Alerts = ({ setCurrentPage }) => {
-  return (
-    <div className="dashboard-container">
-      <div className="main-content">
-        <AlertsComponent />
-      </div>
-    </div>
-  );
+  return <AlertsComponent />;
 };
 
 export default Alerts;
