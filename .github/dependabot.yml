@@ -1,0 +1,39 @@
+# Dependabot configuration file
+# Documentation: https://docs.github.com/code-security/dependabot/dependabot-version-updates/configuration-options-for-the-dependabot.yml-file
+version: 2
+updates:
+  # Frontend: React/NPM packages
+  - package-ecosystem: "npm"
+    directory: "/frontend"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "UTC"
+    labels:
+      - "dependencies"
+      - "frontend"
+    groups:
+      frontend-dependencies:
+        patterns:
+          - "*"
+    open-pull-requests-limit: 10
+    target-branch: "dev"
+
+  # Backend: Python/PIP packages
+  - package-ecosystem: "pip"
+    directory: "/backend"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "UTC"
+    labels:
+      - "dependencies"
+      - "backend"
+    groups:
+      backend-dependencies:
+        patterns:
+          - "*"
+    open-pull-requests-limit: 10
+    target-branch: "dev"
