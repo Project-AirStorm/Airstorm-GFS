@@ -8,7 +8,7 @@ import { UserSession } from '../../../utils/UserSession';
 import { weatherVariables, units } from '../../../config/WeatherConfig.js';
 import WeatherMapControls from '../../../components/specific/WeatherMap/MapControls/MapControls';
 import LocationPanel from '../../../components/specific/WeatherMap/LocationPanel/LocationPanel';
-import WeatherInfoPanel from '../../../components/specific/WeatherMap/WeatherInfoPanel/WeatherInfoPanel';
+
 import WeatherGraph from '../../../components/specific/WeatherGraph/WeatherGraph';
 import TimelineSlider from '../../../components/specific/TimelineSlider/TimelineSlider';
 
@@ -149,6 +149,23 @@ const Weather = () => {
         const mapInstance = new window.google.maps.Map(mapContainer.current, {
           center: { lat: 36, lng: -86 },
           zoom: 4,
+          // Configure map type controls (Map/Satellite)
+          mapTypeControl: true,
+          mapTypeControlOptions: {
+            style: window.google.maps.MapTypeControlStyle.HORIZONTAL_BAR,
+            position: window.google.maps.ControlPosition.TOP_LEFT
+          },
+          // Configure fullscreen control
+          fullscreenControl: true,
+          fullscreenControlOptions: {
+            position: window.google.maps.ControlPosition.TOP_RIGHT
+          },
+          // Other map options
+          streetViewControl: false,
+          zoomControl: true,
+          zoomControlOptions: {
+            position: window.google.maps.ControlPosition.RIGHT_BOTTOM
+          }
         });
 
         markerRef.current = new window.google.maps.Marker({
@@ -241,12 +258,6 @@ const Weather = () => {
             onSaveLocation={handleSaveLocation}
             savedLocations={savedLocations}
             onDeleteLocation={handleDeleteLocation}
-          />
-
-          <WeatherInfoPanel
-            isCollapsed={isWeatherPanelCollapsed}
-            onToggleCollapse={() => setIsWeatherPanelCollapsed(!isWeatherPanelCollapsed)}
-            weatherData={weatherData}
           />
 
           <div className="weather-graph-container">

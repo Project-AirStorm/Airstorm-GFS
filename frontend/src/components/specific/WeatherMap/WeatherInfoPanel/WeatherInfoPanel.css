@@ -1,12 +1,12 @@
- /* WeatherPanel.css */
+/* WeatherPanel.css */
 .weather-panel {
   position: absolute;
   top: calc(var(--header-height) + 20px);
   right: 20px;
   width: 320px;
-  background: rgba(0, 0, 0, 0.65); /* Semi-transparent black for consistency */
+  background: rgba(0, 0, 0, 0.65);
   padding: 20px;
-  border-radius: 12px;
+  border-radius: 0.5rem; /* Matching main map container */
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   transition: transform 0.3s ease;
   z-index: 10;
@@ -19,7 +19,7 @@
 .weather-panel-title {
   font-size: 1.25rem;
   font-weight: 600;
-  color: rgba(255, 255, 255, 0.8); /* Soft white text */
+  color: rgba(255, 255, 255, 0.8);
   margin-bottom: 1rem;
   text-align: center;
 }
@@ -71,7 +71,7 @@
   background: rgba(0, 0, 0, 0.65);
   border: 1px solid rgba(255, 255, 255, 0.3);
   border-right: none;
-  border-radius: 0.375rem 0 0 0.375rem;
+  border-radius: 0.5rem 0 0 0.5rem; /* Matching main map container with adjusted sides */
   cursor: pointer;
   transition: background-color 0.2s ease, transform 0.2s ease;
 }
