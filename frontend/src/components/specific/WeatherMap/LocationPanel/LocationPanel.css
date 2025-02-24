@@ -1,0 +1,215 @@
+.location-panel {
+  position: absolute;
+  top: calc(var(--header-height) + 20px);
+  right: 20px;
+  width: 320px;
+  max-height: 400px; 
+  background: rgba(0, 0, 0, 0.65);
+  border-radius: 0.5rem; /* Matching main map container */
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s ease;
+  z-index: 10;
+  color: white;
+  display: flex;
+  flex-direction: column; 
+}
+
+.location-panel-content {
+  padding: 1.25rem;
+  overflow-y: auto;
+  flex: 1;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.3) transparent;
+}
+
+/* Styling for WebKit browsers (Chrome, Safari) */
+.location-panel-content::-webkit-scrollbar {
+  width: 6px;
+}
+
+.location-panel-content::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.location-panel-content::-webkit-scrollbar-thumb {
+  background-color: rgba(255, 255, 255, 0.3);
+  border-radius: 3px;
+}
+
+.location-panel-content::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(255, 255, 255, 0.5);
+}
+
+.location-panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+  padding-right: 0.5rem;
+}
+
+.location-panel-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: white;
+}
+
+.location-input-group {
+  margin-bottom: 1rem;
+}
+
+.location-input {
+  width: 100%;
+  padding: 0.625rem;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 0.5rem; /* Matching main map container */
+  font-size: 0.875rem;
+  margin-bottom: 0.75rem;
+  transition: border-color 0.2s ease;
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+}
+
+.location-input:focus {
+  outline: none;
+  border-color: white;
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.1);
+}
+
+.location-input::placeholder {
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.coordinates-container {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.favorite-button {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem;
+  border: none;
+  background: none;
+  color: rgba(255, 255, 255, 0.8);
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.favorite-button:hover {
+  color: rgb(245 158 11);
+}
+
+.favorite-button.active {
+  color: rgb(245 158 11);
+}
+
+.favorite-icon {
+  color: rgb(245 158 11);
+}
+
+.location-icon {
+  color: rgb(37 99 235);
+}
+
+.save-button {
+  width: 100%;
+  padding: 0.625rem;
+  background-color: rgba(255, 255, 255, 0.2);
+  color: white;
+  border: none;
+  border-radius: 0.5rem; /* Matching main map container */
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.save-button:hover {
+  background-color: rgba(255, 255, 255, 0.3);
+}
+
+.save-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.saved-locations-list {
+  margin-top: 1.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.saved-locations-header {
+  font-size: 1rem;
+  font-weight: 600;
+  color: white;
+  margin-bottom: 0.75rem;
+}
+
+.saved-location-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.625rem;
+  border-radius: 0.5rem; /* Matching main map container */
+  transition: background-color 0.2s ease;
+  margin-bottom: 0.25rem;
+}
+
+.saved-location-item:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.saved-location-info {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.delete-button {
+  opacity: 0;
+  color: rgb(239 68 68);
+  padding: 0.25rem;
+  border: none;
+  background: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.saved-location-item:hover .delete-button {
+  opacity: 1;
+}
+
+.panel-toggle-button {
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translate(-100%, -50%);
+  padding: 0.5rem;
+  background: rgba(0, 0, 0, 0.65);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-right: none;
+  border-radius: 0.5rem 0 0 0.5rem; /* Matching main map container with adjusted sides */
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  color: white;
+}
+
+.panel-toggle-button:hover {
+  background-color: rgba(0, 0, 0, 0.8);
+}
+
+@media screen and (max-width: 768px) {
+  .location-panel {
+    width: calc(100% - 40px);
+    max-height: 350px;
+  }
+  
+  .coordinates-container {
+    grid-template-columns: 1fr;
+  }
+}

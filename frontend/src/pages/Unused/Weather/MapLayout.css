@@ -1,0 +1,179 @@
+/* MapLayout.css */
+
+/* Root Layout */
+.weather-page-container {
+  width: 100%;
+  position: relative;
+  overflow: hidden;
+}
+
+.map-container {
+  position: relative;
+  width: 100%;
+  height: calc(100vh - var(--header-height) - 3rem);
+  overflow: hidden;
+  border-radius: 0.5rem; /* Consistent border-radius */
+  background: #f0f4f8;
+  margin: 0;
+  padding: 0;
+}
+
+/* Google Maps Controls Styling */
+/* Map/Satellite toggle buttons */
+.gm-style-mtc button {
+  background-color: rgba(0, 0, 0, 0.65) !important;
+  color: white !important;
+  font-family: inherit !important;
+  border-color: rgba(255, 255, 255, 0.3) !important;
+  border-radius: 0 !important; /* Remove default rounded corners */
+}
+
+/* Left button (Map) needs rounded left corners */
+.gm-style-mtc:first-child button {
+  border-top-left-radius: 0.5rem !important; 
+  border-bottom-left-radius: 0.5rem !important;
+}
+
+/* Right button (Satellite) needs rounded right corners */
+.gm-style-mtc:last-child button {
+  border-top-right-radius: 0.5rem !important;
+  border-bottom-right-radius: 0.5rem !important;
+}
+
+.gm-style-mtc button:hover {
+  background-color: rgba(0, 0, 0, 0.8) !important;
+}
+
+/* Active toggle button */
+.gm-style-mtc button.gm-control-active {
+  background-color: rgba(0, 0, 0, 0.8) !important;
+  font-weight: 600 !important;
+}
+
+/* Dropdown menu */
+.gm-style-mtc div.gm-style-mtc-cc {
+  background-color: rgba(0, 0, 0, 0.65) !important;
+}
+
+.gm-style-mtc div ul li {
+  color: white !important;
+  background-color: rgba(0, 0, 0, 0.65) !important;
+}
+
+.gm-style-mtc div ul li:hover {
+  background-color: rgba(0, 0, 0, 0.8) !important;
+}
+
+/* Fullscreen button */
+.gm-fullscreen-control {
+  background-color: rgba(0, 0, 0, 0.65) !important;
+  border-radius: 0.5rem !important; /* Match map container's border-radius */
+}
+
+.gm-fullscreen-control button {
+  filter: invert(1) !important; /* Makes the icon white */
+}
+
+/* Target the inner elements of the fullscreen control */
+.gm-fullscreen-control button img,
+.gm-fullscreen-control svg path,
+.gm-fullscreen-control div {
+  filter: brightness(0) invert(1) !important; /* Ensures inner elements are white */
+}
+
+/* Ensure all parts of the icon are white */
+.gm-fullscreen-control * {
+  color: white !important;
+  fill: white !important;
+  stroke: white !important;
+}
+
+/* Responsive Design */
+@media screen and (max-width: 1200px) {
+  .timeline-container {
+    width: calc(100% - 40px);
+    left: 20px;
+    transform: none;
+    bottom: 100px;
+  }
+
+  .weather-graph-container {
+    width: 280px;
+    bottom: 180px;
+  }
+
+  .location-panel {
+    width: 280px;
+  }
+}
+
+@media screen and (max-width: 768px) {
+  .map-controls {
+    width: calc(100% - 40px);
+  }
+
+  .map-type-selector {
+    width: 100%;
+  }
+
+  .weather-graph-container {
+    width: calc(100% - 40px);
+    bottom: 200px;
+  }
+
+  .location-panel {
+    width: calc(100% - 40px);
+  }
+
+  .timeline-container {
+    bottom: 20px;
+  }
+
+  .coordinates-container {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Loading States */
+.loading-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1100;
+}
+
+.loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid rgb(229 231 235);
+  border-top-color: rgb(37 99 235);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Error States */
+.error-message {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: white;
+  padding: 1rem;
+  border-radius: 0.5rem;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  text-align: center;
+  color: rgb(239 68 68);
+  z-index: 1100;
+}
