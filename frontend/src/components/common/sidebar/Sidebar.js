@@ -1,5 +1,6 @@
 import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { UserButton } from '@clerk/clerk-react';
 import PropTypes from 'prop-types';
 import {
   Settings,
@@ -19,7 +20,7 @@ import profilePic from '../../../assets/sample-profile-pic.jpeg';
 import afgscLogo from '../../../assets/afgsc-logo.png';
 import './Sidebar.css';
 import { useClerk } from '@clerk/clerk-react';
-
+import { UserSession } from '../../../utils/UserSession';
 
 /**
  * NavItem component for sidebar navigation
@@ -59,6 +60,7 @@ const Sidebar = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { signOut } = useClerk();  // Add this line to get signOut function
+  const { user } = UserSession();
 
   // Update the logout handler
   const handleLogout = async () => {
@@ -141,9 +143,16 @@ const Sidebar = () => {
       {/* User Profile */}
       <div className="profile-section">
         <div className="profile-card">
-          <img src={profilePic} alt="Profile" className="profile-image" />
+          {/* Clerk-specific user icon */}
+          <UserButton />
           <div>
-            <p className="text-sm font-semibold text-gray-800">Sgt. Tubbs</p>
+            <p className="text-sm font-semibold text-gray-800">
+              {
+               // Uppercases the first letter of the each name
+               user.firstName.charAt(0).toUpperCase() + user.firstName.slice(1) + " " +
+               user.lastName.charAt(0).toUpperCase() + user.lastName.slice(1)
+              }
+            </p>
             <p className="text-xs text-gray-500">Flight Chief</p>
           </div>
         </div>
