@@ -16,7 +16,7 @@ import { UserSession } from './utils/UserSession';
 function App() {
   // Currently here for testing purposes, will be removed
   // This is the user info we will be saving to the DB.
-  const { isLoaded, user /* isSynced removed - unused */ } = UserSession();
+  const { isLoaded, user } = UserSession();
 
   if (isLoaded && user) {
     console.log(user.id);
