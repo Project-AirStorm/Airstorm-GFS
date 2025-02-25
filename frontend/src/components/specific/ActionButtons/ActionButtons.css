@@ -24,7 +24,6 @@
   background-color: rgb(37 99 235);
   color: white;
   border-radius: 0.25rem;
-  font-weight: 500;
   font-size: 0.875rem;
   display: flex;
   align-items: center;
@@ -37,10 +36,5 @@
 }
 
 .add-button-plus {
-  font-size: 1.25rem; /* Larger plus sign */
-  font-weight: 500; /* Bolder plus sign */
-}
-
-.add-button-text {
-  font-size: 1rem; /* Slightly larger text */
+  font-size: 1.125rem;
 }

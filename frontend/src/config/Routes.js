@@ -1,6 +1,6 @@
 import Dashboard from '../pages/Dashboard/Dashboard';
 import Forecasts from '../pages/Forecasts/Forecasts';
-import Weather from '../pages/Unused/Weather/Weather';
+import Maps from '../pages/Maps/Maps';
 import Login from '../pages/Login/Login';
 import Alerts from '../pages/Alerts/Alerts';
 import Analysis from '../pages/Analysis/Analysis';
@@ -41,7 +41,7 @@ export const ROUTES = {
   maps: {
     path: '/maps',
     title: 'Maps',
-    element: Weather,
+    element: Maps,
   },
   forecasts: {
     path: '/forecasts',

@@ -216,7 +216,6 @@ const GraphCastForecast = () => {
                 offset: 10,
                 angle: -90,
                 position: 'insideBottomLeft',
-                offset: 10,
                 fill: '#6b7280',
               }}
             />

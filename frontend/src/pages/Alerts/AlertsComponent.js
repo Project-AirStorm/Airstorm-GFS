@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { UserSession } from '../../utils/UserSession';
-import PageControls from '../../../src/components/common/pagecontrols/PageControls.js';
 import OverviewSwitch from '../../components/specific/OverviewSwitch/OverviewSwitch';
 import ActionButtons from '../../components/specific/ActionButtons/ActionButtons';
 

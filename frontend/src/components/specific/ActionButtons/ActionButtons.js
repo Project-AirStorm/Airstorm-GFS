@@ -3,34 +3,43 @@ import PropTypes from 'prop-types';
 import './ActionButtons.css';
 import AddLocationPopup from '../AddLocationPopup/AddLocationPopup';
 
-const ActionButtons = ({
-  onTimeframeChange,
-  onAddBase,
-  timeframe = 'Week',
-  onLocationAdded, // Add this prop
-}) => {
+/**
+ * ActionButtons component containing primary and secondary action buttons
+ * @param {Object} props
+ * @param {Function} props.onTimeframeChange - Callback for when timeframe button is clicked
+ * @param {Function} props.onAddBase - Callback for when add base button is clicked
+ * @param {string} props.timeframe - Current selected timeframe
+ * @param {Function} props.onLocationAdded - Callback function when a location is added
+ */
+const ActionButtons = ({ onTimeframeChange, onAddBase, timeframe = 'Week', onLocationAdded }) => {
   const [isPopupOpen, setIsPopupOpen] = useState(false);
 
   const handleAddBase = () => {
     setIsPopupOpen(true);
+    onAddBase(); // Keeping compatibility with legacy functionality
   };
 
   return (
     <>
       <div className="action-buttons-container">
-        <button className="timeframe-button" onClick={onTimeframeChange}>
+        <button 
+          className="timeframe-button"
+          onClick={onTimeframeChange}
+        >
           {timeframe}
         </button>
-        <button className="add-base-button" onClick={handleAddBase}>
+        <button 
+          className="add-base-button"
+          onClick={handleAddBase}
+        >
           <span className="add-button-plus">+</span>
-          <span className="add-button-text">Add Location</span>
+          Add New Base
         </button>
       </div>
-
       <AddLocationPopup
         isOpen={isPopupOpen}
         onClose={() => setIsPopupOpen(false)}
-        onLocationAdded={onLocationAdded} // Pass the callback to AddLocationPopup
+        onLocationAdded={onLocationAdded}
       />
     </>
   );
@@ -40,7 +49,7 @@ ActionButtons.propTypes = {
   onTimeframeChange: PropTypes.func.isRequired,
   onAddBase: PropTypes.func.isRequired,
   timeframe: PropTypes.string,
-  onLocationAdded: PropTypes.func, // Add PropType for the new prop
+  onLocationAdded: PropTypes.func,
 };
 
 export default ActionButtons;
