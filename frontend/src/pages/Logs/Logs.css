@@ -1,14 +1,10 @@
-/* Logs.css */
+/* Logs.css - Combined Version */
 
-/* Container and Layout */
-.container {
-  max-width: 1400px;
-}
-
+/* Container Styles */
 .logs-body {
   background-color: white;
   padding: 1.5rem;
-  border-radius: 0.5rem;
+  border-radius: 0.375rem;
   border: 1px solid rgb(229 231 235);
   margin-bottom: 1.5rem;
   width: 100%;
@@ -34,6 +30,53 @@
   color: rgb(75 85 99);
 }
 
+.logs-actions {
+  display: flex;
+  gap: 0.75rem;
+}
+
+/* Button Styles */
+.button-icon {
+  width: 1rem;
+  height: 1rem;
+}
+
+.export-button,
+.delete-button {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.export-button {
+  background-color: rgb(37 99 235);
+  color: white;
+}
+
+.export-button:hover {
+  background-color: rgb(29 78 216);
+}
+
+.delete-button {
+  background-color: rgb(239 68 68);
+  color: white;
+}
+
+.delete-button:hover:not(:disabled) {
+  background-color: rgb(220 38 38);
+}
+
+.delete-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 /* Controls Section */
 .logs-controls {
   display: flex;
@@ -44,8 +87,8 @@
 
 /* Search Bar */
 .search-bar {
-  flex-grow: 1;
-  min-width: 250px;
+  flex-grow: 3;
+  min-width: 300px;
   position: relative;
 }
 
@@ -55,6 +98,8 @@
   top: 50%;
   transform: translateY(-50%);
   color: rgb(156 163 175);
+  width: 1rem;
+  height: 1rem;
 }
 
 .search-input {
@@ -76,36 +121,140 @@
 .filters-section {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.75rem;
+  flex-wrap: wrap;
 }
 
-.filter-select {
-  padding: 0.625rem 2.5rem 0.625rem 0.75rem;
+.filter-icon {
+  width: 1rem;
+  height: 1rem;
+  color: rgb(156 163 175);
+}
+
+.timeframe-label {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.clock-icon {
+  position: absolute;
+  left: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 1rem;
+  height: 1rem;
+  color: rgb(156 163 175);
+  pointer-events: none;
+}
+
+.filter-select,
+.timeframe-select {
+  padding: 0.625rem 2.5rem 0.625rem 2.5rem;
   border: 1px solid rgb(229 231 235);
   border-radius: 0.375rem;
   font-size: 0.875rem;
-  min-width: 140px;
+  min-width: 160px;
   background-color: white;
+  color: rgb(55 65 81);
+  cursor: pointer;
   transition: all 0.2s ease;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='none' stroke='currentColor' viewBox='0 0 12 12'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M2 4l4 4 4-4'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.75rem center;
+  background-size: 0.75rem;
 }
 
-.filter-select:focus {
+.filter-select:focus,
+.timeframe-select:focus {
   outline: none;
   border-color: rgb(59 130 246);
   box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
 }
 
-/* Log Entry Styles */
+/* Table Styles */
+.logs-table {
+  overflow-x: auto;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th {
+  background-color: rgb(249 250 251);
+  padding: 0.75rem 1rem;
+  text-align: left;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: rgb(31 41 55);
+  border-bottom: 2px solid rgb(229 231 235);
+}
+
+td {
+  padding: 0.75rem 1rem;
+  font-size: 0.875rem;
+  color: rgb(75 85 99);
+  border-bottom: 1px solid rgb(229 231 235);
+}
+
+/* Log Type Badges */
+.log-type {
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.375rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  text-transform: capitalize;
+  background-color: rgb(243 244 246);
+  color: rgb(75 85 99);
+}
+
+/* Severity Badges */
+.severity-badge {
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.375rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  text-transform: capitalize;
+}
+
+.severity-badge.info {
+  background-color: rgb(219 234 254);
+  color: rgb(37 99 235);
+}
+
+.severity-badge.warning {
+  background-color: rgb(254 243 199);
+  color: rgb(217 119 6);
+}
+
+.severity-badge.error {
+  background-color: rgb(254 226 226);
+  color: rgb(239 68 68);
+}
+
+/* Row Highlight */
+tr.severity-error {
+  background-color: rgb(254 242 242);
+}
+
+tr.severity-warning {
+  background-color: rgb(255 251 235);
+}
+
+tr.severity-info {
+  background-color: rgb(239 246 255);
+}
+
+/* Legacy Log Entry Styles for backwards compatibility */
 .log-entry {
-  display: flex;
-  align-items: flex-start;
-  gap: 1rem;
   padding: 1rem;
   margin-bottom: 0.5rem;
   border-radius: 0.375rem;
   background-color: white;
   border-left: 4px solid transparent;
-  border-bottom: 1px solid rgb(243 244 246);
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
   transition: background-color 0.2s ease;
 }
@@ -133,14 +282,14 @@
   color: rgb(107 114 128);
   padding: 0.125rem 0.5rem;
   background-color: rgb(243 244 246);
-  border-radius: 0.25rem;
+  border-radius: 0.375rem;
 }
 
 .log-level {
   font-size: 0.75rem;
   font-weight: 500;
   padding: 0.25rem 0.5rem;
-  border-radius: 0.25rem;
+  border-radius: 0.375rem;
   text-transform: uppercase;
 }
 
@@ -148,11 +297,9 @@
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
   font-size: 0.875rem;
   line-height: 1.5;
-  color: rgb(31 41 55);
   display: flex;
   gap: 0.5rem;
   align-items: flex-start;
-  flex: 1;
 }
 
 .log-error-number {
@@ -164,23 +311,6 @@
 .log-message {
   word-break: break-word;
   color: rgb(55 65 81);
-  flex: 1;
-}
-
-/* Severity Styles */
-.severity-error {
-  border-left-color: rgb(239 68 68);
-  background-color: rgb(254 242 242);
-}
-
-.severity-warning {
-  border-left-color: rgb(245 158 11);
-  background-color: rgb(255 251 235);
-}
-
-.severity-info {
-  border-left-color: rgb(59 130 246);
-  background-color: rgb(239 246 255);
 }
 
 .level-error {
@@ -196,180 +326,6 @@
 .level-info {
   background-color: rgb(219 234 254);
   color: rgb(30 58 138);
-}
-
-/* Log Viewer Container */
-.logs-viewer {
-  max-height: 70vh;
-  overflow-y: auto;
-  padding-right: 0.5rem;
-}
-
-/* Empty State */
-.logs-empty-state {
-  text-align: center;
-  padding: 2rem;
-  color: rgb(107 114 128);
-  font-style: italic;
-}
-
-/* Loading and Error States */
-.logs-loading,
-.logs-error {
-  text-align: center;
-  padding: 2rem;
-  color: rgb(107 114 128);
-}
-
-.logs-error {
-  color: rgb(220 38 38);
-}
-
-.loading-spinner {
-  width: 2rem;
-  height: 2rem;
-  border: 4px solid rgb(191 219 254);
-  border-top-color: rgb(37 99 235);
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-/* Buttons */
-.primary-button,
-.export-button {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.5rem 1rem;
-  background-color: rgb(37 99 235);
-  color: white;
-  border: none;
-  border-radius: 0.375rem;
-  font-size: 0.875rem;
-  cursor: pointer;
-  transition: background-color 0.2s ease;
-}
-
-.primary-button:hover,
-.export-button:hover {
-  background-color: rgb(29 78 216);
-}
-
-.icon-button {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.5rem 1rem;
-  background-color: rgb(243 244 246);
-  color: rgb(55 65 81);
-  border: none;
-  border-radius: 0.375rem;
-  font-size: 0.875rem;
-  cursor: pointer;
-  transition: background-color 0.2s ease;
-}
-
-.icon-button:hover {
-  background-color: rgb(229 231 235);
-}
-
-.retry-button {
-  margin-top: 1rem;
-  padding: 0.5rem 1rem;
-  background-color: rgb(254 226 226);
-  color: rgb(220 38 38);
-  border: none;
-  border-radius: 0.375rem;
-  font-size: 0.875rem;
-  cursor: pointer;
-  transition: background-color 0.2s ease;
-}
-
-.retry-button:hover {
-  background-color: rgb(254 202 202);
-}
-
-.button-icon {
-  width: 1rem;
-  height: 1rem;
-}
-
-/* Scrollbar Styling */
-.logs-viewer::-webkit-scrollbar {
-  width: 6px;
-}
-
-.logs-viewer::-webkit-scrollbar-track {
-  background: rgb(243 244 246);
-  border-radius: 3px;
-}
-
-.logs-viewer::-webkit-scrollbar-thumb {
-  background: rgb(209 213 219);
-  border-radius: 3px;
-}
-
-.logs-viewer::-webkit-scrollbar-thumb:hover {
-  background: rgb(156 163 175);
-}
-
-/* Responsive Design */
-@media screen and (max-width: 768px) {
-  .logs-header {
-    flex-direction: column;
-    gap: 1rem;
-  }
-
-  .logs-controls {
-    flex-direction: column;
-  }
-
-  .filters-section {
-    flex-wrap: wrap;
-  }
-
-  .filter-select {
-    flex-grow: 1;
-  }
-
-  .export-button {
-    width: 100%;
-    justify-content: center;
-  }
-
-  /* Header Actions */
-.logs-actions {
-  display: flex;
-  gap: 1rem;
-}
-/* Delete Button */
-.delete-button {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.5rem 1rem;
-  background-color: rgb(239 68 68);
-  color: white;
-  border: none;
-  border-radius: 0.375rem;
-  font-size: 0.875rem;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.delete-button:hover:not(:disabled) {
-  background-color: rgb(220 38 38);
-}
-
-.delete-button:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
 }
 
 /* Delete Confirmation Dialog */
@@ -389,7 +345,7 @@
 .delete-confirm-dialog {
   background-color: white;
   padding: 1.5rem;
-  border-radius: 0.5rem;
+  border-radius: 0.375rem;
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
   max-width: 24rem;
   width: 90%;
@@ -421,7 +377,7 @@
   border-radius: 0.375rem;
   font-size: 0.875rem;
   cursor: pointer;
-  transition: background-color 0.2s;
+  transition: background-color 0.2s ease;
 }
 
 .delete-confirm-cancel:hover:not(:disabled) {
@@ -436,7 +392,7 @@
   border-radius: 0.375rem;
   font-size: 0.875rem;
   cursor: pointer;
-  transition: background-color 0.2s;
+  transition: background-color 0.2s ease;
 }
 
 .delete-confirm-delete:hover:not(:disabled) {
@@ -447,6 +403,51 @@
   color: rgb(239 68 68);
   margin-bottom: 1rem;
   font-size: 0.875rem;
+}
+
+/* Loading and Empty States */
+.logs-loading,
+.logs-error,
+.logs-empty-state {
+  text-align: center;
+  padding: 2rem;
+  color: rgb(107 114 128);
+}
+
+.loading-spinner {
+  width: 2rem;
+  height: 2rem;
+  border: 4px solid rgb(229 231 235);
+  border-top-color: rgb(37 99 235);
+  border-radius: 50%;
+  margin: 0 auto 1rem;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.logs-error {
+  color: rgb(220 38 38);
+}
+
+.retry-button {
+  margin-top: 1rem;
+  padding: 0.5rem 1rem;
+  background-color: rgb(254 226 226);
+  color: rgb(220 38 38);
+  border: none;
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.retry-button:hover {
+  background-color: rgb(254 202 202);
 }
 
 /* Success Message */
@@ -484,4 +485,48 @@
   }
 }
 
+/* Responsive Design */
+@media screen and (max-width: 768px) {
+  .logs-body {
+    padding: 1rem;
+  }
+
+  .logs-header {
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .logs-controls {
+    flex-direction: column;
+  }
+
+  .search-bar {
+    width: 100%;
+  }
+
+  .filters-section {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .filter-select,
+  .timeframe-select {
+    width: 100%;
+  }
+
+  .logs-actions {
+    width: 100%;
+  }
+
+  .export-button,
+  .delete-button {
+    flex: 1;
+    justify-content: center;
+  }
+
+  /* Make table scrollable horizontally on mobile */
+  .logs-table {
+    margin: 0 -1rem;
+    padding: 0 1rem;
+  }
 }

@@ -6,16 +6,17 @@ import './Logs.css';
 
 /**
  * Parses a log line into structured data
- * @param {string} logLine - Raw log line to parse
- * @returns {Object} Parsed log data
  */
 const parseLogLine = (logLine) => {
   const parts = logLine.split('|').map(s => s.trim());
   let [timestamp, logger, level, message] = parts;
   
-  // Extract error number if present
   let errorNumber = null;
   if (message) {
+    // Remove date and time pattern like "172.18.0.1 - - [20/Feb/2025 01:09:34] "POST /api/save-user HTTP/1.1" 200 -"
+    message = message.replace(/\d+\.\d+\.\d+\.\d+\s+-\s+-\s+\[\d+\/\w+\/\d+\s+\d+:\d+:\d+\]\s+"[^"]+"\s+\d+\s+-/, '').trim();
+    
+    // Extract error number if present
     const errorMatch = message.match(/\[Errno \d+\]/);
     if (errorMatch) {
       errorNumber = errorMatch[0];
@@ -23,7 +24,7 @@ const parseLogLine = (logLine) => {
     }
   }
 
-  // Clean up any ANSI color codes
+  // Remove ANSI color codes
   message = message?.replace(/\u001B\[\d+m/g, '');
 
   return {
@@ -33,38 +34,6 @@ const parseLogLine = (logLine) => {
     errorNumber,
     message
   };
-};
-
-/**
- * Individual log entry component
- */
-const LogEntry = ({ logLine }) => {
-  const {
-    timestamp,
-    logger,
-    level,
-    errorNumber,
-    message
-  } = parseLogLine(logLine);
-
-  const severityClass = level?.toLowerCase().includes('error') ? 'error' :
-                       level?.toLowerCase().includes('warning') ? 'warning' : 'info';
-
-  return (
-    <div className={`log-entry severity-${severityClass}`}>
-      <div className="log-entry-header">
-        <span className="log-timestamp">{timestamp}</span>
-        <span className="log-logger">{logger}</span>
-        {level && <span className={`log-level level-${severityClass}`}>{level}</span>}
-      </div>
-      <div className="log-content">
-        {errorNumber && (
-          <span className="log-error-number">{errorNumber}</span>
-        )}
-        <span className="log-message">{message}</span>
-      </div>
-    </div>
-  );
 };
 
 /**
@@ -82,7 +51,6 @@ const Logs = () => {
   const [deleteError, setDeleteError] = useState(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
-  // Time frame options
   const timeframeOptions = [
     { value: '1h', label: 'Last Hour' },
     { value: '6h', label: 'Last 6 Hours' },
@@ -92,7 +60,6 @@ const Logs = () => {
     { value: '30d', label: 'Last 30 Days' }
   ];
 
-  // Fetch logs
   useEffect(() => {
     const fetchLogs = async () => {
       try {
@@ -112,24 +79,20 @@ const Logs = () => {
     return () => clearInterval(interval);
   }, [timeframe]);
 
-  // Handle log deletion
   const handleDeleteLogs = async () => {
     try {
       setIsDeleting(true);
       setDeleteError(null);
 
       await axios.delete(`${process.env.REACT_APP_API_URL}/api/logs`);
-      
       setLogs([]);
       setShowDeleteConfirm(false);
       
-      // Show success message
       const successMessage = document.createElement('div');
       successMessage.className = 'delete-success-message';
       successMessage.textContent = 'Logs deleted successfully';
       document.body.appendChild(successMessage);
       setTimeout(() => successMessage.remove(), 3000);
-
     } catch (err) {
       console.error('Error deleting logs:', err);
       setDeleteError('Failed to delete logs. Please try again.');
@@ -138,20 +101,33 @@ const Logs = () => {
     }
   };
 
-  // Filter logs based on search and filters
-  const filteredLogs = logs.filter(log => {
-    const matchesSearch = log.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesLevel = selectedLevel === 'all' || log.toLowerCase().includes(selectedLevel);
-    const matchesLogger = selectedLogger === 'all' || log.includes(selectedLogger);
-    
+  // Parse log strings into structured objects for table display and filter out logs without messages
+  const parsedLogs = logs
+    .map((log, index) => {
+      const parsedLog = parseLogLine(log);
+      return {
+        id: index,
+        timestamp: parsedLog.timestamp,
+        type: parsedLog.logger,
+        severity: parsedLog.level?.toLowerCase().includes('error') ? 'error' :
+                parsedLog.level?.toLowerCase().includes('warning') ? 'warning' : 'info',
+        message: parsedLog.errorNumber ? `${parsedLog.errorNumber} ${parsedLog.message}` : parsedLog.message,
+        source: parsedLog.logger
+      };
+    })
+    .filter(log => log.message && log.message.trim() !== ''); // Filter out logs without messages
+
+  const filteredLogs = parsedLogs.filter(log => {
+    const matchesSearch = 
+      (log.message?.toLowerCase().includes(searchTerm.toLowerCase()) || 
+       log.source?.toLowerCase().includes(searchTerm.toLowerCase()) || 
+       log.timestamp?.toLowerCase().includes(searchTerm.toLowerCase()));
+    const matchesLevel = selectedLevel === 'all' || log.severity === selectedLevel;
+    const matchesLogger = selectedLogger === 'all' || log.source === selectedLogger;
     return matchesSearch && matchesLevel && matchesLogger;
   });
 
-  // Get unique loggers for filter
-  const loggers = [...new Set(logs.map(log => {
-    const parts = log.split('|');
-    return parts[1]?.trim() || '';
-  }))].filter(Boolean);
+  const loggers = [...new Set(parsedLogs.map(log => log.source))].filter(Boolean);
 
   if (loading) {
     return (
@@ -181,13 +157,10 @@ const Logs = () => {
     <div className="dashboard-container">
       <div className="main-content">
         <div className="logs-body">
-          {/* Header */}
           <div className="logs-header">
             <div>
               <h2 className="content-title">System Logs</h2>
-              <p className="content-description">
-                View and analyze system logs
-              </p>
+              <p className="content-description">View and analyze system logs</p>
             </div>
             <div className="logs-actions">
               <button 
@@ -205,7 +178,6 @@ const Logs = () => {
             </div>
           </div>
 
-          {/* Controls */}
           <div className="logs-controls">
             <div className="search-bar">
               <Search className="search-icon" />
@@ -259,20 +231,44 @@ const Logs = () => {
             </div>
           </div>
 
-          {/* Log Viewer */}
-          <div className="logs-viewer">
+          {/* Table display format */}
+          <div className="logs-table">
             {filteredLogs.length === 0 ? (
               <div className="logs-empty-state">
                 No logs found matching your criteria
               </div>
             ) : (
-              filteredLogs.map((log, index) => (
-                <LogEntry key={index} logLine={log} />
-              ))
+              <table>
+                <thead>
+                  <tr>
+                    <th>Timestamp</th>
+                    <th>Type</th>
+                    <th>Severity</th>
+                    <th>Message</th>
+                    <th>Source</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredLogs.map((log) => (
+                    <tr key={log.id} className={`severity-${log.severity}`}>
+                      <td>{log.timestamp}</td>
+                      <td>
+                        <span className={`log-type ${log.type}`}>{log.type}</span>
+                      </td>
+                      <td>
+                        <span className={`severity-badge ${log.severity}`}>
+                          {log.severity}
+                        </span>
+                      </td>
+                      <td>{log.message}</td>
+                      <td>{log.source}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             )}
           </div>
 
-          {/* Delete Confirmation Dialog */}
           {showDeleteConfirm && (
             <div className="delete-confirm-overlay">
               <div className="delete-confirm-dialog">
