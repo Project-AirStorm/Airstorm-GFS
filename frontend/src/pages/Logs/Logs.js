@@ -101,6 +101,71 @@ const Logs = () => {
     }
   };
 
+  /**
+   * Handle exporting logs as TSV file
+   */
+  const handleExportLogs = () => {
+    try {
+      // Format the logs for export, using the filtered logs
+      const exportData = filteredLogs.map(log => ({
+        Timestamp: log.timestamp,
+        Severity: log.severity,
+        Message: log.message,
+        Source: log.source
+      }));
+      
+      // If no logs to export, show a message
+      if (exportData.length === 0) {
+        const noLogsMessage = document.createElement('div');
+        noLogsMessage.className = 'delete-success-message';
+        noLogsMessage.style.backgroundColor = 'rgb(239 68 68)';
+        noLogsMessage.textContent = 'No logs to export';
+        document.body.appendChild(noLogsMessage);
+        setTimeout(() => noLogsMessage.remove(), 3000);
+        return;
+      }
+      
+      // Convert to TSV (tab-separated values)
+      const csvHeader = ['Timestamp', 'Severity', 'Message', 'Source'].join('\t');
+      const csvRows = exportData.map(row => 
+        [
+          row.Timestamp, 
+          row.Severity, 
+          // Escape any tabs in the message
+          row.Message.replace(/\t/g, ' '), 
+          row.Source
+        ].join('\t')
+      );
+      const csvContent = [csvHeader, ...csvRows].join('\n');
+      
+      // Create a blob and download link
+      const blob = new Blob([csvContent], { type: 'text/tab-separated-values' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.setAttribute('href', url);
+      a.setAttribute('download', `system-logs-${new Date().toISOString().slice(0, 10)}.tsv`);
+      a.click();
+      
+      // Clean up
+      URL.revokeObjectURL(url);
+      
+      // Show success message
+      const successMessage = document.createElement('div');
+      successMessage.className = 'delete-success-message';
+      successMessage.textContent = 'Logs exported successfully';
+      document.body.appendChild(successMessage);
+      setTimeout(() => successMessage.remove(), 3000);
+    } catch (err) {
+      console.error('Error exporting logs:', err);
+      const errorMessage = document.createElement('div');
+      errorMessage.className = 'delete-success-message';
+      errorMessage.style.backgroundColor = 'rgb(239 68 68)';
+      errorMessage.textContent = 'Failed to export logs';
+      document.body.appendChild(errorMessage);
+      setTimeout(() => errorMessage.remove(), 3000);
+    }
+  };
+
   // Parse log strings into structured objects for table display and filter out logs without messages
   const parsedLogs = logs
     .map((log, index) => {
@@ -108,7 +173,6 @@ const Logs = () => {
       return {
         id: index,
         timestamp: parsedLog.timestamp,
-        type: parsedLog.logger,
         severity: parsedLog.level?.toLowerCase().includes('error') ? 'error' :
                 parsedLog.level?.toLowerCase().includes('warning') ? 'warning' : 'info',
         message: parsedLog.errorNumber ? `${parsedLog.errorNumber} ${parsedLog.message}` : parsedLog.message,
@@ -171,7 +235,11 @@ const Logs = () => {
                 <Trash2 className="button-icon" />
                 Clear Logs
               </button>
-              <button className="export-button">
+              <button 
+                className="export-button"
+                onClick={handleExportLogs}
+                disabled={filteredLogs.length === 0}
+              >
                 <Download className="button-icon" />
                 Export Logs
               </button>
@@ -231,7 +299,7 @@ const Logs = () => {
             </div>
           </div>
 
-          {/* Table display format */}
+          {/* Table display format with Type column removed */}
           <div className="logs-table">
             {filteredLogs.length === 0 ? (
               <div className="logs-empty-state">
@@ -242,7 +310,6 @@ const Logs = () => {
                 <thead>
                   <tr>
                     <th>Timestamp</th>
-                    <th>Type</th>
                     <th>Severity</th>
                     <th>Message</th>
                     <th>Source</th>
@@ -253,15 +320,16 @@ const Logs = () => {
                     <tr key={log.id} className={`severity-${log.severity}`}>
                       <td>{log.timestamp}</td>
                       <td>
-                        <span className={`log-type ${log.type}`}>{log.type}</span>
-                      </td>
-                      <td>
                         <span className={`severity-badge ${log.severity}`}>
                           {log.severity}
                         </span>
                       </td>
                       <td>{log.message}</td>
-                      <td>{log.source}</td>
+                      <td>
+                        <span className={`log-type ${log.source.toLowerCase().replace(/\./g, '-')}`}>
+                          {log.source}
+                        </span>
+                      </td>
                     </tr>
                   ))}
                 </tbody>
