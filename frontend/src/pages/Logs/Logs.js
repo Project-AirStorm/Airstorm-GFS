@@ -60,20 +60,23 @@ const Logs = () => {
     { value: '30d', label: 'Last 30 Days' }
   ];
 
-  useEffect(() => {
-    const fetchLogs = async () => {
-      try {
-        const response = await axios.get(`${process.env.REACT_APP_API_URL}/api/logs`, {
-          params: { timeframe }
-        });
-        setLogs(response.data);
-        setLoading(false);
-      } catch (err) {
-        setError('Failed to fetch logs');
-        setLoading(false);
-      }
-    };
+  const fetchLogs = async () => {
+    try {
+      setLoading(true);
+      const response = await axios.get(`${process.env.REACT_APP_API_URL}/api/logs`, {
+        params: { timeframe }
+      });
+      setLogs(response.data);
+      setError(null);
+    } catch (err) {
+      console.error('Error fetching logs:', err);
+      setError('Failed to fetch logs');
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  useEffect(() => {
     fetchLogs();
     const interval = setInterval(fetchLogs, 30000);
     return () => clearInterval(interval);
@@ -84,15 +87,23 @@ const Logs = () => {
       setIsDeleting(true);
       setDeleteError(null);
 
+      // Send the delete request to the backend
       await axios.delete(`${process.env.REACT_APP_API_URL}/api/logs`);
+      
+      // Refresh logs after deletion
       setLogs([]);
       setShowDeleteConfirm(false);
       
+      // Show success message
       const successMessage = document.createElement('div');
       successMessage.className = 'delete-success-message';
       successMessage.textContent = 'Logs deleted successfully';
       document.body.appendChild(successMessage);
-      setTimeout(() => successMessage.remove(), 3000);
+      setTimeout(() => {
+        successMessage.remove();
+        // Fetch logs after showing message
+        fetchLogs();
+      }, 3000);
     } catch (err) {
       console.error('Error deleting logs:', err);
       setDeleteError('Failed to delete logs. Please try again.');
@@ -193,7 +204,7 @@ const Logs = () => {
 
   const loggers = [...new Set(parsedLogs.map(log => log.source))].filter(Boolean);
 
-  if (loading) {
+  if (loading && logs.length === 0) {
     return (
       <div className="logs-body">
         <div className="logs-loading">
@@ -204,12 +215,12 @@ const Logs = () => {
     );
   }
 
-  if (error) {
+  if (error && logs.length === 0) {
     return (
       <div className="logs-body">
         <div className="logs-error">
           <p>{error}</p>
-          <button className="retry-button" onClick={() => window.location.reload()}>
+          <button className="retry-button" onClick={fetchLogs}>
             Retry
           </button>
         </div>
@@ -227,14 +238,8 @@ const Logs = () => {
               <p className="content-description">View and analyze system logs</p>
             </div>
             <div className="logs-actions">
-              <button 
-                className="delete-button"
-                onClick={() => setShowDeleteConfirm(true)}
-                disabled={isDeleting || logs.length === 0}
-              >
-                <Trash2 className="button-icon" />
-                Clear Logs
-              </button>
+            
+            
               <button 
                 className="export-button"
                 onClick={handleExportLogs}
@@ -298,6 +303,12 @@ const Logs = () => {
               </select>
             </div>
           </div>
+
+          {loading && logs.length > 0 && (
+            <div className="logs-loading-overlay">
+              <div className="loading-spinner"></div>
+            </div>
+          )}
 
           {/* Table display format with Type column removed */}
           <div className="logs-table">
