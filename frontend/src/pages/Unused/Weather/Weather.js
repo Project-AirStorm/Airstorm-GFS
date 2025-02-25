@@ -8,10 +8,9 @@ import { UserSession } from '../../../utils/UserSession';
 import { weatherVariables, units } from '../../../config/WeatherConfig.js';
 import WeatherMapControls from '../../../components/specific/WeatherMap/MapControls/MapControls';
 import LocationPanel from '../../../components/specific/WeatherMap/LocationPanel/LocationPanel';
-
 import WeatherGraph from '../../../components/specific/WeatherGraph/WeatherGraph';
 import TimelineSlider from '../../../components/specific/TimelineSlider/TimelineSlider';
-
+ 
 // Relative imports (same directory)
 import './MapLayout.css';
 
@@ -265,6 +264,28 @@ const Weather = () => {
           </div>
 
           <TimelineSlider onTimeChange={handleTimeChange} />
+          <div className="custom-zoom-controls">
+        <button 
+          className="custom-zoom-button" 
+          onClick={() => {
+            if (mapRef.current) {
+              mapRef.current.setZoom(mapRef.current.getZoom() + 1);
+            }
+          }}
+        >
+          +
+        </button>
+        <button 
+          className="custom-zoom-button" 
+          onClick={() => {
+            if (mapRef.current) {
+              mapRef.current.setZoom(mapRef.current.getZoom() - 1);
+            }
+          }}
+        >
+          −
+        </button>
+      </div>
         </div>
       </div>
     </div>
