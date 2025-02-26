@@ -4,31 +4,31 @@
   bottom: 30px;
   left: 50%;
   transform: translateX(-50%);
-  width: 70%;
-  min-width: 600px;
-  background: rgba(255, 255, 255, 0.95);
-  padding: 20px;
-  border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  width: 50%;
+  min-width: 400px;
+  background: rgba(0, 0, 0, 0.65);
+  padding: 15px;
+  border-radius: 0.5rem; /* Matching main map container */
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.15);
   z-index: 1000;
 }
 
 .timeline-slider {
   width: 100%;
-  height: 4px;
+  height: 3px;
   -webkit-appearance: none;
   appearance: none;
-  background: #ddd;
-  border-radius: 2px;
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 1.5px;
   outline: none;
-  margin: 15px 0;
+  margin: 12px 0;
 }
 
 .timeline-slider::-webkit-slider-thumb {
   -webkit-appearance: none;
-  width: 20px;
-  height: 20px;
-  background: #3b82f6;
+  width: 16px;
+  height: 16px;
+  background: rgba(255, 255, 255, 0.8);
   border-radius: 50%;
   cursor: pointer;
   transition: transform 0.2s;
@@ -40,7 +40,7 @@
 
 .timeline-labels {
   position: relative;
-  height: 30px;
+  height: 25px;
 }
 
 .timeline-label {
@@ -50,24 +50,38 @@
 }
 
 .label-marker {
-  width: 2px;
-  height: 10px;
-  background: #666;
+  width: 1.5px;
+  height: 8px;
+  background: rgba(255, 255, 255, 0.5);
   margin: 0 auto;
 }
 
 .label-text {
   position: absolute;
-  top: 12px;
+  top: 10px;
   left: 50%;
   transform: translateX(-50%);
-  font-size: 0.8em;
-  color: #444;
+  font-size: 0.7em;
+  color: rgba(255, 255, 255, 0.7);
 }
 
 .current-time {
   text-align: center;
   font-weight: 500;
-  color: #1d4ed8;
-  margin-top: 8px;
+  color: rgba(255, 255, 255, 0.9);
+  margin-top: 6px;
+  font-size: 0.9em;
+}
+
+/* Media queries for responsive design */
+@media screen and (max-width: 768px) {
+  .timeline-container {
+    width: 80%;
+    min-width: 300px;
+    padding: 10px;
+  }
+  
+  .current-time {
+    font-size: 0.8em;
+  }
 }

@@ -20,13 +20,7 @@
 
 /* Main login form container */
 .login-main {
-  width: 100%;
-  max-width: 480px;
-  padding: 2.5rem;
 
-  /* Glass effect - made more transparent */
-  background: rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
 
   /* Styling */
