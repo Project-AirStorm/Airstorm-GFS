@@ -103,141 +103,141 @@ jobs:
           CHANGES=$(cat changes.txt | jq -sRr @json)
           echo "changes=${CHANGES}" >> $GITHUB_OUTPUT
 
-name: Generate release notes
-id: generate_notes
-uses: actions/github-script@v6
-env:
-  GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-  COMMITS: ${{ steps.get_commits.outputs.changes }}
-  NEW_VERSION: ${{ needs.version-bump.outputs.new_version }}
-with:
-  script: |
-    const axios = require('axios');
-    
-    const prompt = `As a technical writer, create professional release notes from these git commits.
-    Format the output in the following structure:
-    
-    # Release v${process.env.NEW_VERSION}
-    
-    ## 🔄 Changes
-    
-    ${process.env.COMMITS}
-    
-    Please categorize the changes into:
-    - 🚀 New Features
-    - 🔨 Improvements
-    - 🐛 Bug Fixes
-    
-    Use clear, concise language and proper markdown formatting. Include the commit hash in parentheses after each item. Skip any commits that are purely administrative (like merge commits).`;
-    
-    try {
-      // First try the v1beta endpoint
-      const response = await axios.post(
-        'https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent',
-        {
-          contents: [{ parts: [{ text: prompt }] }],
-          generationConfig: {
-            maxOutputTokens: 1024,
-            temperature: 0.7,
-            topK: 40,
-            topP: 0.95
-          }
-        },
-        {
-          headers: {
-            'Content-Type': 'application/json',
-            'x-goog-api-key': process.env.GEMINI_API_KEY
-          }
-        }
-      );
-      
-      if (!response.data.candidates || !response.data.candidates[0]) {
-        throw new Error('No response from Gemini API');
-      }
-      
-      const releaseNotes = response.data.candidates[0].content.parts[0].text;
-      core.setOutput('notes', releaseNotes);
-      
-      // Debug output
-      console.log('Generated Release Notes:');
-      console.log(releaseNotes);
-    } catch (error) {
-      console.log(`Error with v1beta endpoint: ${error.message}`);
-      
-      // Fallback to generating notes without API
-      try {
-        const commits = process.env.COMMITS.trim().split('\n');
-        const version = process.env.NEW_VERSION;
-        
-        // Categories for organizing commits
-        const features = [];
-        const improvements = [];
-        const bugfixes = [];
-        
-        // Process each commit
-        commits.forEach(line => {
-          const [hash, ...messageParts] = line.split(' ');
-          const message = messageParts.join(' ');
-          
-          // Skip merge commits
-          if (message.startsWith('Merge')) {
-            return;
-          }
-          
-          // Categorize based on content
-          if (message.match(/add(ed)?|new|feature|implement|create/i)) {
-            features.push({ hash: hash.substring(0, 7), message });
-          } else if (message.match(/fix(ed)?|bug|issue|error|crash/i)) {
-            bugfixes.push({ hash: hash.substring(0, 7), message });
-          } else if (message.match(/updat(ed?)|improv(ed?)|enhanc(ed?)|optimiz(ed?)|refactor|renam(ed?)|rearrang(ed?)|UI/i)) {
-            improvements.push({ hash: hash.substring(0, 7), message });
-          } else {
-            // Default to improvements for anything else
-            improvements.push({ hash: hash.substring(0, 7), message });
-          }
-        });
-        
-        // Format the release notes
-        let notes = `# Release v${version}\n\n`;
-        
-        if (features.length > 0) {
-          notes += '## 🚀 New Features\n\n';
-          features.forEach(item => {
-            notes += `- ${capitalizeFirstLetter(item.message)} (${item.hash})\n`;
-          });
-          notes += '\n';
-        }
-        
-        if (improvements.length > 0) {
-          notes += '## 🔨 Improvements\n\n';
-          improvements.forEach(item => {
-            notes += `- ${capitalizeFirstLetter(item.message)} (${item.hash})\n`;
-          });
-          notes += '\n';
-        }
-        
-        if (bugfixes.length > 0) {
-          notes += '## 🐛 Bug Fixes\n\n';
-          bugfixes.forEach(item => {
-            notes += `- ${capitalizeFirstLetter(item.message)} (${item.hash})\n`;
-          });
-        }
-        
-        // Helper function to capitalize first letter
-        function capitalizeFirstLetter(string) {
-          return string.charAt(0).toUpperCase() + string.slice(1);
-        }
-        
-        core.setOutput('notes', notes);
-        
-        // Debug output
-        console.log('Generated Release Notes (fallback):');
-        console.log(notes);
-      } catch (fallbackError) {
-        core.setFailed(`Error in fallback generation: ${fallbackError.message}`);
-        throw fallbackError;
-      }
-    }
+      - name: Generate release notes
+        id: generate_notes
+        uses: actions/github-script@v6
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          COMMITS: ${{ steps.get_commits.outputs.changes }}
+          NEW_VERSION: ${{ needs.version-bump.outputs.new_version }}
+        with:
+          script: |
+            const axios = require('axios');
+            
+            const prompt = `As a technical writer, create professional release notes from these git commits.
+            Format the output in the following structure:
+            
+            # Release v${process.env.NEW_VERSION}
+            
+            ## 🔄 Changes
+            
+            ${process.env.COMMITS}
+            
+            Please categorize the changes into:
+            - 🚀 New Features
+            - 🔨 Improvements
+            - 🐛 Bug Fixes
+            
+            Use clear, concise language and proper markdown formatting. Include the commit hash in parentheses after each item. Skip any commits that are purely administrative (like merge commits).`;
+            
+            try {
+              // First try the v1beta endpoint
+              const response = await axios.post(
+                'https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent',
+                {
+                  contents: [{ parts: [{ text: prompt }] }],
+                  generationConfig: {
+                    maxOutputTokens: 1024,
+                    temperature: 0.7,
+                    topK: 40,
+                    topP: 0.95
+                  }
+                },
+                {
+                  headers: {
+                    'Content-Type': 'application/json',
+                    'x-goog-api-key': process.env.GEMINI_API_KEY
+                  }
+                }
+              );
+              
+              if (!response.data.candidates || !response.data.candidates[0]) {
+                throw new Error('No response from Gemini API');
+              }
+              
+              const releaseNotes = response.data.candidates[0].content.parts[0].text;
+              core.setOutput('notes', releaseNotes);
+              
+              // Debug output
+              console.log('Generated Release Notes:');
+              console.log(releaseNotes);
+            } catch (error) {
+              console.log(`Error with v1beta endpoint: ${error.message}`);
+              
+              // Fallback to generating notes without API
+              try {
+                const commits = process.env.COMMITS.trim().split('\n');
+                const version = process.env.NEW_VERSION;
+                
+                // Categories for organizing commits
+                const features = [];
+                const improvements = [];
+                const bugfixes = [];
+                
+                // Process each commit
+                commits.forEach(line => {
+                  const [hash, ...messageParts] = line.split(' ');
+                  const message = messageParts.join(' ');
+                  
+                  // Skip merge commits
+                  if (message.startsWith('Merge')) {
+                    return;
+                  }
+                  
+                  // Categorize based on content
+                  if (message.match(/add(ed)?|new|feature|implement|create/i)) {
+                    features.push({ hash: hash.substring(0, 7), message });
+                  } else if (message.match(/fix(ed)?|bug|issue|error|crash/i)) {
+                    bugfixes.push({ hash: hash.substring(0, 7), message });
+                  } else if (message.match(/updat(ed?)|improv(ed?)|enhanc(ed?)|optimiz(ed?)|refactor|renam(ed?)|rearrang(ed?)|UI/i)) {
+                    improvements.push({ hash: hash.substring(0, 7), message });
+                  } else {
+                    // Default to improvements for anything else
+                    improvements.push({ hash: hash.substring(0, 7), message });
+                  }
+                });
+                
+                // Format the release notes
+                let notes = `# Release v${version}\n\n`;
+                
+                if (features.length > 0) {
+                  notes += '## 🚀 New Features\n\n';
+                  features.forEach(item => {
+                    notes += `- ${capitalizeFirstLetter(item.message)} (${item.hash})\n`;
+                  });
+                  notes += '\n';
+                }
+                
+                if (improvements.length > 0) {
+                  notes += '## 🔨 Improvements\n\n';
+                  improvements.forEach(item => {
+                    notes += `- ${capitalizeFirstLetter(item.message)} (${item.hash})\n`;
+                  });
+                  notes += '\n';
+                }
+                
+                if (bugfixes.length > 0) {
+                  notes += '## 🐛 Bug Fixes\n\n';
+                  bugfixes.forEach(item => {
+                    notes += `- ${capitalizeFirstLetter(item.message)} (${item.hash})\n`;
+                  });
+                }
+                
+                // Helper function to capitalize first letter
+                function capitalizeFirstLetter(string) {
+                  return string.charAt(0).toUpperCase() + string.slice(1);
+                }
+                
+                core.setOutput('notes', notes);
+                
+                // Debug output
+                console.log('Generated Release Notes (fallback):');
+                console.log(notes);
+              } catch (fallbackError) {
+                core.setFailed(`Error in fallback generation: ${fallbackError.message}`);
+                throw fallbackError;
+              }
+            }
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v1
