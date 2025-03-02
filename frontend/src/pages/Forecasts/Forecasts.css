@@ -10,6 +10,7 @@
 
 .forecasts-content {
   width: 100%;
+  padding:1rem;
 }
 
 .content-title {
@@ -23,6 +24,77 @@
   font-size: 0.875rem;
   color: rgb(75 85 99);
   margin-bottom: 1.5rem;
+}
+
+/* Vertical Weather Grid Layout */
+.weather-grid-vertical {
+  display: flex;
+  flex-direction: column;    /* Changed from row (default) to column */
+  gap: 1.5rem;              /* Maintains spacing between cards */
+  width: 100%;              /* Full width of container */
+  height: calc(100vh - 2rem); /* Takes up full viewport height minus some margin */
+  overflow-y: auto;         /* Changed from overflow-x to overflow-y for vertical scrolling */
+  padding: 0.5rem;          /* Padding around the entire grid */
+  scrollbar-width: thin;
+  scroll-behavior: smooth;
+}
+
+/* Customize scrollbar */
+.weather-grid-vertical::-webkit-scrollbar {
+  width: 6px;               /* Changed from height to width for vertical scrollbar */
+}
+
+.weather-grid-vertical::-webkit-scrollbar-track {
+  background: rgb(243 244 246);
+  border-radius: 3px;
+}
+
+.weather-grid-vertical::-webkit-scrollbar-thumb {
+  background: rgb(209 213 219);
+  border-radius: 3px;
+}
+
+.weather-grid-vertical::-webkit-scrollbar-thumb:hover {
+  background: rgb(156 163 175);
+}
+
+.weather-grid-vertical > * {
+  min-width: calc((100% - 3rem) / 3);    /* Sets minimum width of each card to 1/16 of container minus gaps */
+  max-width: calc((100% - 3rem) / 3);    /* Sets maximum width of each card to 1/16 of container minus gaps */
+  flex: 0 0 auto;                        /* Prevents cards from growing/shrinking and keeps them at fixed size */
+}
+
+/* Make weather cards take full width */
+.weather-grid-vertical > * {
+  width: 100%;             /* Cards take full width of container */
+  flex: 0 0 auto;          /* Prevents cards from growing/shrinking */
+}
+
+/* Remove the min-width and max-width constraints */
+.weather-grid-vertical > * {
+  min-width: unset;
+  max-width: unset;
+}
+
+/* Responsive adjustments */
+@media screen and (max-width: 768px) {
+  .weather-grid {
+    padding: 0.25rem;      /* Slightly less padding on mobile */
+  }
+}
+
+.locationLabel{
+  font-size: 1.25rem;
+  font-weight: 550;
+  color: black;
+  margin-top: 0.5rem;
+}
+
+.coordinatesLabel{
+  font-size: 1.25rem;
+  font-weight: 550;
+  color: black;
+  margin-top: 0.5rem;
 }
 
 /* Responsive Design */

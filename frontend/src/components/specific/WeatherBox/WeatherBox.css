@@ -1,0 +1,36 @@
+.weather-box {
+    border-radius: 0.75rem;
+    padding: 1.5rem;
+    color: rgb(0, 0, 0);
+    display: flex;
+    flex-direction: row;
+    background-color: aqua;
+    width:100%;
+    margin: 0.5rem 0; /* Add some vertical spacing */
+  }
+
+  .dayOfWeek{
+    display: block;
+    padding: 10px;
+    font-size: 24px;
+    font-weight: 600;
+    text-align: center;
+  }
+  .date{
+    display: block;
+    font-size: 24px;
+    font-weight: 600;
+  }
+
+  .tempFormatting{
+    padding: 10px;
+    font-size: 24px;
+    font-weight: 600;
+    color: black;
+  }
+  .minTemp{
+    color: blue;
+  }
+  .maxTemp{
+    color: red;
+  }
