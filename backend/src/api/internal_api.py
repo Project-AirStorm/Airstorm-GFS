@@ -3,6 +3,7 @@ from db.database_manager import DatabaseManager
 import logging
 import os
 from datetime import datetime
+from utils.log_sanitizer import sanitize_log_message
 
 internal_api_bp = Blueprint("internal_api", __name__)
 database_service = DatabaseManager()
@@ -109,7 +110,58 @@ def toggle_favorite():
     return jsonify({"success": success})
 
 @internal_api_bp.route("/api/logs", methods=["GET"])
+
+
+@internal_api_bp.route("/api/logs", methods=["GET"])
 def get_logs():
+    """
+    Get application logs with support for different log sources
+    """
+    try:
+        # Log request for debugging
+        logging.info("Log request received")
+        
+        # Initialize logs list
+        logs = []
+        
+        # First try to get logs from the log file
+        log_file_path = os.path.join(os.getcwd(), 'logs', 'app.log')
+        if os.path.exists(log_file_path):
+            with open(log_file_path, 'r') as file:
+                file_logs = file.readlines()[-1000:]  # Get last 1000 lines
+                # Double-sanitize each log line as a safety measure
+                logs.extend([sanitize_log_message(line) for line in file_logs])
+        
+        # If no file logs, add some basic info
+        if not logs:
+            logs = [
+                f"{datetime.now().isoformat()} | INFO | Application running",
+                f"{datetime.now().isoformat()} | INFO | No historical logs available",
+            ]
+        
+        # Add current runtime info
+        logs.append(f"{datetime.now().isoformat()} | INFO | Log request successful")
+        
+        # Clean up logs
+        logs = [line.strip() for line in logs if line.strip()]
+        
+        return jsonify(logs)
+
+    except Exception as e:
+        error_message = sanitize_log_message(str(e))
+        logging.error(f"Error in get_logs: {error_message}")
+        
+        # Return detailed error response with sanitized information
+        return jsonify({
+            "error": "Failed to fetch logs",
+            "message": error_message,
+            "timestamp": datetime.now().isoformat(),
+            "debug_info": {
+                "current_dir": os.getcwd(),
+                "log_path": log_file_path if 'log_file_path' in locals() else "Not set",
+                "exception_type": type(e).__name__
+            }
+        }), 500
     """
     Get application logs with support for different log sources
     """
