@@ -340,6 +340,7 @@ def google_maps_init():
 
 # ====== Open-Meteo Weather API ======
 @external_api_bp.route("/api/weather", methods=["GET"])
+@protect_api_keys
 def get_weather():
     # Load API key and verify it exists
     api_key = os.getenv('BACKEND_OPENMETEO_API_KEY')
