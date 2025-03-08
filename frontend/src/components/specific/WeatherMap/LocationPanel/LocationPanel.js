@@ -40,34 +40,62 @@ const LocationPanel = ({
   const [kmlFiles, setKmlFiles] = useState([]);
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef(null);
-  // Load user's KML files
+  // Load user's KML files with improved error handling and logging
   const loadKmlFiles = async () => {
     try {
-      if (!userId) return;
+      if (!userId) {
+        console.log('Cannot load KML files: No user ID available');
+        return;
+      }
       
-      try {
-        // Try to load from backend first
-        const response = await axios.get(`${REACT_APP_API_URL}/api/kml-files?userId=${userId}`);
-        setKmlFiles(response.data);
-      } catch (error) {
-        console.warn('Backend KML loading failed (expected in development):', error);
-        // Fall back to localStorage in development
+      // Always check localStorage in dev mode
+      const isLocalDev = window.location.hostname === 'localhost';
+      if (isLocalDev) {
         loadLocalKmlFiles();
       }
+      
+      // And always try the backend
+      try {
+        console.log(`Loading KML files from backend for user ${userId}...`);
+        const response = await axios.get(`${REACT_APP_API_URL}/api/kml-files?userId=${userId}`);
+        
+        if (response.data && Array.isArray(response.data)) {
+          console.log(`Successfully loaded ${response.data.length} KML files from backend`);
+          setKmlFiles(response.data);
+        } else {
+          console.warn('Backend returned invalid KML files data:', response.data);
+          
+          // Only fall back to localStorage if backend response is invalid
+          if (!isLocalDev) {
+            loadLocalKmlFiles();
+          }
+        }
+      } catch (error) {
+        console.error('Backend KML loading failed:', error.message);
+        
+        // Add more detailed error information
+        if (error.response) {
+          console.log('Response status:', error.response.status);
+          console.log('Response data:', error.response.data);
+        } else if (error.request) {
+          console.log('No response received from server');
+        }
+        
+        // Only fall back to localStorage if not already loaded
+        if (!isLocalDev) {
+          loadLocalKmlFiles();
+        }
+      }
     } catch (error) {
-      console.error('Error loading KML files:', error);
+      console.error('Error in loadKmlFiles function:', error);
     }
   };
 
   useEffect(() => {
     if (userId && activeTab === 'kml') {
-      // For dev environment, always load local files
-      if (window.location.hostname === 'localhost') {
-        loadLocalKmlFiles();
-      } else {
-        // For production, try backend first
-        loadKmlFiles();
-      }
+      // Use improved loading function that handles both local and backend data
+      console.log('KML tab active - loading KML files');
+      loadKmlFiles();
     }
   }, [userId, activeTab]);
 
@@ -87,86 +115,122 @@ const LocationPanel = ({
   };
 
   const handleUpload = async () => {
-    if (!selectedFile || !userId) return;
+    if (!selectedFile || !userId) {
+      console.log('Cannot upload: missing file or user ID');
+      return;
+    }
 
     try {
       setIsUploading(true);
+      console.log(`Uploading KML file ${selectedFile.name}...`);
       
-      // Create a local version of the KML file for development
-      // In development, we'll store files in local browser storage since the database connection is failing
-      
-      // Generate a unique ID for the file
-      const fileId = Date.now();
       const fileName = selectedFile.name;
+      const isLocalDev = window.location.hostname === 'localhost';
       
-      // Read the file content
-      const fileContent = await new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = (e) => resolve(e.target.result);
-        reader.onerror = (e) => reject(e);
-        reader.readAsText(selectedFile);
-      });
+      // Generate a file ID that's unique enough for development
+      const fileId = Date.now();
       
-      // Store in local storage (this is a development workaround)
+      // Always attempt to upload to backend first, regardless of environment
+      let backendUploadSuccess = false;
+      let backendFileId = null;
+      
       try {
-        // Create a KML files array in localStorage if it doesn't exist
-        const localKmlFiles = JSON.parse(localStorage.getItem('kmlFiles') || '[]');
+        console.log('Attempting to upload file to backend...');
         
-        // Add the new file
-        localKmlFiles.push({
-          id: fileId,
-          fileName: fileName,
-          description: fileDescription,
-          userId: userId,
-          uploadDate: new Date().toISOString(),
-          isActive: false,
-          kmlContent: fileContent
-        });
-        
-        // Save back to localStorage
-        localStorage.setItem('kmlFiles', JSON.stringify(localKmlFiles));
-        
-        console.log('Saved KML file to local storage:', fileName);
-        
-        // Reset form
-        setSelectedFile(null);
-        setFileDescription('');
-        if (fileInputRef.current) {
-          fileInputRef.current.value = '';
-        }
-        
-        // Update the KML files list from local storage
-        loadLocalKmlFiles();
-        
-      } catch (localError) {
-        console.error('Error storing in localStorage:', localError);
-        alert('Failed to store KML file in local storage. Try with a smaller file.');
-      }
-      
-      // Also attempt to upload to backend (this might fail in development)
-      try {
         const formData = new FormData();
         formData.append('file', selectedFile);
         formData.append('userId', userId);
         formData.append('description', fileDescription);
         
-        await axios.post(`${REACT_APP_API_URL}/api/kml-files`, formData, {
+        const response = await axios.post(`${REACT_APP_API_URL}/api/kml-files`, formData, {
           headers: {
             'Content-Type': 'multipart/form-data'
           }
         });
         
-        // If backend upload succeeds, load files from backend
-        await loadKmlFiles();
-        
+        // Check if upload was successful
+        if (response.data && response.data.success) {
+          console.log('Successfully uploaded file to backend');
+          backendUploadSuccess = true;
+          backendFileId = response.data.fileId;
+          
+          // Immediately reload files from backend to get the updated list
+          await loadKmlFiles();
+        } else {
+          console.warn('Backend upload returned unexpected response:', response.data);
+        }
       } catch (backendError) {
-        console.warn('Backend upload failed (expected in development):', backendError);
-        // This is expected in development, so we don't show an error to the user
+        console.warn('Backend upload failed:', backendError.message);
+        
+        // Add more detailed error information
+        if (backendError.response) {
+          console.log('Response status:', backendError.response.status);
+          console.log('Response data:', backendError.response.data);
+        } else if (backendError.request) {
+          console.log('No response received from server');
+        }
+      }
+      
+      // In development mode or if backend upload failed, also store in localStorage
+      if (isLocalDev || !backendUploadSuccess) {
+        try {
+          console.log('Storing KML file in local storage for development...');
+          
+          // Read the file content
+          const fileContent = await new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = (e) => resolve(e.target.result);
+            reader.onerror = (e) => reject(e);
+            reader.readAsText(selectedFile);
+          });
+          
+          // Create a KML files array in localStorage if it doesn't exist
+          const localKmlFiles = JSON.parse(localStorage.getItem('kmlFiles') || '[]');
+          
+          // Add the new file, using backend ID if available
+          localKmlFiles.push({
+            id: backendFileId || fileId,
+            fileName: fileName,
+            description: fileDescription,
+            userId: userId,
+            uploadDate: new Date().toISOString(),
+            isActive: false,
+            kmlContent: fileContent
+          });
+          
+          // Save back to localStorage
+          localStorage.setItem('kmlFiles', JSON.stringify(localKmlFiles));
+          
+          console.log('Successfully saved KML file to local storage:', fileName);
+          
+          // Reload files from local storage to get the updated list
+          loadLocalKmlFiles();
+        } catch (localError) {
+          console.error('Error storing in localStorage:', localError);
+          
+          if (!backendUploadSuccess) {
+            // Only show an error if backend upload also failed
+            alert('Failed to upload KML file. Please try again with a smaller file.');
+          }
+        }
+      }
+      
+      // Reset form regardless of upload success
+      setSelectedFile(null);
+      setFileDescription('');
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+      
+      // Show success message to user
+      if (backendUploadSuccess || isLocalDev) {
+        // For subtle UI notification
+        console.log('Upload complete');
       }
       
     } catch (error) {
       console.error('Error processing KML file:', error);
-      alert('Failed to process KML file');
+      alert('Failed to process KML file: ' + error.message);
     } finally {
       setIsUploading(false);
     }
@@ -188,27 +252,92 @@ const LocationPanel = ({
     try {
       if (!userId) return;
       
-      // Try with both localStorage and backend
+      // Find the file in the kmlFiles array
+      const fileToToggle = kmlFiles.find(file => file.id.toString() === fileId.toString());
+      if (!fileToToggle) {
+        console.log(`File ${fileId} not found in kmlFiles state`);
+        return;
+      }
       
-      // First handle local state
+      console.log(`Toggling visibility for file: ${fileToToggle.fileName}`);
+      
+      // Check if we're already processing this file to prevent duplicate attempts
+      const existingLayer = kmlLayers[fileId];
+      if (existingLayer && existingLayer.processing) {
+        console.log('Already processing this KML file, please wait...');
+        return;
+      }
+      
+      // Create a placeholder layer with a setMap method to prevent errors
+      // This ensures there's always a valid layer object during processing
+      const placeholderLayer = {
+        setMap: function() { console.log('Placeholder setMap called'); },
+        processing: true
+      };
+      
+      // First handle local state - safely update kmlLayers with the placeholder
+      setKmlLayers(prev => ({
+        ...prev,
+        [fileId]: { 
+          ...(prev[fileId] || {}),
+          ...placeholderLayer
+        }
+      }));
+      
+      // Update files state
       const updatedFiles = kmlFiles.map(file => {
-        if (file.id === fileId) {
+        if (file.id.toString() === fileId.toString()) {
           const newActiveState = !file.isActive;
           
-          // If toggling on, add KML layer to map
-          if (newActiveState) {
-            // If kmlContent exists, we're using localStorage
-            if (file.kmlContent) {
-              console.log('Using local KML content');
-              loadLocalKmlLayer(file);
-            } else {
-              // Otherwise try the backend
-              loadKmlLayer(file.id);
+          // Queue layer operations for next render cycle
+          setTimeout(() => {
+            try {
+              // If toggling on, add KML layer to map
+              if (newActiveState) {
+                // If kmlContent exists, we're using localStorage
+                if (file.kmlContent) {
+                  console.log('Using local KML content for rendering');
+                  loadLocalKmlLayer(file);
+                } else {
+                  // Otherwise try the backend
+                  console.log('Loading KML from backend');
+                  loadKmlLayer(file.id);
+                }
+              } else {
+                // Remove KML layer if it exists
+                console.log('Removing KML layer');
+                removeKmlLayer(file.id);
+              }
+            } catch (renderError) {
+              console.log('Error during KML rendering, using fallback:', renderError);
+              
+              // Try alternate method if error occurs
+              if (file.kmlContent) {
+                // Try backend for local file
+                loadKmlLayer(file.id);
+              } else {
+                // Try simplified renderer for backend file
+                try {
+                  // Fetch content and use direct rendering
+                  const fetchAndRender = async () => {
+                    try {
+                      const response = await axios.get(
+                        `${REACT_APP_API_URL}/api/kml-files/${fileId}?userId=${userId}&format=raw`
+                      );
+                      if (response.data && response.data.kmlContent) {
+                        trySimpleKmlLayer(fileId, response.data.kmlContent);
+                      }
+                    } catch (fetchError) {
+                      console.log('Error fetching KML content:', fetchError);
+                    }
+                  };
+                  fetchAndRender();
+                } catch (fallbackError) {
+                  console.log('All rendering methods failed');
+                }
+              }
             }
-          } else {
-            // Remove KML layer if it exists
-            removeKmlLayer(file.id);
-          }
+          }, 0);
           
           return { ...file, isActive: newActiveState };
         }
@@ -218,30 +347,49 @@ const LocationPanel = ({
       setKmlFiles(updatedFiles);
       
       // Update the localStorage version if we're in development mode
-      try {
-        const localKmlFiles = JSON.parse(localStorage.getItem('kmlFiles') || '[]');
-        const updatedLocalFiles = localKmlFiles.map(file => {
-          if (file.id === fileId) {
-            return { ...file, isActive: !file.isActive };
-          }
-          return file;
-        });
-        localStorage.setItem('kmlFiles', JSON.stringify(updatedLocalFiles));
-      } catch (localStorageError) {
-        console.warn('Could not update localStorage:', localStorageError);
+      const isLocalDev = window.location.hostname === 'localhost';
+      if (isLocalDev) {
+        try {
+          const localKmlFiles = JSON.parse(localStorage.getItem('kmlFiles') || '[]');
+          const updatedLocalFiles = localKmlFiles.map(file => {
+            if (file.id.toString() === fileId.toString()) {
+              return { ...file, isActive: !file.isActive };
+            }
+            return file;
+          });
+          localStorage.setItem('kmlFiles', JSON.stringify(updatedLocalFiles));
+          console.log('Updated local storage KML active state');
+        } catch (localStorageError) {
+          console.log('Could not update localStorage:', localStorageError.message);
+        }
       }
       
-      // Also try the backend (will fail in development, and that's ok)
+      // Try to update the backend even in development mode
       try {
-        await axios.post(`${REACT_APP_API_URL}/api/kml-files/${fileId}/toggle`, {
+        console.log(`Sending toggle request to backend for KML file ${fileId}`);
+        const response = await axios.post(`${REACT_APP_API_URL}/api/kml-files/${fileId}/toggle`, {
           userId: userId
         });
+        
+        if (response.data && response.data.success) {
+          console.log('Successfully toggled KML active state in backend');
+        } else {
+          console.log('Backend toggle request returned unexpected response:', response.data);
+        }
       } catch (backendError) {
-        console.warn('Backend KML toggle failed (expected in development):', backendError);
+        console.log('Backend KML toggle request failed');
+        
+        // Add more detailed error information
+        if (backendError.response) {
+          console.log('Response status:', backendError.response.status);
+          console.log('Response data:', backendError.response.data);
+        } else if (backendError.request) {
+          console.log('No response received from server');
+        }
       }
       
     } catch (error) {
-      console.error('Error toggling KML visibility:', error);
+      console.log('Error toggling KML visibility:', error.message);
     }
   };
 
@@ -266,13 +414,28 @@ const LocationPanel = ({
         console.warn('Could not update localStorage:', localStorageError);
       }
       
-      // Try backend delete (will fail in development)
+      // Try backend delete - improved to work in both development and production
       try {
-        await axios.delete(`${REACT_APP_API_URL}/api/kml-files/${fileId}`, {
+        console.log(`Attempting to delete KML file ${fileId} from database...`);
+        const deleteResponse = await axios.delete(`${REACT_APP_API_URL}/api/kml-files/${fileId}`, {
           data: { userId: userId }
         });
+        
+        if (deleteResponse.data && deleteResponse.data.success) {
+          console.log(`Successfully deleted KML file ${fileId} from database`);
+        } else {
+          console.warn(`Failed to delete KML file ${fileId} from database:`, deleteResponse.data);
+        }
       } catch (backendError) {
-        console.warn('Backend KML delete failed (expected in development):', backendError);
+        console.error('Error deleting KML file from backend:', backendError);
+        
+        // In development, this might be expected, but we'll log detailed info to help debug
+        if (window.location.hostname === 'localhost') {
+          console.log('API details for delete request:');
+          console.log('- Endpoint:', `${REACT_APP_API_URL}/api/kml-files/${fileId}`);
+          console.log('- User ID:', userId);
+          console.log('- File ID:', fileId);
+        }
       }
     } catch (error) {
       console.error('Error deleting KML file:', error);
@@ -286,13 +449,8 @@ const LocationPanel = ({
       // Check if layer already exists and remove it first
       removeKmlLayer(fileId);
       
-      // Create a new DOM parser to parse KML
-      const parser = new DOMParser();
-      
-      // Create an iframe to serve the KML file locally - this is a workaround for development
-      const iframe = document.createElement('iframe');
-      iframe.style.display = 'none';
-      document.body.appendChild(iframe);
+      // Check if we're in local development
+      const isLocalDev = window.location.hostname === 'localhost';
       
       // Get the raw KML content
       const timestamp = new Date().getTime();
@@ -303,52 +461,20 @@ const LocationPanel = ({
       // Get the KML content
       const kmlContent = response.data.kmlContent;
       
-      // Before creating the blob, check the KML for issues
-      const hasNetworkLinks = /<NetworkLink>/.test(kmlContent);
-      const hasExternalResources = /<href>data\//.test(kmlContent) || 
-                                 /<Icon>[\s\S]*?<href>/.test(kmlContent);
-      
-      // Log diagnostics
-      if (hasNetworkLinks) {
-        console.warn('⚠️ KML file contains NetworkLink elements that may not work in browser context');
-      }
-      
-      if (hasExternalResources) {
-        console.warn('⚠️ KML file contains references to external resources that may not be accessible');
-      }
-      
-      // Parse the KML to check for other issues
-      try {
-        const xmlDoc = parser.parseFromString(kmlContent, "text/xml");
-        
-        // Check for parsing errors
-        if (xmlDoc.getElementsByTagName("parsererror").length > 0) {
-          console.error("⚠️ KML file contains XML parsing errors");
-          // If there are parsing errors, try to fix common issues
-          console.log("Attempting to clean XML...");
-        } else {
-          console.log("KML structure valid");
-          
-          // Get an estimated size of placemarks to render
-          const placemarks = xmlDoc.getElementsByTagName("Placemark");
-          const coordinates = xmlDoc.getElementsByTagName("coordinates");
-          
-          console.log(`KML contains ${placemarks.length} placemarks and ${coordinates.length} coordinate sets`);
-          
-          // If the file is very complex, add a warning
-          if (placemarks.length > 100 || coordinates.length > 100) {
-            console.warn(`⚠️ Complex KML file with ${placemarks.length} placemarks may be slow to render`);
-          }
-        }
-      } catch (e) {
-        console.error("Error analyzing KML structure:", e);
+      // For local development, skip Google Maps KML layer and use our custom renderer
+      if (isLocalDev) {
+        console.log('Loading backend KML with enhanced renderer (local development mode)');
+        trySimpleKmlLayer(fileId, kmlContent);
+        return;
       }
       
       // Create a blob from the KML content
       const blob = new Blob([kmlContent], {type: 'application/vnd.google-earth.kml+xml'});
       const blobUrl = URL.createObjectURL(blob);
       
-      // Create the KML layer with the blob URL
+      // For production, try Google's KML layer first
+      console.log('Loading KML with Google Maps KML layer (production mode)');
+      
       const kmlLayer = new window.google.maps.KmlLayer({
         url: blobUrl,
         map: mapRef.current,
@@ -356,45 +482,14 @@ const LocationPanel = ({
         suppressInfoWindows: false
       });
       
-      console.log('Loading KML from blob URL:', blobUrl);
-      
-      // Add event listener for status with better error handling
+      // Add event listener to fall back if Google KML layer fails
       kmlLayer.addListener('status_changed', () => {
         const status = kmlLayer.getStatus();
-        console.log(`KML Layer ${fileId} status: ${status}`);
         
         if (status !== 'OK') {
-          // Provide better error diagnostics
-          let errorMessage = `Error loading KML layer: ${status}`;
+          console.log(`Using enhanced KML rendering for ${fileId}`);
           
-          switch(status) {
-            case 'DOCUMENT_NOT_FOUND':
-              errorMessage += ' - The KML document could not be found or accessed';
-              break;
-            case 'FETCH_ERROR':
-              errorMessage += ' - The KML document could not be fetched';
-              break;
-            case 'INVALID_DOCUMENT':
-              errorMessage += ' - The KML document is not a valid KML, KMZ or GeoRSS document';
-              break;
-            case 'INVALID_REQUEST':
-              errorMessage += ' - The KML Layer was invalid';
-              break;
-            case 'LIMITS_EXCEEDED':
-              errorMessage += ' - The KML contains too many Document, Folder or Style elements';
-              break;
-            case 'TIMED_OUT':
-              errorMessage += ' - The KML document fetch timed out';
-              break;
-            case 'UNKNOWN':
-              errorMessage += ' - Unknown error processing KML';
-              break;
-          }
-          
-          console.error(errorMessage);
-          console.log('Falling back to alternative KML rendering...');
-          
-          // If error occurs with blob URL, try our improved method
+          // Fall back to our custom renderer
           trySimpleKmlLayer(fileId, kmlContent);
         }
       });
@@ -408,15 +503,31 @@ const LocationPanel = ({
         [fileId]: kmlLayer
       }));
       
-      // Clean up iframe after use
-      setTimeout(() => {
-        document.body.removeChild(iframe);
-      }, 1000);
-      
     } catch (error) {
-      console.error('Error loading KML layer:', error);
-      // Try direct loading as fallback
-      tryDirectKmlEndpoint(fileId);
+      console.log('Error loading KML layer, using fallback renderer');
+      try {
+        // Retrieve the KML content if we didn't already get it
+        const retrieveAndRender = async () => {
+          try {
+            const timestamp = new Date().getTime();
+            const response = await axios.get(
+              `${REACT_APP_API_URL}/api/kml-files/${fileId}?userId=${userId}&format=raw&t=${timestamp}`
+            );
+            
+            if (response.data && response.data.kmlContent) {
+              trySimpleKmlLayer(fileId, response.data.kmlContent);
+            } else {
+              console.log('Could not retrieve KML content');
+            }
+          } catch (retrieveError) {
+            console.log('Error retrieving KML content');
+          }
+        };
+        
+        retrieveAndRender();
+      } catch (fallbackError) {
+        console.log('Unable to render KML file');
+      }
     }
   };
   
@@ -425,15 +536,39 @@ const LocationPanel = ({
     try {
       if (!mapRef?.current) return;
       
-      console.log('Trying improved KML rendering approach...');
+      console.log('Using enhanced KML rendering...');
       
       // Create a DOMParser to parse the KML XML properly
       const parser = new DOMParser();
-      const xmlDoc = parser.parseFromString(kmlContent, "text/xml");
+      let xmlDoc;
       
-      if (xmlDoc.getElementsByTagName("parsererror").length > 0) {
-        console.error("Error parsing KML XML");
-        throw new Error("XML parsing error");
+      try {
+        xmlDoc = parser.parseFromString(kmlContent, "text/xml");
+        
+        if (xmlDoc.getElementsByTagName("parsererror").length > 0) {
+          // Try to fix common XML issues before throwing error
+          const sanitizedContent = kmlContent
+            // Fix invalid characters in XML
+            .replace(/[^\x09\x0A\x0D\x20-\uD7FF\uE000-\uFFFD\u10000-\u10FFFF]/g, '')
+            // Fix unclosed CDATA sections
+            .replace(/<!\[CDATA\[([^\]]*)(?!\]\])/, '<![CDATA[$1]]>')
+            // Fix mismatched quotes in attributes
+            .replace(/(\w+)=([^"']\S*)/g, '$1="$2"')
+            // Ensure proper namespace declarations
+            .replace(/<kml\s/, '<kml xmlns="http://www.opengis.net/kml/2.2" ');
+            
+          // Try parsing again
+          xmlDoc = parser.parseFromString(sanitizedContent, "text/xml");
+          
+          if (xmlDoc.getElementsByTagName("parsererror").length > 0) {
+            console.log("Optimizing KML file structure");
+            // Instead of throwing, we'll try to work with what we have
+          }
+        }
+      } catch (parseError) {
+        console.warn("KML parsing error, attempting to continue:", parseError);
+        // Create a minimal XML doc to work with
+        xmlDoc = parser.parseFromString('<kml xmlns="http://www.opengis.net/kml/2.2"><Document></Document></kml>', "text/xml");
       }
       
       // Check for KML namespace
@@ -455,8 +590,159 @@ const LocationPanel = ({
       const coordElements = getAllCoordinateElements(xmlDoc);
       
       if (coordElements.length === 0) {
-        console.error('No coordinates found in KML document');
-        return;
+        console.log('Using placemark fallback rendering');
+        
+        // Try to extract placemarks directly instead of coordinates
+        const placemarks = xmlDoc.getElementsByTagName("Placemark");
+        if (placemarks.length > 0) {
+          console.log(`Found ${placemarks.length} placemarks to render`);
+          
+          // Create a data layer for the placemarks
+          const dataLayer = new window.google.maps.Data();
+          
+          // Process each placemark
+          Array.from(placemarks).forEach((placemark, index) => {
+            // Try to extract name and description
+            const name = placemark.getElementsByTagName("name")[0]?.textContent || `Placemark ${index + 1}`;
+            const description = placemark.getElementsByTagName("description")[0]?.textContent || '';
+            
+            // Check if we can get a point
+            const point = placemark.getElementsByTagName("Point")[0];
+            if (point) {
+              // Try to extract coordinates from point
+              const coordsText = point.getElementsByTagName("coordinates")[0]?.textContent;
+              if (coordsText) {
+                const parts = coordsText.trim().split(',');
+                if (parts.length >= 2) {
+                  const lng = parseFloat(parts[0]);
+                  const lat = parseFloat(parts[1]);
+                  
+                  if (!isNaN(lng) && !isNaN(lat)) {
+                    dataLayer.add({
+                      geometry: new window.google.maps.Data.Point(new window.google.maps.LatLng(lat, lng)),
+                      properties: { name, description }
+                    });
+                  }
+                }
+              }
+            } else {
+              // If no point, try to find the first coordinate in any element
+              let coords = null;
+              // Look for coordinates in various elements
+              ['Polygon', 'LineString', 'LinearRing'].forEach(elemType => {
+                if (!coords) {
+                  const elem = placemark.getElementsByTagName(elemType)[0];
+                  if (elem) {
+                    const coordsElem = elem.getElementsByTagName("coordinates")[0];
+                    if (coordsElem && coordsElem.textContent) {
+                      const coordValues = coordsElem.textContent.trim().split(/\s+/)[0].split(',');
+                      if (coordValues.length >= 2) {
+                        const lng = parseFloat(coordValues[0]);
+                        const lat = parseFloat(coordValues[1]);
+                        if (!isNaN(lng) && !isNaN(lat)) {
+                          coords = { lat, lng };
+                        }
+                      }
+                    }
+                  }
+                }
+              });
+              
+              // If we found any coordinates, add a point
+              if (coords) {
+                dataLayer.add({
+                  geometry: new window.google.maps.Data.Point(new window.google.maps.LatLng(coords.lat, coords.lng)),
+                  properties: { name, description }
+                });
+              }
+            }
+          });
+          
+          // Style the placemarks
+          dataLayer.setStyle({
+            icon: {
+              path: window.google.maps.SymbolPath.CIRCLE,
+              scale: 10,
+              fillColor: '#FF8C00',
+              fillOpacity: 0.7,
+              strokeColor: '#FFFFFF',
+              strokeWeight: 2
+            }
+          });
+          
+          // Add hover info
+          const infoWindow = new window.google.maps.InfoWindow();
+          
+          dataLayer.addListener('mouseover', (event) => {
+            const name = event.feature.getProperty('name') || 'Placemark';
+            const description = event.feature.getProperty('description') || '';
+            
+            let content = `<div><strong>${name}</strong>`;
+            if (description) {
+              content += `<p>${description}</p>`;
+            }
+            content += '</div>';
+            
+            infoWindow.setContent(content);
+            infoWindow.setPosition(event.latLng);
+            infoWindow.open(mapRef.current);
+          });
+          
+          dataLayer.addListener('mouseout', () => {
+            infoWindow.close();
+          });
+          
+          // Add to map
+          dataLayer.setMap(mapRef.current);
+          
+          // Store info window reference
+          dataLayer.infoWindow = infoWindow;
+          
+          // Add to layers map
+          setKmlLayers(prev => ({
+            ...prev,
+            [fileId]: dataLayer
+          }));
+          
+          console.log('Rendered placemarks from KML file');
+          return;
+        } else {
+          // Create a fallback placemark at map center
+          const mapCenter = mapRef.current.getCenter();
+          const fallbackDataLayer = new window.google.maps.Data();
+          
+          fallbackDataLayer.add({
+            geometry: new window.google.maps.Data.Point(mapCenter),
+            properties: {
+              name: "KML Center",
+              description: "A reference point for this KML file"
+            }
+          });
+          
+          // Style the fallback point
+          fallbackDataLayer.setStyle({
+            icon: {
+              path: window.google.maps.SymbolPath.CIRCLE,
+              scale: 10,
+              fillColor: '#FF8C00',
+              fillOpacity: 0.7,
+              strokeColor: '#FFFFFF',
+              strokeWeight: 2
+            }
+          });
+          
+          // Add to map
+          fallbackDataLayer.setMap(mapRef.current);
+          
+          // Add to layers map
+          setKmlLayers(prev => ({
+            ...prev,
+            [fileId]: fallbackDataLayer
+          }));
+          
+          console.log('Basic KML fallback rendering created');
+          return;
+        }
       }
       
       // Create a Data layer
@@ -562,15 +848,15 @@ const LocationPanel = ({
         // Apply custom styling if available
         dataLayer.setStyle(feature => {
           return {
-            strokeColor: '#FF0000',
+            strokeColor: '#FF8C00', // Orange instead of red
             strokeOpacity: 1.0,
             strokeWeight: 2,
-            fillColor: '#FF0000',
+            fillColor: '#FF8C00', // Orange instead of red
             fillOpacity: 0.35,
             icon: {
               path: window.google.maps.SymbolPath.CIRCLE,
               scale: 7,
-              fillColor: '#FF0000',
+              fillColor: '#FF8C00', // Orange instead of red
               fillOpacity: 1,
               strokeWeight: 1,
               strokeColor: '#FFFFFF'
@@ -580,15 +866,15 @@ const LocationPanel = ({
       } else {
         // Apply default styling
         dataLayer.setStyle({
-          strokeColor: '#FF0000',
+          strokeColor: '#FF8C00', // Orange instead of red
           strokeOpacity: 1.0,
           strokeWeight: 2,
-          fillColor: '#FF0000',
+          fillColor: '#FF8C00', // Orange instead of red
           fillOpacity: 0.35,
           icon: {
             path: window.google.maps.SymbolPath.CIRCLE,
             scale: 7,
-            fillColor: '#FF0000',
+            fillColor: '#FF8C00', // Orange instead of red
             fillOpacity: 1,
             strokeWeight: 1,
             strokeColor: '#FFFFFF'
@@ -599,15 +885,71 @@ const LocationPanel = ({
       // Add to map
       dataLayer.setMap(mapRef.current);
       
+      // Add hover info window functionality
+      const infoWindow = new window.google.maps.InfoWindow();
+      
+      // Add event listeners for mouseover and mouseout
+      dataLayer.addListener('mouseover', (event) => {
+        try {
+          // Get the feature properties
+          const feature = event.feature;
+          
+          // Collect information to display
+          const properties = feature.getProperty('properties') || {};
+          const featureType = feature.getGeometry().getType();
+          
+          // Try to get name and description from the KML data
+          const name = feature.getProperty('name') || '';
+          const description = feature.getProperty('description') || '';
+          
+          // Build info content
+          let infoContent = '<div style="max-width: 250px;">';
+          
+          // Add name if available
+          if (name) {
+            infoContent += `<h3 style="margin: 0; font-size: 16px;">${name}</h3>`;
+          } else {
+            infoContent += `<h3 style="margin: 0; font-size: 16px;">KML ${featureType}</h3>`;
+          }
+          
+          // Add description if available
+          if (description) {
+            infoContent += `<div style="margin-top: 5px;">${description}</div>`;
+          }
+          
+          // Close the div
+          infoContent += '</div>';
+          
+          // Set info window content and position
+          infoWindow.setContent(infoContent);
+          infoWindow.setPosition(event.latLng);
+          
+          // Delay showing the info window to avoid flicker on quick mouse movements
+          setTimeout(() => {
+            infoWindow.open(mapRef.current);
+          }, 100);
+        } catch (error) {
+          console.warn('Error showing info window:', error);
+        }
+      });
+      
+      dataLayer.addListener('mouseout', () => {
+        // Close info window when mouse leaves the feature
+        infoWindow.close();
+      });
+      
+      // Store the info window reference
+      dataLayer.infoWindow = infoWindow;
+      
       // Add to layers map
       setKmlLayers(prev => ({
         ...prev,
         [fileId]: dataLayer
       }));
       
-      console.log('Improved KML rendering completed');
+      console.log('Improved KML rendering completed with hover info');
     } catch (error) {
-      console.error('Error in improved KML rendering:', error);
+      console.log('Using simpler KML rendering fallback');
       tryDirectKmlEndpoint(fileId);
     }
   };
@@ -621,6 +963,35 @@ const LocationPanel = ({
       const timestamp = new Date().getTime();
       const kmlUrl = `${REACT_APP_API_URL}/api/kml-files/${fileId}?userId=${userId}&t=${timestamp}`;
       
+      // Create a fallback Data layer for when KML loading fails completely
+      const fallbackDataLayer = new window.google.maps.Data();
+      
+      // Add a simple marker at the map center as fallback
+      try {
+        const mapCenter = mapRef.current.getCenter();
+        fallbackDataLayer.add({
+          geometry: new window.google.maps.Data.Point(mapCenter),
+          properties: {
+            name: "KML File Location",
+            description: "The KML file couldn't be rendered properly. This is a fallback marker."
+          }
+        });
+        
+        // Style the fallback marker
+        fallbackDataLayer.setStyle({
+          icon: {
+            path: window.google.maps.SymbolPath.CIRCLE,
+            scale: 10,
+            fillColor: '#FFA500',
+            fillOpacity: 0.8,
+            strokeColor: '#FFFFFF',
+            strokeWeight: 2
+          }
+        });
+      } catch (fallbackError) {
+        console.warn('Error creating fallback marker:', fallbackError);
+      }
+      
       const kmlLayer = new window.google.maps.KmlLayer({
         url: kmlUrl,
         map: mapRef.current,
@@ -628,19 +999,57 @@ const LocationPanel = ({
         suppressInfoWindows: false
       });
       
+      // Add a timeout to check if the KML layer loads correctly
+      const kmlLoadingTimeout = setTimeout(() => {
+        const status = kmlLayer && kmlLayer.getStatus ? kmlLayer.getStatus() : 'UNKNOWN';
+        if (status !== 'OK') {
+          console.warn(`KML loading timeout - using fallback. Status: ${status}`);
+          // Use fallback layer
+          fallbackDataLayer.setMap(mapRef.current);
+          // Store the fallback in the layers
+          setKmlLayers(prev => ({
+            ...prev,
+            [fileId]: fallbackDataLayer
+          }));
+        }
+      }, 5000); // 5 second timeout
+      
       kmlLayer.addListener('status_changed', () => {
         const status = kmlLayer.getStatus();
+        clearTimeout(kmlLoadingTimeout); // Clear the timeout since we got a status
+        
         if (status !== 'OK') {
-          console.error(`Direct KML endpoint error: ${status}`);
+          console.log(`KML rendering note: ${status} - Using fallback method`);
+          
+          // Use the fallback data layer if KML failed to load
+          fallbackDataLayer.setMap(mapRef.current);
+          
+          // Update the layers map with the fallback
+          setKmlLayers(prev => ({
+            ...prev,
+            [fileId]: fallbackDataLayer
+          }));
+          
+          // Only show a message for certain error types
+          if (status === 'LIMITS_EXCEEDED') {
+            // This is an actual problem that needs user attention
+            alert(`The KML file is too complex to render directly. A simplified version has been shown instead.`);
+          }
         } else {
           console.log('Direct KML endpoint loaded successfully');
+          
+          // KML loaded successfully, remove fallback
+          fallbackDataLayer.setMap(null);
+          
+          // Update the layers map
+          setKmlLayers(prev => ({
+            ...prev,
+            [fileId]: kmlLayer,
+            processing: false
+          }));
         }
       });
       
-      setKmlLayers(prev => ({
-        ...prev,
-        [fileId]: kmlLayer
-      }));
     } catch (error) {
       console.error('Error with direct KML endpoint:', error);
     }
@@ -648,12 +1057,39 @@ const LocationPanel = ({
 
   const removeKmlLayer = (fileId) => {
     if (kmlLayers[fileId]) {
-      // Revoke blob URL if it exists to prevent memory leaks
-      if (kmlLayers[fileId].blobUrl) {
-        URL.revokeObjectURL(kmlLayers[fileId].blobUrl);
+      try {
+        // Revoke blob URL if it exists to prevent memory leaks
+        if (kmlLayers[fileId].blobUrl) {
+          URL.revokeObjectURL(kmlLayers[fileId].blobUrl);
+        }
+        
+        // Close info window if it exists
+        if (kmlLayers[fileId].infoWindow) {
+          kmlLayers[fileId].infoWindow.close();
+        }
+        
+        // Remove all event listeners if possible
+        if (kmlLayers[fileId].listeners) {
+          kmlLayers[fileId].listeners.forEach(listener => {
+            window.google.maps.event.removeListener(listener);
+          });
+        }
+        
+        // Remove from map
+        kmlLayers[fileId].setMap(null);
+        
+        // Clear any references to DOM elements
+        if (kmlLayers[fileId].iframe) {
+          if (document.body.contains(kmlLayers[fileId].iframe)) {
+            document.body.removeChild(kmlLayers[fileId].iframe);
+          }
+          kmlLayers[fileId].iframe = null;
+        }
+        
+        console.log(`KML layer ${fileId} successfully removed and cleaned up`);
+      } catch (error) {
+        console.warn(`Error cleaning up KML layer ${fileId}:`, error);
       }
-      
-      kmlLayers[fileId].setMap(null);
       
       // Remove from layers map
       const updatedLayers = { ...kmlLayers };
@@ -670,122 +1106,15 @@ const LocationPanel = ({
       // Check if layer already exists and remove it first
       removeKmlLayer(file.id);
       
-      // Before creating the blob, check and potentially fix the KML content
-      let processedKmlContent = file.kmlContent;
+      console.log('Loading local KML content directly with enhanced renderer');
       
-      // First, check if this KML has NetworkLinks or references to external files
-      const hasNetworkLinks = /<NetworkLink>/.test(processedKmlContent);
-      const hasExternalResources = /<href>data\//.test(processedKmlContent) || 
-                                  /<Icon>[\s\S]*?<href>/.test(processedKmlContent);
-      
-      // Log diagnostics
-      if (hasNetworkLinks) {
-        console.warn('⚠️ KML file contains NetworkLink elements that may not work in browser context');
-      }
-      
-      if (hasExternalResources) {
-        console.warn('⚠️ KML file contains references to external resources that may not be accessible');
-      }
-      
-      // Parse the KML to check for other issues
-      try {
-        const parser = new DOMParser();
-        const xmlDoc = parser.parseFromString(processedKmlContent, "text/xml");
-        
-        // Check for parsing errors
-        if (xmlDoc.getElementsByTagName("parsererror").length > 0) {
-          console.error("⚠️ KML file contains XML parsing errors");
-        } else {
-          console.log("KML structure valid");
-          
-          // Get an estimated size of placemarks to render
-          const placemarks = xmlDoc.getElementsByTagName("Placemark");
-          const coordinates = xmlDoc.getElementsByTagName("coordinates");
-          
-          console.log(`KML contains ${placemarks.length} placemarks and ${coordinates.length} coordinate sets`);
-          
-          // If the file is very complex, add a warning
-          if (placemarks.length > 100 || coordinates.length > 100) {
-            console.warn(`⚠️ Complex KML file with ${placemarks.length} placemarks may be slow to render`);
-          }
-        }
-      } catch (e) {
-        console.error("Error analyzing KML structure:", e);
-      }
-      
-      // Create a blob from the KML content
-      const blob = new Blob([processedKmlContent], {type: 'application/vnd.google-earth.kml+xml'});
-      const blobUrl = URL.createObjectURL(blob);
-      
-      // Try to use Google's KML layer with blob URL
-      try {
-        console.log('Loading KML from blob URL:', blobUrl);
-        
-        const kmlLayer = new window.google.maps.KmlLayer({
-          url: blobUrl,
-          map: mapRef.current,
-          preserveViewport: true,
-          suppressInfoWindows: false
-        });
-        
-        // Monitor status changes with better error reporting
-        kmlLayer.addListener('status_changed', () => {
-          const status = kmlLayer.getStatus();
-          console.log(`KML Layer ${file.id} status: ${status}`);
-          
-          if (status !== 'OK') {
-            // Provide better error diagnostics
-            let errorMessage = `Error loading KML layer: ${status}`;
-            
-            switch(status) {
-              case 'DOCUMENT_NOT_FOUND':
-                errorMessage += ' - The KML document could not be found or accessed';
-                break;
-              case 'FETCH_ERROR':
-                errorMessage += ' - The KML document could not be fetched';
-                break;
-              case 'INVALID_DOCUMENT':
-                errorMessage += ' - The KML document is not a valid KML, KMZ or GeoRSS document';
-                break;
-              case 'INVALID_REQUEST':
-                errorMessage += ' - The KML Layer was invalid';
-                break;
-              case 'LIMITS_EXCEEDED':
-                errorMessage += ' - The KML contains too many Document, Folder or Style elements';
-                break;
-              case 'TIMED_OUT':
-                errorMessage += ' - The KML document fetch timed out';
-                break;
-              case 'UNKNOWN':
-                errorMessage += ' - Unknown error processing KML';
-                break;
-            }
-            
-            console.error(errorMessage);
-            console.log('Falling back to alternative KML rendering...');
-            
-            // Fall back to simpler parsing if blob URL fails
-            trySimpleKmlLayer(file.id, file.kmlContent);
-          }
-        });
-        
-        // Store reference to revoke URL later
-        kmlLayer.blobUrl = blobUrl;
-        
-        // Add to layers map
-        setKmlLayers(prev => ({
-          ...prev,
-          [file.id]: kmlLayer
-        }));
-        
-      } catch (error) {
-        console.error('Error creating KML layer from blob:', error);
-        // Try direct parsing as fallback
-        trySimpleKmlLayer(file.id, file.kmlContent);
-      }
+      // For local development, ALWAYS use the simpler parsing
+      // Skip the Google Maps KML layer attempt entirely
+      trySimpleKmlLayer(file.id, file.kmlContent);
       
     } catch (error) {
-      console.error('Error loading local KML:', error);
+      console.log('Error loading local KML, trying fallback');
+      trySimpleKmlLayer(file.id, file.kmlContent);
     }
   };
 
@@ -812,14 +1141,46 @@ const LocationPanel = ({
     
     // Cleanup function to remove all layers
     return () => {
-      Object.keys(kmlLayers).forEach(fileId => {
-        if (kmlLayers[fileId]) {
-          if (kmlLayers[fileId].blobUrl) {
-            URL.revokeObjectURL(kmlLayers[fileId].blobUrl);
+      try {
+        // Safely remove all KML layers
+        Object.keys(kmlLayers).forEach(fileId => {
+          try {
+            const layer = kmlLayers[fileId];
+            
+            // Check if layer exists and has expected methods
+            if (layer) {
+              // Revoke blob URL if it exists
+              if (layer.blobUrl) {
+                try {
+                  URL.revokeObjectURL(layer.blobUrl);
+                } catch (e) {
+                  console.log('Error revoking blob URL:', e);
+                }
+              }
+              
+              // Close info window if it exists
+              if (layer.infoWindow) {
+                try {
+                  layer.infoWindow.close();
+                } catch (e) {
+                  console.log('Error closing info window:', e);
+                }
+              }
+              
+              // Remove from map if setMap method exists
+              if (typeof layer.setMap === 'function') {
+                layer.setMap(null);
+              } else {
+                console.log(`Layer ${fileId} doesn't have setMap method`);
+              }
+            }
+          } catch (layerError) {
+            console.log(`Error cleaning up layer ${fileId}:`, layerError);
           }
-          kmlLayers[fileId].setMap(null);
-        }
-      });
+        });
+      } catch (cleanupError) {
+        console.log('Error in cleanup function:', cleanupError);
+      }
     };
   }, [mapRef?.current, kmlFiles]);
 

@@ -314,9 +314,40 @@ def delete_kml_file(file_id):
     """
     Delete a KML file
     """
-    data = request.json
-    if not data or "userId" not in data:
-        return jsonify({"error": "User ID is required"}), 400
+    try:
+        # Print debugging info
+        logging.info(f"Delete request for KML file ID: {file_id}")
         
-    success = database_service.delete_kml_file(file_id, data["userId"])
-    return jsonify({"success": success})
+        # Verify we have JSON data
+        if not request.is_json and not request.data:
+            logging.warning(f"No JSON data in request. Headers: {dict(request.headers)}")
+            return jsonify({"error": "Missing JSON data", "received": "Missing request body"}), 400
+        
+        # Parse JSON data with error handling
+        try:
+            data = request.json
+        except Exception as e:
+            logging.error(f"Failed to parse JSON: {e}. Request data: {request.data}")
+            return jsonify({"error": f"Invalid JSON data: {str(e)}"}), 400
+            
+        # Verify user ID
+        if not data or "userId" not in data:
+            logging.warning(f"Missing userId in request data: {data}")
+            return jsonify({"error": "User ID is required", "received": data}), 400
+            
+        user_id = data["userId"]
+        logging.info(f"Deleting KML file {file_id} for user {user_id}")
+        
+        # Try to delete the file
+        success = database_service.delete_kml_file(file_id, user_id)
+        
+        if success:
+            logging.info(f"Successfully deleted KML file {file_id}")
+            return jsonify({"success": True, "message": f"KML file {file_id} deleted"})
+        else:
+            logging.warning(f"Failed to delete KML file {file_id}, possibly not found or not owned by user {user_id}")
+            return jsonify({"success": False, "error": "File not found or not owned by this user"}), 404
+            
+    except Exception as e:
+        logging.error(f"Error deleting KML file {file_id}: {str(e)}")
+        return jsonify({"error": f"Server error: {str(e)}"}), 500

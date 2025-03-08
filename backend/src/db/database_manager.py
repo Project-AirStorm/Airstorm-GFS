@@ -282,7 +282,22 @@ class DatabaseManager:
         deleted = False
         try:
             with get_mysql_connection() as conn:
+                # First verify the file exists and is owned by the user
                 with conn.cursor() as cursor:
+                    cursor.execute(
+                        """
+                        SELECT id FROM KmlFiles
+                        WHERE id = %s AND user_id = %s
+                        """,
+                        (file_id, user_id),
+                    )
+                    file_record = cursor.fetchone()
+                    
+                    if not file_record:
+                        logging.warning(f"KML file {file_id} not found or not owned by user {user_id}")
+                        return False
+                        
+                    # File exists and is owned by the user, proceed with deletion
                     cursor.execute(
                         """
                         DELETE FROM KmlFiles
@@ -290,7 +305,18 @@ class DatabaseManager:
                         """,
                         (file_id, user_id),
                     )
+                    
                     deleted = cursor.rowcount > 0
+                    
+                    if deleted:
+                        logging.info(f"Successfully deleted KML file {file_id} for user {user_id}")
+                    else:
+                        logging.warning(f"Failed to delete KML file {file_id} despite verification")
+                
+                # Commit the transaction
+                conn.commit()
+                
         except Exception as e:
             logging.error(f"Error deleting KML file: {e}")
+            
         return deleted
