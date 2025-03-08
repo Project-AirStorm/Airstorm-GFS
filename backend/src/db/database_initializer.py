@@ -60,6 +60,20 @@ class DatabaseInitializer:
                             FOREIGN KEY (user_id) REFERENCES Users(user_id)
                         ) ENGINE=InnoDB;
                     """)
+                    
+                    # Create KML Files table
+                    cursor.execute("""
+                        CREATE TABLE IF NOT EXISTS KmlFiles (
+                            id INT AUTO_INCREMENT PRIMARY KEY,
+                            user_id VARCHAR(255) NOT NULL,
+                            file_name VARCHAR(255) NOT NULL,
+                            file_data LONGBLOB NOT NULL,
+                            description VARCHAR(500),
+                            upload_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                            is_active TINYINT DEFAULT 1,
+                            FOREIGN KEY (user_id) REFERENCES Users(user_id)
+                        ) ENGINE=InnoDB;
+                    """)
                 # No need to commit explicitly if autocommit is enabled.
             logging.info("MySQL database and tables initialized.")
         except Exception as e:

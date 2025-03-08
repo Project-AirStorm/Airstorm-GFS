@@ -17,8 +17,9 @@ load_dotenv()
 # Initialize Flask app
 app = Flask(__name__)
 
-# Configure CORS properly
-CORS(app, resources={r"/api/*": {"origins": "http://localhost:3000"}})
+# Configure CORS properly - allow all origins for KML files to work with Google Maps
+# It's crucial that Google's servers can access our KML files
+CORS(app, resources={r"/api/*": {"origins": "*", "supports_credentials": False}})
 
 # Configure logging
 logging.basicConfig(

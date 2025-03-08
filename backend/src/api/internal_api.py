@@ -1,7 +1,10 @@
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, jsonify, request, send_file, current_app as app
 from db.database_manager import DatabaseManager
 import logging
 import os
+import io
+import base64
+import zipfile
 from datetime import datetime
 
 internal_api_bp = Blueprint("internal_api", __name__)
@@ -157,3 +160,163 @@ def get_logs():
                 "exception_type": type(e).__name__
             }
         }), 500
+        
+@internal_api_bp.route("/api/kml-files", methods=["GET"])
+def get_kml_files():
+    """
+    Get KML files for a specific user
+    """
+    user_id = request.args.get("userId")
+    if not user_id:
+        return jsonify({"error": "User ID is required"}), 400
+    
+    kml_files = database_service.get_user_kml_files(user_id)
+    return jsonify(kml_files)
+
+@internal_api_bp.route("/api/kml-files/<int:file_id>", methods=["GET"])
+def get_kml_file(file_id):
+    """
+    Get a specific KML file by its ID
+    """
+    user_id = request.args.get("userId")
+    format_type = request.args.get("format", "kml")  # Default to kml, can be 'kml' or 'raw'
+    
+    kml_file = database_service.get_kml_file_by_id(file_id, user_id)
+    if not kml_file:
+        return jsonify({"error": "KML file not found"}), 404
+    
+    # Return the file data
+    file_data = kml_file["fileData"]
+    
+    # For direct download or for Google Maps KML Layer
+    if format_type == 'kml':
+        # Create a direct response with proper mimetype
+        response = app.response_class(
+            response=file_data,
+            status=200,
+            mimetype="application/vnd.google-earth.kml+xml"
+        )
+        
+        # Add required headers for Google Maps KML layer
+        response.headers['Access-Control-Allow-Origin'] = '*'
+        response.headers['Access-Control-Allow-Methods'] = 'GET, OPTIONS'
+        response.headers['Access-Control-Allow-Headers'] = 'Content-Type'
+        response.headers['Content-Disposition'] = 'inline'
+        response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
+        response.headers['Pragma'] = 'no-cache'
+        response.headers['Expires'] = '0'
+        
+        return response
+    # For raw data to be parsed client-side
+    else:
+        # For direct frontend consumption
+        return jsonify({
+            "id": kml_file["id"],
+            "fileName": kml_file["fileName"],
+            "kmlContent": file_data.decode('utf-8')  # Convert bytes to string
+        })
+
+from flask import Blueprint, jsonify, request, send_file, current_app as app
+from db.database_manager import DatabaseManager
+import logging
+import os
+import io
+import base64
+import zipfile
+from datetime import datetime
+
+@internal_api_bp.route("/api/kml-files", methods=["POST"])
+def upload_kml_file():
+    """
+    Upload a new KML or KMZ file
+    """
+    try:
+        if 'file' not in request.files:
+            return jsonify({"error": "No file part"}), 400
+            
+        file = request.files['file']
+        user_id = request.form.get('userId')
+        description = request.form.get('description', '')
+        
+        if not file.filename or not user_id:
+            return jsonify({"error": "Missing file or user ID"}), 400
+            
+        # Get file extension
+        file_ext = file.filename.lower().split('.')[-1]
+        
+        # Check if it's a valid KML or KMZ file
+        if file_ext not in ['kml', 'kmz']:
+            return jsonify({"error": "File must be a KML or KMZ file"}), 400
+        
+        file_data = file.read()
+        file_name = file.filename
+        
+        # If it's a KMZ (ZIP) file, extract the KML data
+        if file_ext == 'kmz':
+            try:
+                # Open the KMZ as a zip file
+                kmz_file = zipfile.ZipFile(io.BytesIO(file_data))
+                
+                # Find the main KML file (usually doc.kml)
+                kml_files = [f for f in kmz_file.namelist() if f.lower().endswith('.kml')]
+                
+                if not kml_files:
+                    return jsonify({"error": "No KML file found in KMZ archive"}), 400
+                
+                # Use the first KML file found (typically doc.kml)
+                main_kml = kml_files[0]
+                
+                # Extract the KML content
+                kml_data = kmz_file.read(main_kml)
+                
+                # Replace file_data with the extracted KML content
+                file_data = kml_data
+                
+                # Keep original filename but change extension to .kml
+                file_name = file_name.rsplit('.', 1)[0] + '.kml'
+                
+                logging.info(f"Extracted KML from KMZ: {main_kml}")
+                
+            except Exception as e:
+                logging.error(f"Error extracting KML from KMZ: {e}")
+                return jsonify({"error": f"Invalid KMZ file: {str(e)}"}), 400
+        
+        # Save the KML file (either original or extracted from KMZ)
+        file_id = database_service.save_kml_file(user_id, file_name, file_data, description)
+        
+        if file_id:
+            return jsonify({
+                "success": True,
+                "fileId": file_id,
+                "fileName": file_name
+            })
+        else:
+            return jsonify({"error": "Failed to save KML file"}), 500
+            
+    except Exception as e:
+        logging.error(f"Error uploading KML/KMZ file: {e}")
+        return jsonify({"error": str(e)}), 500
+
+@internal_api_bp.route("/api/kml-files/<int:file_id>/toggle", methods=["POST"])
+def toggle_kml_active(file_id):
+    """
+    Toggle active status for a KML file
+    """
+    data = request.json
+    if not data or "userId" not in data:
+        return jsonify({"error": "User ID is required"}), 400
+        
+    success = database_service.toggle_kml_active(file_id, data["userId"])
+    return jsonify({"success": success})
+
+@internal_api_bp.route("/api/kml-files/<int:file_id>", methods=["DELETE"])
+def delete_kml_file(file_id):
+    """
+    Delete a KML file
+    """
+    data = request.json
+    if not data or "userId" not in data:
+        return jsonify({"error": "User ID is required"}), 400
+        
+    success = database_service.delete_kml_file(file_id, data["userId"])
+    return jsonify({"success": success})

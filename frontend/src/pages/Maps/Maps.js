@@ -32,6 +32,7 @@ const Maps = () => {
   const [locationName, setLocationName] = useState('');
   const [isFavorite, setIsFavorite] = useState(false);
   const [savedLocations, setSavedLocations] = useState([]);
+  const [kmlLayers, setKmlLayers] = useState({});
 
   // API Handlers
   const handleSaveLocation = async () => {
@@ -235,6 +236,10 @@ const Maps = () => {
             onSaveLocation={handleSaveLocation}
             savedLocations={savedLocations}
             onDeleteLocation={handleDeleteLocation}
+            userId={user?.id}
+            mapRef={mapRef}
+            kmlLayers={kmlLayers}
+            setKmlLayers={setKmlLayers}
           />
 
           <div className="weather-graph-container">

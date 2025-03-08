@@ -8,6 +8,7 @@
     "@testing-library/jest-dom": "^5.17.0",
     "@testing-library/react": "^13.4.0",
     "@testing-library/user-event": "^13.5.0",
+    "@tmcw/togeojson": "^7.0.0",
     "axios": "^1.7.9",
     "lucide-react": "^0.263.1",
     "mapbox-gl": "^2.x.x",
@@ -17,7 +18,8 @@
     "react-icons": "^4.x.x",
     "react-router-dom": "^6.x.x",
     "react-scripts": "5.0.1",
-    "web-vitals": "^2.1.4"
+    "web-vitals": "^2.1.4",
+    "xmldom": "^0.6.0"
   },
   "scripts": {
     "start": "react-scripts start",
