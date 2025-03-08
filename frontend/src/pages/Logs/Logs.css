@@ -1,226 +1,532 @@
-/* Logs.css */
+/* Logs.css - Combined Version */
+
+/* Container Styles */
 .logs-body {
-    background-color: white;
-    padding: 1.5rem;
-    border-radius: 0.5rem;
-    border: 1px solid rgb(229 231 235);
-    margin-bottom: 1.5rem;
-    width: 100%;
+  background-color: white;
+  padding: 1.5rem;
+  border-radius: 0.375rem;
+  border: 1px solid rgb(229 231 235);
+  margin-bottom: 1.5rem;
+  width: 100%;
+}
+
+/* Header Styles */
+.logs-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1.5rem;
+}
+
+.content-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: rgb(31 41 55);
+  margin-bottom: 0.5rem;
+}
+
+.content-description {
+  font-size: 0.875rem;
+  color: rgb(75 85 99);
+}
+
+.logs-actions {
+  display: flex;
+  gap: 0.75rem;
+}
+
+/* Button Styles */
+.button-icon {
+  width: 1rem;
+  height: 1rem;
+}
+
+.export-button,
+.delete-button {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.export-button {
+  background-color: rgb(37 99 235);
+  color: white;
+}
+
+.export-button:hover {
+  background-color: rgb(29 78 216);
+}
+
+.delete-button {
+  background-color: rgb(239 68 68);
+  color: white;
+}
+
+.delete-button:hover:not(:disabled) {
+  background-color: rgb(220 38 38);
+}
+
+.delete-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Controls Section */
+.logs-controls {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+}
+
+/* Search Bar */
+.search-bar {
+  flex-grow: 3;
+  min-width: 300px;
+  position: relative;
+}
+
+.search-icon {
+  position: absolute;
+  left: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: rgb(156 163 175);
+  width: 1rem;
+  height: 1rem;
+}
+
+.search-input {
+  width: 100%;
+  padding: 0.625rem 1rem 0.625rem 2.5rem;
+  border: 1px solid rgb(229 231 235);
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+  transition: all 0.2s ease;
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: rgb(59 130 246);
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+}
+
+/* Filters Section */
+.filters-section {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.filter-icon {
+  width: 1rem;
+  height: 1rem;
+  color: rgb(156 163 175);
+}
+
+.timeframe-label {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.clock-icon {
+  position: absolute;
+  left: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 1rem;
+  height: 1rem;
+  color: rgb(156 163 175);
+  pointer-events: none;
+}
+
+.filter-select,
+.timeframe-select {
+  padding: 0.625rem 2.5rem 0.625rem 2.5rem;
+  border: 1px solid rgb(229 231 235);
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+  min-width: 160px;
+  background-color: white;
+  color: rgb(55 65 81);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='none' stroke='currentColor' viewBox='0 0 12 12'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M2 4l4 4 4-4'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.75rem center;
+  background-size: 0.75rem;
+}
+
+.filter-select:focus,
+.timeframe-select:focus {
+  outline: none;
+  border-color: rgb(59 130 246);
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+}
+
+/* Table Styles */
+.logs-table {
+  overflow-x: auto;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th {
+  background-color: rgb(249 250 251);
+  padding: 0.75rem 1rem;
+  text-align: left;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: rgb(31 41 55);
+  border-bottom: 2px solid rgb(229 231 235);
+}
+
+td {
+  padding: 0.75rem 1rem;
+  font-size: 0.875rem;
+  color: rgb(75 85 99);
+  border-bottom: 1px solid rgb(229 231 235);
+}
+
+/* Log Type Badges */
+.log-type {
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.375rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  text-transform: capitalize;
+  background-color: rgb(243 244 246);
+  color: rgb(75 85 99);
+}
+
+/* Severity Badges */
+.severity-badge {
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.375rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  text-transform: capitalize;
+}
+
+.severity-badge.info {
+  background-color: rgb(219 234 254);
+  color: rgb(37 99 235);
+}
+
+.severity-badge.warning {
+  background-color: rgb(254 243 199);
+  color: rgb(217 119 6);
+}
+
+.severity-badge.error {
+  background-color: rgb(254 226 226);
+  color: rgb(239 68 68);
+}
+
+/* Row Highlight */
+tr.severity-error {
+  background-color: rgb(254 242 242);
+}
+
+tr.severity-warning {
+  background-color: rgb(255 251 235);
+}
+
+tr.severity-info {
+  background-color: rgb(239 246 255);
+}
+
+/* Legacy Log Entry Styles for backwards compatibility */
+.log-entry {
+  padding: 1rem;
+  margin-bottom: 0.5rem;
+  border-radius: 0.375rem;
+  background-color: white;
+  border-left: 4px solid transparent;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  transition: background-color 0.2s ease;
+}
+
+.log-entry:hover {
+  background-color: rgb(249 250 251);
+}
+
+.log-entry-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 0.5rem;
+}
+
+.log-timestamp {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.8125rem;
+  color: rgb(75 85 99);
+  white-space: nowrap;
+}
+
+.log-logger {
+  font-size: 0.8125rem;
+  color: rgb(107 114 128);
+  padding: 0.125rem 0.5rem;
+  background-color: rgb(243 244 246);
+  border-radius: 0.375rem;
+}
+
+.log-level {
+  font-size: 0.75rem;
+  font-weight: 500;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.375rem;
+  text-transform: uppercase;
+}
+
+.log-content {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  display: flex;
+  gap: 0.5rem;
+  align-items: flex-start;
+}
+
+.log-error-number {
+  color: rgb(220 38 38);
+  white-space: nowrap;
+  font-weight: 500;
+}
+
+.log-message {
+  word-break: break-word;
+  color: rgb(55 65 81);
+}
+
+.level-error {
+  background-color: rgb(254 226 226);
+  color: rgb(153 27 27);
+}
+
+.level-warning {
+  background-color: rgb(254 243 199);
+  color: rgb(146 64 14);
+}
+
+.level-info {
+  background-color: rgb(219 234 254);
+  color: rgb(30 58 138);
+}
+
+/* Delete Confirmation Dialog */
+.delete-confirm-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.delete-confirm-dialog {
+  background-color: white;
+  padding: 1.5rem;
+  border-radius: 0.375rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  max-width: 24rem;
+  width: 90%;
+}
+
+.delete-confirm-dialog h3 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: rgb(31 41 55);
+  margin-bottom: 0.75rem;
+}
+
+.delete-confirm-dialog p {
+  color: rgb(75 85 99);
+  margin-bottom: 1.5rem;
+}
+
+.delete-confirm-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+}
+
+.delete-confirm-cancel {
+  padding: 0.5rem 1rem;
+  background-color: rgb(229 231 235);
+  color: rgb(55 65 81);
+  border: none;
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.delete-confirm-cancel:hover:not(:disabled) {
+  background-color: rgb(209 213 219);
+}
+
+.delete-confirm-delete {
+  padding: 0.5rem 1rem;
+  background-color: rgb(239 68 68);
+  color: white;
+  border: none;
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.delete-confirm-delete:hover:not(:disabled) {
+  background-color: rgb(220 38 38);
+}
+
+.delete-error {
+  color: rgb(239 68 68);
+  margin-bottom: 1rem;
+  font-size: 0.875rem;
+}
+
+/* Loading and Empty States */
+.logs-loading,
+.logs-error,
+.logs-empty-state {
+  text-align: center;
+  padding: 2rem;
+  color: rgb(107 114 128);
+}
+
+.loading-spinner {
+  width: 2rem;
+  height: 2rem;
+  border: 4px solid rgb(229 231 235);
+  border-top-color: rgb(37 99 235);
+  border-radius: 50%;
+  margin: 0 auto 1rem;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
   }
-  
+}
+
+.logs-error {
+  color: rgb(220 38 38);
+}
+
+.retry-button {
+  margin-top: 1rem;
+  padding: 0.5rem 1rem;
+  background-color: rgb(254 226 226);
+  color: rgb(220 38 38);
+  border: none;
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.retry-button:hover {
+  background-color: rgb(254 202 202);
+}
+
+/* Success Message */
+.delete-success-message {
+  position: fixed;
+  bottom: 1.5rem;
+  right: 1.5rem;
+  background-color: rgb(34 197 94);
+  color: white;
+  padding: 1rem 1.5rem;
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  animation: slideIn 0.3s ease-out, fadeOut 0.3s ease-in 2.7s;
+  z-index: 1000;
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes fadeOut {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+/* Responsive Design */
+@media screen and (max-width: 768px) {
+  .logs-body {
+    padding: 1rem;
+  }
+
   .logs-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    margin-bottom: 2rem;
-  }
-  
-  .logs-title-section {
-    flex-grow: 1;
-  }
-  
-  .logs-actions {
-    display: flex;
+    flex-direction: column;
     gap: 1rem;
   }
-  
-  .export-button {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    padding: 0.5rem 1rem;
-    background-color: rgb(37 99 235);
-    color: white;
-    border: none;
-    border-radius: 0.375rem;
-    font-size: 0.875rem;
-    cursor: pointer;
-    transition: background-color 0.2s ease;
-  }
-  
-  .export-button:hover {
-    background-color: rgb(29 78 216);
-  }
-  
-  .button-icon {
-    width: 1rem;
-    height: 1rem;
-  }
-  
+
   .logs-controls {
-    display: flex;
-    gap: 1rem;
-    margin-bottom: 1.5rem;
-    flex-wrap: wrap;
+    flex-direction: column;
   }
-  
+
   .search-bar {
-    flex-grow: 1;
-    min-width: 250px;
-    position: relative;
-  }
-  
-  .search-icon {
-    position: absolute;
-    left: 0.75rem;
-    top: 50%;
-    transform: translateY(-50%);
-    width: 1rem;
-    height: 1rem;
-    color: rgb(156 163 175);
-  }
-  
-  .search-input {
     width: 100%;
-    padding: 0.5rem 1rem 0.5rem 2.5rem;
-    border: 1px solid rgb(209 213 219);
-    border-radius: 0.375rem;
-    font-size: 0.875rem;
   }
-  
-  .search-input:focus {
-    outline: none;
-    border-color: rgb(37 99 235);
-    box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.1);
-  }
-  
+
   .filters-section {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-  }
-  
-  .filter-icon {
-    width: 1rem;
-    height: 1rem;
-    color: rgb(156 163 175);
-  }
-  
-  .filter-select {
-    padding: 0.5rem 2rem 0.5rem 0.75rem;
-    border: 1px solid rgb(209 213 219);
-    border-radius: 0.375rem;
-    font-size: 0.875rem;
-    background-color: white;
-    cursor: pointer;
-  }
-  
-  .filter-select:focus {
-    outline: none;
-    border-color: rgb(37 99 235);
-    box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.1);
-  }
-  
-  /* Table Styles */
-  .logs-table {
-    overflow-x: auto;
-  }
-  
-  table {
+    flex-direction: column;
     width: 100%;
-    border-collapse: collapse;
   }
-  
-  th {
-    background-color: rgb(249 250 251);
-    padding: 0.75rem 1rem;
-    text-align: left;
-    font-size: 0.875rem;
-    font-weight: 600;
-    color: rgb(31 41 55);
-    border-bottom: 2px solid rgb(229 231 235);
+
+  .filter-select,
+  .timeframe-select {
+    width: 100%;
   }
-  
-  td {
-    padding: 0.75rem 1rem;
-    font-size: 0.875rem;
-    color: rgb(75 85 99);
-    border-bottom: 1px solid rgb(229 231 235);
+
+  .logs-actions {
+    width: 100%;
   }
-  
-  /* Log Type Badges */
-  .log-type {
-    padding: 0.25rem 0.5rem;
-    border-radius: 0.25rem;
-    font-size: 0.75rem;
-    font-weight: 500;
-    text-transform: capitalize;
+
+  .export-button,
+  .delete-button {
+    flex: 1;
+    justify-content: center;
   }
-  
-  .log-type.system {
-    background-color: rgb(243 244 246);
-    color: rgb(75 85 99);
+
+  /* Make table scrollable horizontally on mobile */
+  .logs-table {
+    margin: 0 -1rem;
+    padding: 0 1rem;
   }
-  
-  .log-type.weather {
-    background-color: rgb(219 234 254);
-    color: rgb(37 99 235);
-  }
-  
-  .log-type.user {
-    background-color: rgb(236 253 245);
-    color: rgb(16 185 129);
-  }
-  
-  /* Severity Badges */
-  .severity-badge {
-    padding: 0.25rem 0.5rem;
-    border-radius: 0.25rem;
-    font-size: 0.75rem;
-    font-weight: 500;
-    text-transform: capitalize;
-  }
-  
-  .severity-badge.info {
-    background-color: rgb(219 234 254);
-    color: rgb(37 99 235);
-  }
-  
-  .severity-badge.warning {
-    background-color: rgb(254 243 199);
-    color: rgb(217 119 6);
-  }
-  
-  .severity-badge.error {
-    background-color: rgb(254 226 226);
-    color: rgb(239 68 68);
-  }
-  
-  /* Row Highlight */
-  tr.severity-error {
-    background-color: rgb(254 242 242);
-  }
-  
-  tr.severity-warning {
-    background-color: rgb(255 251 235);
-  }
-  
-  /* Responsive Design */
-  @media screen and (max-width: 768px) {
-    .logs-body {
-      padding: 1rem;
-    }
-  
-    .logs-header {
-      flex-direction: column;
-      gap: 1rem;
-    }
-  
-    .logs-controls {
-      flex-direction: column;
-    }
-  
-    .filters-section {
-      flex-wrap: wrap;
-    }
-  
-    .filter-select {
-      flex-grow: 1;
-    }
-  
-    /* Make table scrollable horizontally */
-    .logs-table {
-      margin: 0 -1rem;
-      padding: 0 1rem;
-    }
-  }
+}
