@@ -1,0 +1,84 @@
+/* LogViewer.css */
+.logs-viewer {
+    background-color: white;
+    border-radius: 0.5rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    margin-top: 1rem;
+  }
+  
+  .log-group {
+    border-bottom: 1px solid #e5e7eb;
+    padding: 1rem;
+  }
+  
+  .log-group:last-child {
+    border-bottom: none;
+  }
+  
+  .log-group-header {
+    margin-bottom: 1rem;
+  }
+  
+  .log-source-title {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: #374151;
+    text-transform: capitalize;
+  }
+  
+  .log-entries {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 0.875rem;
+  }
+  
+  .log-entry {
+    display: flex;
+    align-items: flex-start;
+    padding: 0.5rem;
+    gap: 0.5rem;
+    border-left: 3px solid transparent;
+    transition: background-color 0.2s ease;
+  }
+  
+  .log-entry:hover {
+    background-color: #f9fafb;
+  }
+  
+  .log-icon {
+    flex-shrink: 0;
+    width: 1.5rem;
+  }
+  
+  .log-timestamp {
+    color: #6b7280;
+    white-space: nowrap;
+    margin-right: 1rem;
+  }
+  
+  .log-message {
+    flex-grow: 1;
+    word-break: break-word;
+  }
+  
+  .log-request {
+    color: #4b5563;
+    font-style: italic;
+    margin-left: 1rem;
+  }
+  
+  /* Log type colors */
+  .log-entry.text-red-600 {
+    border-left-color: #dc2626;
+  }
+  
+  .log-entry.text-yellow-600 {
+    border-left-color: #d97706;
+  }
+  
+  .log-entry.text-blue-600 {
+    border-left-color: #2563eb;
+  }
+  
+  .log-entry.text-gray-600 {
+    border-left-color: #4b5563;
+  }
