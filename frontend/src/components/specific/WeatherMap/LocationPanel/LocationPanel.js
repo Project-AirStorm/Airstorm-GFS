@@ -305,8 +305,14 @@ const LocationPanel = ({
                 }
               } else {
                 // Remove KML layer if it exists
-                console.log('Removing KML layer');
+                console.log('Removing KML layer - toggling visibility off');
+                // Always call removeKmlLayer at least twice to ensure cleanup
+                // This works around a Google Maps rendering issue
                 removeKmlLayer(file.id);
+                // Schedule another removal after a short delay to catch any stuck objects
+                setTimeout(() => {
+                  removeKmlLayer(file.id);
+                }, 50);
               }
             } catch (renderError) {
               console.log('Error during KML rendering, using fallback:', renderError);
@@ -1056,45 +1062,135 @@ const LocationPanel = ({
   };
 
   const removeKmlLayer = (fileId) => {
+    console.log(`Removing KML layer for file ID: ${fileId}`);
+    
+    // Check if this layer exists in our state
     if (kmlLayers[fileId]) {
       try {
+        // Get a reference to the layer we're removing
+        const layer = kmlLayers[fileId];
+        console.log(`Found layer to remove:`, typeof layer);
+        
         // Revoke blob URL if it exists to prevent memory leaks
-        if (kmlLayers[fileId].blobUrl) {
-          URL.revokeObjectURL(kmlLayers[fileId].blobUrl);
+        if (layer.blobUrl) {
+          try {
+            URL.revokeObjectURL(layer.blobUrl);
+            console.log(`Revoked blob URL for layer ${fileId}`);
+          } catch (e) {
+            console.log(`Error revoking blob URL: ${e.message}`);
+          }
         }
         
         // Close info window if it exists
-        if (kmlLayers[fileId].infoWindow) {
-          kmlLayers[fileId].infoWindow.close();
+        if (layer.infoWindow) {
+          try {
+            layer.infoWindow.close();
+            console.log(`Closed info window for layer ${fileId}`);
+          } catch (e) {
+            console.log(`Error closing info window: ${e.message}`);
+          }
         }
         
         // Remove all event listeners if possible
-        if (kmlLayers[fileId].listeners) {
-          kmlLayers[fileId].listeners.forEach(listener => {
-            window.google.maps.event.removeListener(listener);
+        if (layer.listeners && Array.isArray(layer.listeners)) {
+          layer.listeners.forEach(listener => {
+            try {
+              window.google.maps.event.removeListener(listener);
+            } catch (e) {
+              console.log(`Error removing listener: ${e.message}`);
+            }
           });
+          console.log(`Removed event listeners for layer ${fileId}`);
         }
         
-        // Remove from map
-        kmlLayers[fileId].setMap(null);
+        // For Data layers, also try to clear all features
+        if (layer instanceof window.google.maps.Data) {
+          try {
+            layer.forEach(feature => {
+              layer.remove(feature);
+            });
+            console.log(`Removed all features from Data layer ${fileId}`);
+          } catch (e) {
+            console.log(`Error removing features: ${e.message}`);
+          }
+        }
+        
+        // Remove from map - the most important step
+        try {
+          if (typeof layer.setMap === 'function') {
+            layer.setMap(null);
+            console.log(`Removed layer ${fileId} from map`);
+          } else {
+            console.log(`Layer ${fileId} doesn't have setMap method, using alternative removal`);
+            
+            // For built-in Google Maps objects, try alternatives
+            if (window.google?.maps) {
+              // For Data layers, try setting null map
+              if (layer instanceof window.google.maps.Data) {
+                layer.setMap(null);
+              }
+              
+              // For marker arrays, try to clear them
+              if (layer.markers && Array.isArray(layer.markers)) {
+                layer.markers.forEach(marker => {
+                  if (marker && typeof marker.setMap === 'function') {
+                    marker.setMap(null);
+                  }
+                });
+              }
+              
+              // For KmlLayers, try a new instance
+              if (layer instanceof window.google.maps.KmlLayer) {
+                new window.google.maps.KmlLayer({ map: null });
+              }
+            }
+          }
+        } catch (e) {
+          console.log(`Error removing layer from map: ${e.message}`);
+        }
         
         // Clear any references to DOM elements
-        if (kmlLayers[fileId].iframe) {
-          if (document.body.contains(kmlLayers[fileId].iframe)) {
-            document.body.removeChild(kmlLayers[fileId].iframe);
+        if (layer.iframe) {
+          try {
+            if (document.body.contains(layer.iframe)) {
+              document.body.removeChild(layer.iframe);
+            }
+            layer.iframe = null;
+            console.log(`Removed iframe for layer ${fileId}`);
+          } catch (e) {
+            console.log(`Error removing iframe: ${e.message}`);
           }
-          kmlLayers[fileId].iframe = null;
         }
         
         console.log(`KML layer ${fileId} successfully removed and cleaned up`);
       } catch (error) {
-        console.warn(`Error cleaning up KML layer ${fileId}:`, error);
+        console.log(`Error cleaning up KML layer ${fileId}: ${error.message}`);
       }
       
-      // Remove from layers map
-      const updatedLayers = { ...kmlLayers };
-      delete updatedLayers[fileId];
-      setKmlLayers(updatedLayers);
+      // Always update state to remove the layer reference
+      setKmlLayers(prev => {
+        const updated = { ...prev };
+        delete updated[fileId];
+        return updated;
+      });
+    } else {
+      console.log(`No layer found for file ID: ${fileId}`);
+    }
+    
+    // Force a refresh of map objects as a last resort
+    try {
+      if (mapRef?.current) {
+        // This triggers Google Maps to re-render and often fixes stuck objects
+        const currentCenter = mapRef.current.getCenter();
+        const currentZoom = mapRef.current.getZoom();
+        mapRef.current.setZoom(currentZoom - 0.0001);
+        setTimeout(() => {
+          mapRef.current.setZoom(currentZoom);
+          mapRef.current.setCenter(currentCenter);
+        }, 5);
+      }
+    } catch (e) {
+      console.log(`Error refreshing map: ${e.message}`);
     }
   };
 
