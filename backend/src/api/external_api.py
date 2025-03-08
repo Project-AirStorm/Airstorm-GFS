@@ -13,6 +13,7 @@ from retry_requests import retry
 from functools import lru_cache
 from datetime import datetime, timedelta
 from threading import Lock
+from middleware.api_key_protection import protect_api_keys
 
 external_api_bp = Blueprint("external_api", __name__)
 
