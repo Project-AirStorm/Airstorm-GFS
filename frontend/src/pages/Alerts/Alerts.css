@@ -1,4 +1,30 @@
 /* Alerts.css */
+.alerts-body {
+  background-color: white;
+  padding: 1.5rem;
+  border-radius: 0.5rem;
+  border: 1px solid rgb(229 231 235);
+  margin-bottom: 1.5rem;
+  width: 100%;
+}
+
+.main-content {
+  width: 100%;
+}
+
+.content-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: rgb(31 41 55);
+  margin-bottom: 0.5rem;
+}
+
+.content-description {
+  font-size: 0.875rem;
+  color: rgb(75 85 99);
+  margin-bottom: 1.5rem;
+}
+
 .alert-header {
   display: flex;
   justify-content: space-between;

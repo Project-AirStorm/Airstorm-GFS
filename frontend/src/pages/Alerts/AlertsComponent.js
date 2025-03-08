@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { UserSession } from '../../utils/UserSession';
+import OverviewSwitch from '../../components/specific/OverviewSwitch/OverviewSwitch';
+import ActionButtons from '../../components/specific/ActionButtons/ActionButtons';
 
 import {
   ChevronDown,
@@ -43,6 +45,7 @@ const AlertsComponent = () => {
   const [sortBy, setSortBy] = useState('date');
   const [locations, setLocations] = useState([]);
   const [filterCertainty, setFilterCertainty] = useState('all');
+  const [activeView, setActiveView] = useState('overview');
 
   // Reset Filters Variables
   const resetFilters = () => {
@@ -235,202 +238,221 @@ ${alert.instruction ? `Instructions: ${alert.instruction}` : ''}
   };
 
   return (
-    <div className="alerts-body">
-      <div className="flex justify-between items-center mb-6">
-        <div>
-          <h2 className="text-xl font-semibold">Weather Alerts</h2>
-          <p className="text-gray-600">
-            Active weather alerts for your saved locations
-          </p>
+    <div classname="dashboard-container">
+      <div className="main-content">
+        <div className="controls-container">
+          <OverviewSwitch
+            activeView={activeView}
+            onViewChange={setActiveView}
+          />
+
+          <ActionButtons
+            onTimeframeChange={() => console.log('Timeframe changed')}
+            onAddBase={() => console.log('Add base clicked')}
+            timeframe="Week"
+          />
         </div>
+        <div className="alerts-body">
+          <div className="flex justify-between items-center mb-6">
+            <div>
+              <h2 className="content-title">Weather Alerts</h2>
+              <p className="content-description">
+                Active weather alerts for your saved locations
+              </p>
+            </div>
 
-        <div className="flex gap-2">
-          <button
-            onClick={toggleExpandAll}
-            className="filter-select flex items-center gap-2"
-          >
-            {Object.keys(expandedAlerts).length === processedAlerts.length ? (
-              <>
-                <ChevronsUp className="w-4 h-4" />
-                Collapse All
-              </>
-            ) : (
-              <>
-                <ChevronsDown className="w-4 h-4" />
-                Expand All
-              </>
-            )}
-          </button>
-
-          <button
-            onClick={resetFilters}
-            className="filter-select flex items-center gap-2"
-          >
-            Reset Filters
-          </button>
-        </div>
-      </div>
-
-      <div className="filter-container">
-        {/* Severity Filter */}
-        <div className="flex items-center flex-1">
-          <Filter className="w-4 h-4 text-gray-500 mr-2" />
-          <select
-            value={filterSeverity}
-            onChange={(e) => setFilterSeverity(e.target.value)}
-            className="filter-select flex-1"
-          >
-            <option value="all">All Severities</option>
-            <option value="Extreme">Extreme</option>
-            <option value="Severe">Severe</option>
-            <option value="Moderate">Moderate</option>
-            <option value="Minor">Minor</option>
-          </select>
-        </div>
-
-        {/* Certainty Filter */}
-        <div className="flex items-center flex-1">
-          <AlertTriangle className="w-4 h-4 text-gray-500 mr-2" />
-          <select
-            value={filterCertainty}
-            onChange={(e) => setFilterCertainty(e.target.value)}
-            className="filter-select flex-1"
-          >
-            <option value="all">All Certainties</option>
-            <option value="Observed">Observed</option>
-            <option value="Likely">Likely</option>
-            <option value="Possible">Possible</option>
-            <option value="Unlikely">Unlikely</option>
-          </select>
-        </div>
-
-        {/* Location Filter */}
-        <div className="flex items-center flex-1">
-          <MapPin className="w-4 h-4 text-gray-500 mr-2" />
-          <select
-            value={filterLocation}
-            onChange={(e) => setFilterLocation(e.target.value)}
-            className="filter-select flex-1"
-          >
-            <option value="all">All Locations</option>
-            {locations.map((location) => (
-              <option key={location} value={location}>
-                {location}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        {/* Sort Filter */}
-        <div className="flex items-center flex-1">
-          <ArrowUpDown className="w-4 h-4 text-gray-500 mr-2" />
-          <select
-            value={sortBy}
-            onChange={(e) => setSortBy(e.target.value)}
-            className="filter-select flex-1"
-          >
-            <option value="date">Sort by Date</option>
-            <option value="severity">Sort by Severity</option>
-            <option value="location">Sort by Location</option>
-          </select>
-        </div>
-      </div>
-
-      <div className="space-y-4">
-        {processedAlerts.length === 0 ? (
-          <div className="text-center py-8 text-gray-400">
-            No active alerts for your locations
-          </div>
-        ) : (
-          processedAlerts.map((alert, index) => {
-            const alertId = `${alert.location_name}-${alert.event}-${index}`;
-            const isExpanded = expandedAlerts[alertId];
-
-            return (
-              <div
-                key={alertId}
-                className={`alert-item ${severityColors[alert.severity]}`}
-                onClick={(e) => {
-                  // Only toggle if not clicking the expand button
-                  if (!e.target.closest('button')) {
-                    toggleExpand(alertId);
-                  }
-                }}
+            <div className="flex gap-2">
+              <button
+                onClick={toggleExpandAll}
+                className="filter-select flex items-center gap-2"
               >
-                <div className="alert-header">
-                  <div className="flex items-center gap-4 flex-1 min-w-0">
-                    <div className="flex items-center gap-2 min-w-0">
-                      <AlertTriangle className="w-5 h-5 flex-shrink-0" />
-                      <h3 className="alert-type truncate">{alert.event}</h3>
-                    </div>
-                    <p className="alert-location flex-shrink-0">
-                      {alert.location_name}
-                    </p>
-                    <div className="flex gap-2 flex-shrink-0">
-                      <span className={`severity-badge ${alert.severity}`}>
-                        {alert.severity}
-                      </span>
-                      <span className="certainty-badge">{alert.certainty}</span>
+                {Object.keys(expandedAlerts).length ===
+                processedAlerts.length ? (
+                  <>
+                    <ChevronsUp className="w-4 h-4" />
+                    Collapse All
+                  </>
+                ) : (
+                  <>
+                    <ChevronsDown className="w-4 h-4" />
+                    Expand All
+                  </>
+                )}
+              </button>
+
+              <button
+                onClick={resetFilters}
+                className="filter-select flex items-center gap-2"
+              >
+                Reset Filters
+              </button>
+            </div>
+          </div>
+
+          <div className="filter-container">
+            {/* Severity Filter */}
+            <div className="flex items-center flex-1">
+              <Filter className="w-4 h-4 text-gray-500 mr-2" />
+              <select
+                value={filterSeverity}
+                onChange={(e) => setFilterSeverity(e.target.value)}
+                className="filter-select flex-1"
+              >
+                <option value="all">All Severities</option>
+                <option value="Extreme">Extreme</option>
+                <option value="Severe">Severe</option>
+                <option value="Moderate">Moderate</option>
+                <option value="Minor">Minor</option>
+              </select>
+            </div>
+
+            {/* Certainty Filter */}
+            <div className="flex items-center flex-1">
+              <AlertTriangle className="w-4 h-4 text-gray-500 mr-2" />
+              <select
+                value={filterCertainty}
+                onChange={(e) => setFilterCertainty(e.target.value)}
+                className="filter-select flex-1"
+              >
+                <option value="all">All Certainties</option>
+                <option value="Observed">Observed</option>
+                <option value="Likely">Likely</option>
+                <option value="Possible">Possible</option>
+                <option value="Unlikely">Unlikely</option>
+              </select>
+            </div>
+
+            {/* Location Filter */}
+            <div className="flex items-center flex-1">
+              <MapPin className="w-4 h-4 text-gray-500 mr-2" />
+              <select
+                value={filterLocation}
+                onChange={(e) => setFilterLocation(e.target.value)}
+                className="filter-select flex-1"
+              >
+                <option value="all">All Locations</option>
+                {locations.map((location) => (
+                  <option key={location} value={location}>
+                    {location}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Sort Filter */}
+            <div className="flex items-center flex-1">
+              <ArrowUpDown className="w-4 h-4 text-gray-500 mr-2" />
+              <select
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value)}
+                className="filter-select flex-1"
+              >
+                <option value="date">Sort by Date</option>
+                <option value="severity">Sort by Severity</option>
+                <option value="location">Sort by Location</option>
+              </select>
+            </div>
+          </div>
+
+          <div className="space-y-4">
+            {processedAlerts.length === 0 ? (
+              <div className="text-center py-8 text-gray-400">
+                No active alerts for your locations
+              </div>
+            ) : (
+              processedAlerts.map((alert, index) => {
+                const alertId = `${alert.location_name}-${alert.event}-${index}`;
+                const isExpanded = expandedAlerts[alertId];
+
+                return (
+                  <div
+                    key={alertId}
+                    className={`alert-item ${severityColors[alert.severity]}`}
+                    onClick={(e) => {
+                      // Only toggle if not clicking the expand button
+                      if (!e.target.closest('button')) {
+                        toggleExpand(alertId);
+                      }
+                    }}
+                  >
+                    <div className="alert-header">
+                      <div className="flex items-center gap-4 flex-1 min-w-0">
+                        <div className="flex items-center gap-2 min-w-0">
+                          <AlertTriangle className="w-5 h-5 flex-shrink-0" />
+                          <h3 className="alert-type truncate">{alert.event}</h3>
+                        </div>
+                        <p className="alert-location flex-shrink-0">
+                          {alert.location_name}
+                        </p>
+                        <div className="flex gap-2 flex-shrink-0">
+                          <span className={`severity-badge ${alert.severity}`}>
+                            {alert.severity}
+                          </span>
+                          <span className="certainty-badge">
+                            {alert.certainty}
+                          </span>
+                          <button
+                            onClick={(e) => copyToClipboard(alert, e)}
+                            className="p-1 hover:bg-black/10 rounded-full transition-colors flex-shrink-0"
+                            title="Copy alert to clipboard"
+                          >
+                            <Copy className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </div>
                       <button
-                        onClick={(e) => copyToClipboard(alert, e)}
-                        className="p-1 hover:bg-black/10 rounded-full transition-colors flex-shrink-0"
-                        title="Copy alert to clipboard"
+                        onClick={() => toggleExpand(alertId)}
+                        className="p-2 hover:bg-black/10 rounded-full transition-colors flex-shrink-0"
                       >
-                        <Copy className="w-4 h-4" />
+                        {isExpanded ? (
+                          <ChevronUp className="w-5 h-5" />
+                        ) : (
+                          <ChevronDown className="w-5 h-5" />
+                        )}
                       </button>
                     </div>
-                  </div>
-                  <button
-                    onClick={() => toggleExpand(alertId)}
-                    className="p-2 hover:bg-black/10 rounded-full transition-colors flex-shrink-0"
-                  >
-                    {isExpanded ? (
-                      <ChevronUp className="w-5 h-5" />
-                    ) : (
-                      <ChevronDown className="w-5 h-5" />
-                    )}
-                  </button>
-                </div>
 
-                {isExpanded && (
-                  <div className="alert-details">
-                    <p>
-                      <strong>Start:</strong> {formatDateTime(alert.onset)}
-                    </p>
-                    <p>
-                      <strong>End:</strong> {formatDateTime(alert.expires)}
-                    </p>
-                    <p>
-                      <strong>Sender:</strong> {alert.sender}
-                    </p>
-                    {alert.headline && (
-                      <p className="font-bold">{alert.headline}</p>
-                    )}
-                    <p>{alert.description}</p>
-                    {alert.instruction && (
-                      <div className="mt-4">
-                        <p className="font-bold">Instructions:</p>
-                        <p>{alert.instruction}</p>
+                    {isExpanded && (
+                      <div className="alert-details">
+                        <p>
+                          <strong>Start:</strong> {formatDateTime(alert.onset)}
+                        </p>
+                        <p>
+                          <strong>End:</strong> {formatDateTime(alert.expires)}
+                        </p>
+                        <p>
+                          <strong>Sender:</strong> {alert.sender}
+                        </p>
+                        {alert.headline && (
+                          <p className="font-bold">{alert.headline}</p>
+                        )}
+                        <p>{alert.description}</p>
+                        {alert.instruction && (
+                          <div className="mt-4">
+                            <p className="font-bold">Instructions:</p>
+                            <p>{alert.instruction}</p>
+                          </div>
+                        )}
+                        {alert.url && (
+                          <p className="mt-2">
+                            <a
+                              href={alert.url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-blue-400 hover:text-blue-300 underline"
+                            >
+                              More Information
+                            </a>
+                          </p>
+                        )}
                       </div>
                     )}
-                    {alert.url && (
-                      <p className="mt-2">
-                        <a
-                          href={alert.url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-blue-400 hover:text-blue-300 underline"
-                        >
-                          More Information
-                        </a>
-                      </p>
-                    )}
                   </div>
-                )}
-              </div>
-            );
-          })
-        )}
+                );
+              })
+            )}
+          </div>
+        </div>
       </div>
     </div>
   );

@@ -34,6 +34,18 @@ const Feedback = ({ setCurrentPage }) => {
   ];
 
   /**
+   * Sanitizes input by removing potentially problematic characters
+   * @param {string} input - Raw input string
+   * @returns {string} Sanitized output
+   */
+  const sanitizeInput = (input) => {
+    return input
+      .trim()
+      .replace(/[<>"',]/g, '') // Remove specified special characters
+      .replace(/\s+/g, ' '); // Collapse multiple spaces to single
+  };
+
+  /**
    * Handle input changes in the form
    * @param {Event} e - Input change event
    */
@@ -55,13 +67,27 @@ const Feedback = ({ setCurrentPage }) => {
     setError(null);
 
     try {
-      // Update the URL to include the full path including REACT_APP_API_URL
+      // Sanitize all user inputs
+      const sanitizedData = {
+        ...formData,
+        ticketName: `[User Feedback] ${sanitizeInput(formData.ticketName)}`,
+        name: sanitizeInput(formData.name),
+        email: sanitizeInput(formData.email),
+        description: sanitizeInput(formData.description),
+      };
+
+      // Validate essential fields after sanitization
+      if (
+        !sanitizedData.ticketName.replace('[User Feedback] ', '') ||
+        !sanitizedData.name ||
+        !sanitizedData.description
+      ) {
+        throw new Error('Please fill in all required fields');
+      }
+
       const response = await axios.post(
         `${process.env.REACT_APP_API_URL}/api/feedback`,
-        {
-          ...formData,
-          ticketName: `[User Feedback] ${formData.ticketName}`,
-        }
+        sanitizedData
       );
 
       if (response.data.message) {
@@ -71,11 +97,15 @@ const Feedback = ({ setCurrentPage }) => {
           name: '',
           email: '',
           description: '',
-          tag: 'Question',
+          tag: 'question',
         });
       }
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to submit feedback');
+      setError(
+        err.response?.data?.message ||
+          err.message ||
+          'Failed to submit feedback'
+      );
       console.error('Feedback submission error:', err);
     } finally {
       setLoading(false);
@@ -98,7 +128,7 @@ const Feedback = ({ setCurrentPage }) => {
               <h3>Thank you for your feedback!</h3>
               <p>
                 Your feedback has been successfully submitted. Our team will
-                reach out with a response as soon as possible.{' '}
+                reach out with a response as soon as possible.
               </p>
               <button
                 className="feedback-new-button"
@@ -175,7 +205,7 @@ const Feedback = ({ setCurrentPage }) => {
                 />
               </div>
 
-              {error && <div className="feedback-error">{error}</div>}
+              {error && <div className="feedback-error">Error: {error}</div>}
 
               <button
                 type="submit"

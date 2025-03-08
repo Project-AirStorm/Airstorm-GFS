@@ -18,11 +18,29 @@ import {
 } from 'react-icons/io5';
 import './GraphCastForecast.css';
 
+const REACT_APP_API_URL = process.env.REACT_APP_API_URL;
+
 const GraphCastForecast = () => {
   const [forecast, setForecast] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [userLocation, setUserLocation] = useState(null);
+  const [locationName, setLocationName] = useState('');
+
+  const fetchLocationName = async (latitude, longitude) => {
+    try {
+      const locationResponse = await axios.get(
+        `${REACT_APP_API_URL}/api/geocode`,
+        {
+          params: { lat: latitude, lon: longitude },
+        }
+      );
+      // Extract the formatted_address from the response
+      setLocationName(locationResponse.data.formatted_address);
+    } catch (err) {
+      console.error('Error fetching location name:', err);
+    }
+  };
 
   useEffect(() => {
     if ('geolocation' in navigator) {
@@ -30,6 +48,9 @@ const GraphCastForecast = () => {
         async (position) => {
           const { latitude, longitude } = position.coords;
           setUserLocation({ latitude, longitude });
+
+          // Fetch location name
+          await fetchLocationName(latitude, longitude);
 
           try {
             const response = await axios.get(
@@ -144,12 +165,13 @@ const GraphCastForecast = () => {
     <div className="graphcast-container">
       <div className="graphcast-header">
         <div>
-          <h2 className="graphcast-title">16-Day Weather Forecast</h2>
           <div className="graphcast-location">
-            <IoLocationOutline className="mr-1" />
+            <IoLocationOutline className="mr-1 text-red-600" />
             <span>
-              {userLocation?.latitude.toFixed(2)}°N,{' '}
-              {userLocation?.longitude.toFixed(2)}°W
+              {locationName ||
+                `${userLocation?.latitude.toFixed(
+                  2
+                )}°N, ${userLocation?.longitude.toFixed(2)}°W`}
             </span>
           </div>
         </div>
@@ -179,7 +201,7 @@ const GraphCastForecast = () => {
             data={forecast.daily}
             margin={{ top: 20, right: 30, left: 20, bottom: 10 }}
           >
-            <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+            <CartesianGrid strokeDasharray="7 7" stroke="#d3d5d8" />
             <XAxis
               dataKey="time"
               stroke="#6b7280"
@@ -190,9 +212,10 @@ const GraphCastForecast = () => {
               stroke="#6b7280"
               tick={{ fill: '#6b7280', fontSize: 12 }}
               label={{
-                value: 'Temperature (°F)',
+                value: 'Temp. (°F) / Prob. (%) / Precip. (in)',
+                offset: 10,
                 angle: -90,
-                position: 'insideLeft',
+                position: 'insideBottomLeft',
                 fill: '#6b7280',
               }}
             />
@@ -202,7 +225,7 @@ const GraphCastForecast = () => {
               stroke="#6b7280"
               tick={{ fill: '#6b7280', fontSize: 12 }}
               label={{
-                value: 'Probability (%) / Precipitation (in)',
+                value: '',
                 angle: 90,
                 position: 'insideRight',
                 fill: '#6b7280',
@@ -223,7 +246,7 @@ const GraphCastForecast = () => {
             />
 
             <Line
-              yAxisId="right"
+              yAxisId="left"
               type="monotone"
               dataKey="precipitationProb"
               name="Precipitation Chance"
@@ -234,7 +257,7 @@ const GraphCastForecast = () => {
             />
 
             <Line
-              yAxisId="right"
+              yAxisId="left"
               type="monotone"
               dataKey="precipitationSum"
               name="Precipitation Amount"
@@ -245,7 +268,7 @@ const GraphCastForecast = () => {
             />
 
             <Line
-              yAxisId="right"
+              yAxisId="left"
               type="monotone"
               dataKey="cloudCover"
               name="Cloud Cover"

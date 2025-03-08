@@ -1,0 +1,96 @@
+name: Handle User Feedback Emails
+
+on:
+  issues:
+    types: [opened]
+
+jobs:
+  send-confirmation-email:
+    runs-on: ubuntu-latest
+    if: contains(github.event.issue.labels.*.name, 'user-feedback')
+    
+    permissions:
+      issues: read
+      contents: read
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Extract metadata
+        id: extract-metadata
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const issueBody = context.payload.issue.body;
+            const nameMatch = issueBody.match(/\*\*Name:\*\* ([^\n]+)/);
+            const emailMatch = issueBody.match(/\*\*Email:\*\* ([^\n]+)/);
+            const feedbackMatch = issueBody.match(/### Feedback Details\n([\s\S]+)$/);
+            
+            const name = nameMatch ? nameMatch[1].trim() : 'User';
+            const email = emailMatch ? emailMatch[1].trim() : '';
+            const feedbackDetails = feedbackMatch ? feedbackMatch[1].trim() : issueBody;
+            
+            const date = new Date().toLocaleDateString('en-US', {
+              weekday: 'long',
+              year: 'numeric',
+              month: 'long',
+              day: 'numeric'
+            });
+            
+            core.setOutput('recipient_email', email);
+            core.setOutput('recipient_name', name);
+            core.setOutput('issue_title', context.payload.issue.title);
+            core.setOutput('issue_number', context.payload.issue.number);
+            core.setOutput('feedback_details', feedbackDetails);
+            core.setOutput('submission_date', date);
+
+      - name: Prepare and send email
+        run: |
+          # Read the template
+          if [ ! -f ".github/email-templates/external-feedback-open.html" ]; then
+            echo "Error: Template file not found"
+            exit 1
+          fi
+          
+          template=$(cat ".github/email-templates/external-feedback-open.html")
+          
+          # Replace template variables with proper escaping
+          email_content="${template//\{\{name\}\}/${{ steps.extract-metadata.outputs.recipient_name }}}"
+          email_content="${email_content//\{\{issue_number\}\}/${{ steps.extract-metadata.outputs.issue_number }}}"
+          email_content="${email_content//\{\{issue_title\}\}/${{ steps.extract-metadata.outputs.issue_title }}}"
+          email_content="${email_content//\{\{submission_date\}\}/${{ steps.extract-metadata.outputs.submission_date }}}"
+          email_content="${email_content//\{\{feedback_details\}\}/${{ steps.extract-metadata.outputs.feedback_details }}}"
+          
+          # Create JSON message file with proper escaping
+          cat > message.json << EOF
+          {
+            "Subject": {
+              "Data": "[Project AirStorm Support] ${{ steps.extract-metadata.outputs.issue_title }} [Issue: #${{ steps.extract-metadata.outputs.issue_number }}]",
+              "Charset": "UTF-8"
+            },
+            "Body": {
+              "Html": {
+                "Data": $(echo "$email_content" | jq -R -s .),
+                "Charset": "UTF-8"
+              },
+              "Text": {
+                "Data": "Dear ${{ steps.extract-metadata.outputs.recipient_name }},\n\nThank you for reaching out to Project Airstorm Support. We have received your feedback and our team will review it promptly.\n\nTicket Details:\nReference #: ${{ steps.extract-metadata.outputs.issue_number }}\nSubject: ${{ steps.extract-metadata.outputs.issue_title }}\nSubmitted: ${{ steps.extract-metadata.outputs.submission_date }}\n\nYour Feedback:\n${{ steps.extract-metadata.outputs.feedback_details }}\n\nOur team will evaluate your feedback and respond if additional information is needed. You'll receive an update via email, and when this ticket is closed.\n\nBest regards,\nProject Airstorm Support Team",
+                "Charset": "UTF-8"
+              }
+            }
+          }
+          EOF
+
+          # Send email using the JSON file
+          aws ses send-email \
+            --from "support@projectairstorm.com" \
+            --destination "ToAddresses=${{ steps.extract-metadata.outputs.recipient_email }}" \
+            --message "file://message.json"
