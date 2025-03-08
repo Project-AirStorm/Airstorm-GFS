@@ -10,6 +10,8 @@ from db.database_initializer import DatabaseInitializer
 from api.external_api import external_api_bp
 from api.internal_api import internal_api_bp
 from api.chat_api import chat_api_bp
+# Import the log filter
+from utils.log_filter import SensitiveDataFilter
 
 # Load environment variables
 load_dotenv()
@@ -42,12 +44,19 @@ file_handler.setFormatter(logging.Formatter(
 ))
 file_handler.setLevel(logging.INFO)
 
+# Create sensitive data filter
+sensitive_filter = SensitiveDataFilter()
+file_handler.addFilter(sensitive_filter)
+
 # Add the handler to the root logger
-logging.getLogger('').addHandler(file_handler)
+root_logger = logging.getLogger('')
+root_logger.addHandler(file_handler)
+root_logger.addFilter(sensitive_filter)
 
 # Specifically configure werkzeug logger
 werkzeug_logger = logging.getLogger('werkzeug')
 werkzeug_logger.addHandler(file_handler)
+werkzeug_logger.addFilter(sensitive_filter)
 
 # Set watchdog to ERROR level to reduce noise
 logging.getLogger("watchdog").setLevel(logging.ERROR)
@@ -62,12 +71,6 @@ app.register_blueprint(chat_api_bp)
 
 # Creates the datbase
 db_initializer = DatabaseInitializer()
-
-# Configure logging
-logging.basicConfig(level=logging.DEBUG)
-logging.getLogger("watchdog").setLevel(
-    logging.ERROR)  # Can set this to WARNING or ERROR
-logger = logging.getLogger(__name__)
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5001)
