@@ -177,16 +177,17 @@ const Charts = () => {
       {/* (C) Display stored chart runs from the DB */}
       {chartRuns.length > 0 && (
         <div style={{ marginTop: '20px' }}>
-          <h2>Past Chart Runs</h2>
           {chartRuns.map((run) => (
             <div key={run.chart_id} className="chart-run-card">
-              <h3>
-                {run.chart_folder} - (Lat: {run.lat}, Lon: {run.lon}, Days: {run.forecast_days})
-              </h3>
+
               <p>Created at: {run.created_at}</p>
               <div className="charts-grid">
                 {run.s3_files.length > 0 && (
                   <div className="chart-thumbnail">
+                    <h4>
+                      {run.chart_folder} 
+                    </h4>
+                    <h5>(Lat: {run.lat}, Lon: {run.lon}, Days: {run.forecast_days})</h5>
                     <button
                       onClick={() => handleViewChart(run)}
                       className="thumbnail-button"
