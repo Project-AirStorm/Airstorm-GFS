@@ -12,6 +12,7 @@ import Signup from '../pages/Signup/Signup';
 import ChatComponent from '../pages/Chat/Chat';
 import Resources from '../pages/Resources/Resources';
 import Charts from '../pages/Charts/Charts';
+import ChartViewer from '../pages/Charts/ChartViewer';
 // Unused imports for now
 // import Maps from '../pages/Maps/Maps';
 // import MeteogramPbp from '../components/specific/MeteogramPbp/MeteogramPbp';
@@ -62,6 +63,11 @@ export const ROUTES = {
     path: '/charts',
     title: 'Charts',
     element: Charts,
+  },
+  chartviewer: {
+    path: '/chart-viewer',
+    title: 'Chart Viewer',
+    element: ChartViewer,
   },
   chat: {
     path: '/chat',

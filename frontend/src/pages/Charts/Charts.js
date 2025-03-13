@@ -15,13 +15,13 @@ const Charts = () => {
   const [forecastDays, setForecastDays] = useState(1);
   const [chartType, setChartType] = useState('skewt');
   const [loading, setLoading] = useState(false);
-  const [charts, setCharts] = useState([]); // array of S3 file URLs for the newly generated chart
+  // newChartRun holds the newly generated chart run (with full s3_files array)
+  const [newChartRun, setNewChartRun] = useState(null);
   const [error, setError] = useState('');
-
-  // This will store multiple "chart runs" from the DB – each run might have lat, lon, chart_folder, s3_files, etc.
+  // chartRuns holds past chart runs from the database
   const [chartRuns, setChartRuns] = useState([]);
 
-  const { user } = UserSession();  // e.g. user.id = user_2sirXuIdmQh7eiB3GwHxZlcQYbI
+  const { user } = UserSession(); // e.g., user.id = "user_2sirXuIdmQh7eiB3GwHxZlcQYbI"
 
   // ------------------------------------------------
   // (A) Generate a new chart run
@@ -30,16 +30,15 @@ const Charts = () => {
     try {
       setLoading(true);
       setError('');
-      setCharts([]); // Clear the "live" chart for now
+      setNewChartRun(null); // Clear any existing new chart
 
       const payload = {
         lat: Number(lat),
         lon: Number(lon),
         days: Number(forecastDays),
-        user_id: user.id
+        user_id: user.id,
       };
 
-      // Call your /api/charts/generate route in the main Flask app
       const res = await fetch('http://localhost:5001/api/charts/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -49,8 +48,8 @@ const Charts = () => {
         throw new Error(`Generate chart failed: ${res.statusText}`);
       }
       const data = await res.json();
-      // data.s3_files is the newly generated SVG array
-      setCharts(data.s3_files);
+      // data.s3_files is the full array of SVG URLs (one per hour)
+      setNewChartRun(data);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -59,7 +58,7 @@ const Charts = () => {
   };
 
   // ------------------------------------------------
-  // (B) Load all chart runs from the DB for this user
+  // (B) Load all past chart runs from the DB for this user
   // ------------------------------------------------
   const loadPastCharts = async () => {
     try {
@@ -68,18 +67,29 @@ const Charts = () => {
       if (!res.ok) {
         throw new Error(`Fetch chart runs failed: ${res.statusText}`);
       }
-      const runs = await res.json(); // array of chart runs
+      const runs = await res.json();
       setChartRuns(runs);
     } catch (err) {
       setError(err.message);
     }
   };
 
-  // Optional: Auto-load on mount
+  // ------------------------------------------------
+  // (C) Open Chart Viewer in a new tab, passing the full SVG array via sessionStorage
+  // ------------------------------------------------
+  const handleViewChart = (chartRun) => {
+    // Save the SVG array in sessionStorage keyed by chart ID
+    sessionStorage.setItem(`chart_${chartRun.chart_id}`, JSON.stringify(chartRun.s3_files));
+    // Open a new tab for the ChartViewer page with the chartId as a query parameter
+    window.open(`/chart-viewer?chartId=${chartRun.chart_id}`, '_blank');
+  };
+
+  // Auto-load past charts on mount (if user data is ready)
   useEffect(() => {
-    // If you want to load past charts automatically when the user navigates here, call loadPastCharts()
-    loadPastCharts();
-  }, []);
+    if (user && user.id) {
+      loadPastCharts();
+    }
+  }, [user]);
 
   return (
     <div className="charts-page">
@@ -127,7 +137,6 @@ const Charts = () => {
           </button>
         </div>
 
-        {/* Chart type tabs – only relevant if your chart server has multiple chart types */}
         <div className="chart-type-tabs">
           {chartTypes.map((ct) => (
             <button
@@ -143,50 +152,59 @@ const Charts = () => {
 
       {error && <div className="error">{error}</div>}
 
-      {/* (A) Show newly generated chart (from "charts" state) if any */}
-      {charts.length > 0 && (
+      {/* (A) Display newly generated chart thumbnail (only the first SVG) */}
+      {newChartRun && newChartRun.s3_files && newChartRun.s3_files.length > 0 && (
         <div>
           <h2>Newly Generated Chart</h2>
           <div className="charts-grid">
-            {charts.map((chartUrl, index) => (
-              <div key={index} className="chart-thumbnail">
-                <a href={chartUrl} target="_blank" rel="noopener noreferrer">
-                  <img src={chartUrl} alt={`Chart ${index + 1}`} />
-                </a>
-                <div className="chart-title">
-                  {chartType.toUpperCase()} Chart {index + 1}
-                </div>
+            <div className="chart-thumbnail">
+              <button
+                onClick={() => handleViewChart(newChartRun)}
+                className="thumbnail-button"
+              >
+                <img
+                  src={newChartRun.s3_files[0]}
+                  alt="Chart Thumbnail"
+                />
+              </button>
+              <div className="chart-title">
+                {chartType.toUpperCase()} Chart (Preview)
               </div>
-            ))}
+            </div>
           </div>
         </div>
       )}
 
-      {/* (B) Show "Load Past Charts" button manually, or rely on useEffect above */}
+      {/* (B) Button to manually load past charts */}
       <div style={{ marginTop: '20px' }}>
         <button onClick={loadPastCharts}>Load Past Charts</button>
       </div>
 
-      {/* (C) Display the stored chart runs from the DB */}
+      {/* (C) Display stored chart runs from the DB */}
       {chartRuns.length > 0 && (
         <div style={{ marginTop: '20px' }}>
           <h2>Past Chart Runs</h2>
-          {/* Each run can have lat, lon, chart_folder, s3_files, etc. */}
           {chartRuns.map((run) => (
-            <div key={run.chart_id} style={{ marginBottom: '2rem' }}>
+            <div key={run.chart_id} className="chart-run-card">
               <h3>
                 {run.chart_folder} - (Lat: {run.lat}, Lon: {run.lon}, Days: {run.forecast_days})
               </h3>
               <p>Created at: {run.created_at}</p>
               <div className="charts-grid">
-                {run.s3_files.map((svgUrl, idx) => (
-                  <div key={idx} className="chart-thumbnail">
-                    <a href={svgUrl} target="_blank" rel="noopener noreferrer">
-                      <img src={svgUrl} alt={`Chart ${idx}`} />
-                    </a>
-                    <div className="chart-title">Chart {idx + 1}</div>
+                {run.s3_files.length > 0 && (
+                  <div className="chart-thumbnail">
+                    <button
+                      onClick={() => handleViewChart(run)}
+                      className="thumbnail-button"
+                    >
+                      <img
+                        src={run.s3_files[0]}
+                        alt="First hour thumbnail"
+                      />
+                    </button>
+                    <div className="chart-title">View Full Chart</div>
                   </div>
-                ))}
+                )}
               </div>
             </div>
           ))}
