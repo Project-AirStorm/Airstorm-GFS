@@ -3,20 +3,21 @@ import { useLocation } from 'react-router-dom';
 import './ChartViewer.css';
 
 const ChartViewer = () => {
-  const [s3Files, setS3Files] = useState([]);
-  const [currentHour, setCurrentHour] = useState(0);
-  const [error, setError] = useState('');
-  
   const location = useLocation();
   const queryParams = new URLSearchParams(location.search);
   const chartId = queryParams.get('chartId');
+
+  const [s3Files, setS3Files] = useState([]);
+  const [currentHour, setCurrentHour] = useState(0);
+  const [error, setError] = useState('');
+  const [preloadedImages, setPreloadedImages] = useState([]);
 
   useEffect(() => {
     if (!chartId) {
       setError('Chart ID is missing.');
       return;
     }
-    // Attempt to read the stored chart data from sessionStorage
+    // Try to retrieve s3Files from sessionStorage using the chartId key.
     const storedData = sessionStorage.getItem(`chart_${chartId}`);
     if (storedData) {
       try {
@@ -35,6 +36,30 @@ const ChartViewer = () => {
     }
   }, [chartId]);
 
+  // Preload images for a smoother slider experience
+  useEffect(() => {
+    if (!s3Files || s3Files.length === 0) return;
+
+    const preloadImages = async () => {
+      try {
+        const promises = s3Files.map(src =>
+          new Promise((resolve, reject) => {
+            const img = new Image();
+            img.src = src;
+            img.onload = () => resolve(img);
+            img.onerror = () => reject(new Error(`Failed to load image: ${src}`));
+          })
+        );
+        const images = await Promise.all(promises);
+        setPreloadedImages(images);
+      } catch (err) {
+        setError(err.message);
+      }
+    };
+
+    preloadImages();
+  }, [s3Files]);
+
   const handleSliderChange = (e) => {
     setCurrentHour(Number(e.target.value));
   };
@@ -46,15 +71,15 @@ const ChartViewer = () => {
         <div className="error">{error}</div>
       ) : (
         <>
-          {s3Files.length > 0 && (
+          {preloadedImages.length > 0 && (
             <>
               <div className="image-container">
-                <img src={s3Files[currentHour]} alt={`Hour ${currentHour}`} />
+                <img src={preloadedImages[currentHour].src} alt={`Hour ${currentHour}`} />
               </div>
               <input
                 type="range"
                 min="0"
-                max={s3Files.length - 1}
+                max={preloadedImages.length - 1}
                 value={currentHour}
                 onChange={handleSliderChange}
                 className="hour-slider"

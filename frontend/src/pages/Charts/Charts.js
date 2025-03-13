@@ -78,11 +78,10 @@ const Charts = () => {
   // (C) Open Chart Viewer in a new tab, passing the full SVG array via sessionStorage
   // ------------------------------------------------
   const handleViewChart = (chartRun) => {
-    // Save the SVG array in sessionStorage keyed by chart ID
     sessionStorage.setItem(`chart_${chartRun.chart_id}`, JSON.stringify(chartRun.s3_files));
-    // Open a new tab for the ChartViewer page with the chartId as a query parameter
     window.open(`/chart-viewer?chartId=${chartRun.chart_id}`, '_blank');
   };
+  
 
   // Auto-load past charts on mount (if user data is ready)
   useEffect(() => {
