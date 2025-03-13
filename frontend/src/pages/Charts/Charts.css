@@ -90,7 +90,7 @@
   margin-bottom: 20px;
 }
 
-/* Past chart run cards container */
+/* Past chart run cards container laid out horizontally */
 .chart-run-cards-container {
   display: flex;
   flex-wrap: wrap;
@@ -107,7 +107,7 @@
   width: 400px;
 }
 
-/* For displaying thumbnails within a chart run card */
+/* Container for thumbnails within each chart run card */
 .charts-grid {
   display: flex;
   flex-wrap: wrap;
@@ -136,7 +136,6 @@
 /* Chart info styling (placed above the thumbnail) */
 .chart-info {
   font-size: 0.9rem;
-  color: #000000;
   margin-bottom: 5px;
   text-align: center;
 }
