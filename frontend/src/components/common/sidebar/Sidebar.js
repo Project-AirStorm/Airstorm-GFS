@@ -15,6 +15,7 @@ import {
   MessageCircle,
   FileSearch2,
   AreaChart,
+  Aperture,
 } from 'lucide-react';
 import profilePic from '../../../assets/sample-profile-pic.jpeg';
 import afgscLogo from '../../../assets/afgsc-logo.png';
@@ -96,6 +97,12 @@ const Sidebar = () => {
       label: 'Analysis',
       page: '/analysis',
     },
+    {
+      icon: <Aperture className="w-4 h-4" />,
+      label: 'Charts',
+      page: '/charts',
+    },
+    
     {
       icon: <MessageCircle className="w-4 h-4" />,
       label: 'Chat',

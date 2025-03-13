@@ -1,0 +1,129 @@
+.charts-page {
+  padding: 20px;
+  font-family: 'Roboto', sans-serif;
+}
+
+.chart-inputs {
+  margin-bottom: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+/* Place latitude, longitude, and forecast dropdown in one row with the button */
+.latlon-container {
+  display: flex;
+  align-items: flex-end;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.input-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.input-group label {
+  font-size: 1rem;
+  margin-bottom: 0.3rem;
+}
+
+.chart-inputs input,
+.chart-inputs select {
+  padding: 0.5rem;
+  font-size: 1rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.generate-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 10px 20px;
+  background-color: #28a745;
+  border: none;
+  color: white;
+  font-size: 1rem;
+  cursor: pointer;
+  border-radius: 6px;
+  transition: background 0.2s ease;
+}
+
+.generate-btn:hover {
+  background-color: #218838;
+}
+
+.plus-icon {
+  /* Icon styling (if needed) */
+}
+
+.chart-type-tabs {
+  display: flex;
+  gap: 10px;
+  margin-top: 10px;
+  overflow-x: auto;
+  padding-bottom: 0.5rem;
+}
+
+.chart-type-tabs button {
+  padding: 8px 12px;
+  border: 1px solid #ddd;
+  background: white;
+  cursor: pointer;
+  transition: background 0.2s ease;
+  white-space: nowrap;
+}
+
+.chart-type-tabs button:hover {
+  background: #f9fafb;
+}
+
+.chart-type-tabs button.active {
+  background: #007BFF;
+  color: white;
+  border-color: #007BFF;
+}
+
+.error {
+  color: red;
+  margin-bottom: 20px;
+}
+
+.charts-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 20px;
+}
+
+.chart-thumbnail {
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  padding: 10px;
+  text-align: center;
+  background-color: #f9fafb;
+}
+
+.chart-thumbnail img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 3px;
+  margin-bottom: 10px;
+}
+
+.chart-title {
+  font-size: 1rem;
+  font-weight: bold;
+}
+
+/* Placeholder pane styling */
+.chart-thumbnail.placeholder {
+  background: linear-gradient(135deg, rgba(255,255,255,0.8), rgba(0,0,0,0.1));
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  min-height: 200px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.8;
+}

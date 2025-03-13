@@ -11,7 +11,7 @@ import NotFound from '../pages/NotFound/NotFound';
 import Signup from '../pages/Signup/Signup';
 import ChatComponent from '../pages/Chat/Chat';
 import Resources from '../pages/Resources/Resources';
-
+import Charts from '../pages/Charts/Charts';
 // Unused imports for now
 // import Maps from '../pages/Maps/Maps';
 // import MeteogramPbp from '../components/specific/MeteogramPbp/MeteogramPbp';
@@ -57,6 +57,11 @@ export const ROUTES = {
     path: '/analysis',
     title: 'Analysis',
     element: Analysis,
+  },
+  charts: {
+    path: '/charts',
+    title: 'Charts',
+    element: Charts,
   },
   chat: {
     path: '/chat',
