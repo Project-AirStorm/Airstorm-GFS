@@ -37,11 +37,14 @@ const Charts = () => {
         user_id: user.id,
       };
 
+      console.log("test")
+
       const res = await fetch('http://localhost:5001/api/charts/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
       });
+
       if (!res.ok) {
         throw new Error(`Generate chart failed: ${res.statusText}`);
       }
@@ -59,7 +62,7 @@ const Charts = () => {
   const loadPastCharts = async () => {
     try {
       setError('');
-      const res = await fetch(`http://localhost:5001/api/charts?user_id=${user.id}`);
+      const res = await fetch(`http://localhost:5001/api/get-charts?user_id=${user.id}`);
       if (!res.ok) {
         throw new Error(`Fetch chart runs failed: ${res.statusText}`);
       }
@@ -85,6 +88,8 @@ const Charts = () => {
 
   return (
     <div className="charts-page">
+      <h1>Generate Weather Charts</h1>
+
       <div className="chart-inputs">
         <div className="latlon-container">
           <div className="input-group">
@@ -142,14 +147,15 @@ const Charts = () => {
 
       {error && <div className="error">{error}</div>}
 
-      {/* (A) Display newly generated chart thumbnail (only the first SVG) */}
+      {/* (A) Newly Generated Chart Thumbnail */}
       {newChartRun && newChartRun.s3_files && newChartRun.s3_files.length > 0 && (
         <div>
           <h2>Newly Generated Chart</h2>
           <div className="charts-grid">
             <div className="chart-thumbnail">
               <div className="chart-info">
-                {newChartRun.chart_folder} - (Lat: {newChartRun.lat}, Lon: {newChartRun.lon}, Days: {newChartRun.days_requested})
+                {/* Wrap chart_folder in <strong> so it appears bold */}
+                <strong>{newChartRun.chart_folder}</strong> - (Lat: {newChartRun.lat}, Lon: {newChartRun.lon}, Days: {newChartRun.days_requested})
                 <br />
                 Created at: {new Date(newChartRun.created_at).toUTCString()}
               </div>
@@ -165,7 +171,7 @@ const Charts = () => {
         </div>
       )}
 
-      {/* (C) Display stored chart runs from the DB in a horizontal flex container */}
+      {/* (C) Past Chart Runs */}
       {chartRuns.length > 0 && (
         <div style={{ marginTop: '20px' }}>
           <h2>Past Chart Runs</h2>
@@ -173,10 +179,9 @@ const Charts = () => {
             {chartRuns.map((run) => (
               <div key={run.chart_id} className="chart-run-card">
                 <div className="chart-info">
-                  {run.chart_folder} 
+                  <strong>{run.chart_folder}</strong>
                   <p>(Lat: {run.lat}, Lon: {run.lon}, Days: {run.forecast_days})</p>
-                  {/* <br /> */}
-                  {/* Created at: {new Date(run.created_at).toUTCString()} */}
+                  {/* <i>Created at: {new Date(run.created_at).toUTCString()}</i> */}
                 </div>
                 <div className="charts-grid">
                   {run.s3_files.length > 0 && (

@@ -7,6 +7,7 @@ from db.database_manager import DatabaseManager
 charts_api_bp = Blueprint('charts_bp', __name__)
 database_manager = DatabaseManager()
 
+# This is a POST request because we are POSTING info to the EC2 chartserver API 
 @charts_api_bp.route("/api/charts/generate", methods=["POST"])
 def generate_charts():
     """
@@ -22,7 +23,7 @@ def generate_charts():
         forecast_days = data["days"]
         user_id = data["user_id"]
 
-        # Build chart-server URL
+        # Build chart-server URL for EC2 instance
         chart_server_url = (
             f"http://ec2-3-221-177-106.compute-1.amazonaws.com:5000/generate-skew"
             f"?days={forecast_days}&lat={lat}&lon={lon}&user_id={user_id}"
@@ -68,7 +69,7 @@ def generate_charts():
         return jsonify({"error": str(e)}), 500
 
 
-@charts_api_bp.route("/api/charts", methods=["GET"])
+@charts_api_bp.route("/api/get-charts", methods=["GET"])
 def get_user_charts():
     """
     GET /api/charts?user_id=xyz
