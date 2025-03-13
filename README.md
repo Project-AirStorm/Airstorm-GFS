@@ -38,3 +38,9 @@ docker network prune -f
 rm -rf frontend/node_modules
 rm -rf frontend/package-lock.json
 ```
+
+##  Temporary test for generating SKEWTs
+```
+curl -X POST -H "Content-Type: application/json" \
+-d '{"lat":52.537,"lon":13.376,"days":1,"user_id":"user_2sirXuIdmQh7eiB3GwHxZlcQYbI"}' \
+http://localhost:5001/api/charts/generate
