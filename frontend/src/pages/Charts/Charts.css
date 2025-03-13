@@ -10,7 +10,7 @@
   gap: 1rem;
 }
 
-/* Place latitude, longitude, and forecast dropdown in one row with the button */
+/* Arrange input groups in one row */
 .latlon-container {
   display: flex;
   align-items: flex-end;
@@ -55,7 +55,7 @@
 }
 
 .plus-icon {
-  /* Icon styling (if needed) */
+  /* Optional: adjust icon styles */
 }
 
 .chart-type-tabs {
@@ -90,40 +90,61 @@
   margin-bottom: 20px;
 }
 
-.charts-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+/* Past chart run cards container */
+.chart-run-cards-container {
+  display: flex;
+  flex-wrap: wrap;
   gap: 20px;
+  justify-content: flex-start;
 }
 
-.chart-thumbnail {
+/* Each chart run card */
+.chart-run-card {
   border: 1px solid #ddd;
   border-radius: 5px;
   padding: 10px;
+  background-color: #ffffff;
+  width: 400px;
+}
+
+/* For displaying thumbnails within a chart run card */
+.charts-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  justify-content: center;
+}
+
+/* Chart thumbnail styling */
+.chart-thumbnail {
   text-align: center;
-  background-color: #f9fafb;
 }
 
 .chart-thumbnail img {
   max-width: 100%;
   height: auto;
   border-radius: 3px;
-  margin-bottom: 10px;
+  margin-bottom: 5px;
 }
 
 .chart-title {
   font-size: 1rem;
   font-weight: bold;
+  margin-top: 5px;
 }
 
-/* Placeholder pane styling */
-.chart-thumbnail.placeholder {
-  background: linear-gradient(135deg, rgba(255,255,255,0.8), rgba(0,0,0,0.1));
-  border: 1px solid #ccc;
-  border-radius: 5px;
-  min-height: 200px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  opacity: 0.8;
+/* Chart info styling (placed above the thumbnail) */
+.chart-info {
+  font-size: 0.9rem;
+  color: #000000;
+  margin-bottom: 5px;
+  text-align: center;
+}
+
+/* Remove default button styling for thumbnail */
+.thumbnail-button {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
 }

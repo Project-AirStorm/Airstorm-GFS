@@ -23,9 +23,7 @@ const Charts = () => {
 
   const { user } = UserSession(); // e.g., user.id = "user_2sirXuIdmQh7eiB3GwHxZlcQYbI"
 
-  // ------------------------------------------------
   // (A) Generate a new chart run
-  // ------------------------------------------------
   const handleGenerateChart = async () => {
     try {
       setLoading(true);
@@ -57,9 +55,7 @@ const Charts = () => {
     }
   };
 
-  // ------------------------------------------------
   // (B) Load all past chart runs from the DB for this user
-  // ------------------------------------------------
   const loadPastCharts = async () => {
     try {
       setError('');
@@ -74,14 +70,11 @@ const Charts = () => {
     }
   };
 
-  // ------------------------------------------------
   // (C) Open Chart Viewer in a new tab, passing the full SVG array via sessionStorage
-  // ------------------------------------------------
   const handleViewChart = (chartRun) => {
     sessionStorage.setItem(`chart_${chartRun.chart_id}`, JSON.stringify(chartRun.s3_files));
     window.open(`/chart-viewer?chartId=${chartRun.chart_id}`, '_blank');
   };
-  
 
   // Auto-load past charts on mount (if user data is ready)
   useEffect(() => {
@@ -92,8 +85,6 @@ const Charts = () => {
 
   return (
     <div className="charts-page">
-      <h1>Generate Weather Charts</h1>
-
       <div className="chart-inputs">
         <div className="latlon-container">
           <div className="input-group">
@@ -157,52 +148,52 @@ const Charts = () => {
           <h2>Newly Generated Chart</h2>
           <div className="charts-grid">
             <div className="chart-thumbnail">
-              <button
-                onClick={() => handleViewChart(newChartRun)}
-                className="thumbnail-button"
-              >
+              <div className="chart-info">
+                {newChartRun.chart_folder} - (Lat: {newChartRun.lat}, Lon: {newChartRun.lon}, Days: {newChartRun.days_requested})
+                <br />
+                Created at: {new Date(newChartRun.created_at).toUTCString()}
+              </div>
+              <button onClick={() => handleViewChart(newChartRun)} className="thumbnail-button">
                 <img
                   src={newChartRun.s3_files[0]}
                   alt="Chart Thumbnail"
                 />
               </button>
-              <div className="chart-title">
-                {chartType.toUpperCase()} Chart (Preview)
-              </div>
+              <div className="chart-title">View Full Chart</div>
             </div>
           </div>
         </div>
       )}
 
-      {/* (C) Display stored chart runs from the DB */}
+      {/* (C) Display stored chart runs from the DB in a horizontal flex container */}
       {chartRuns.length > 0 && (
         <div style={{ marginTop: '20px' }}>
-          {chartRuns.map((run) => (
-            <div key={run.chart_id} className="chart-run-card">
-
-              <p>Created at: {run.created_at}</p>
-              <div className="charts-grid">
-                {run.s3_files.length > 0 && (
-                  <div className="chart-thumbnail">
-                    <h4>
-                      {run.chart_folder} 
-                    </h4>
-                    <h5>(Lat: {run.lat}, Lon: {run.lon}, Days: {run.forecast_days})</h5>
-                    <button
-                      onClick={() => handleViewChart(run)}
-                      className="thumbnail-button"
-                    >
-                      <img
-                        src={run.s3_files[0]}
-                        alt="First hour thumbnail"
-                      />
-                    </button>
-                    <div className="chart-title">View Full Chart</div>
-                  </div>
-                )}
+          <h2>Past Chart Runs</h2>
+          <div className="chart-run-cards-container">
+            {chartRuns.map((run) => (
+              <div key={run.chart_id} className="chart-run-card">
+                <div className="chart-info">
+                  {run.chart_folder} 
+                  <p>(Lat: {run.lat}, Lon: {run.lon}, Days: {run.forecast_days})</p>
+                  {/* <br /> */}
+                  {/* Created at: {new Date(run.created_at).toUTCString()} */}
+                </div>
+                <div className="charts-grid">
+                  {run.s3_files.length > 0 && (
+                    <div className="chart-thumbnail">
+                      <button onClick={() => handleViewChart(run)} className="thumbnail-button">
+                        <img
+                          src={run.s3_files[0]}
+                          alt="First hour thumbnail"
+                        />
+                      </button>
+                      <div className="chart-title">View Full Chart</div>
+                    </div>
+                  )}
+                </div>
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
       )}
     </div>
