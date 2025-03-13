@@ -12,6 +12,7 @@ import './App.css';
 import { ROUTES } from './config/Routes';
 import Layout from './components/common/Layout/Layout';
 import { UserSession } from './utils/UserSession';
+import ChartViewer from './pages/Charts/ChartViewer';
 
 function App() {
   // Currently here for testing purposes, will be removed
@@ -34,6 +35,10 @@ function App() {
             that have not been authenticated by Clerk yet. */}
         <Route path="/login" element={<Login />} />
         <Route path="/sign-up" element={<Signup />} />
+
+
+        {/* Separate route for ChartViewer that is NOT wrapped in Layout */}
+        <Route path="/chart-viewer" element={<ChartViewer />} />
 
         {/* These are our public "fallback routes." If rhe user tries to 
             Type in anything after projectairstorm.com/asdf, this 

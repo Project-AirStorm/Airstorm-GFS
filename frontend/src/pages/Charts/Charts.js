@@ -175,11 +175,6 @@ const Charts = () => {
         </div>
       )}
 
-      {/* (B) Button to manually load past charts */}
-      <div style={{ marginTop: '20px' }}>
-        <button onClick={loadPastCharts}>Load Past Charts</button>
-      </div>
-
       {/* (C) Display stored chart runs from the DB */}
       {chartRuns.length > 0 && (
         <div style={{ marginTop: '20px' }}>
