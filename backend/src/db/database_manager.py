@@ -1,4 +1,5 @@
 import logging
+import json
 from db.mysql_connection import get_mysql_connection
 
 
@@ -153,3 +154,46 @@ class DatabaseManager:
         except Exception as e:
             logging.error(f"Error deleting location: {e}")
         return deleted
+    
+    def save_chart_run(self, user_id, lat, lon, forecast_days, chart_folder, s3_files):
+        try:
+            s3_file_json = json.dumps(s3_files)  # Convert Python list → JSON
+            with get_mysql_connection() as conn:
+                with conn.cursor() as cursor:
+                    cursor.execute("""
+                        INSERT INTO UserCharts 
+                            (user_id, lat, lon, forecast_days, chart_folder, s3_file_array)
+                        VALUES (%s, %s, %s, %s, %s, %s)
+                    """, (user_id, lat, lon, forecast_days, chart_folder, s3_file_json))
+            return True
+        except Exception as e:
+            logging.error(f"Error saving chart run: {e}")
+            return False
+    
+    def get_chart_runs_for_user(self, user_id):
+        chart_runs = []
+        try:
+            with get_mysql_connection() as conn:
+                with conn.cursor() as cursor:
+                    cursor.execute("""
+                        SELECT chart_id, lat, lon, forecast_days, chart_folder, s3_file_array, created_at
+                        FROM UserCharts
+                        WHERE user_id = %s
+                        ORDER BY created_at DESC
+                    """, (user_id,))
+                    rows = cursor.fetchall()
+
+                    for row in rows:
+                        s3_files = json.loads(row["s3_file_array"]) if row["s3_file_array"] else []
+                        chart_runs.append({
+                            "chart_id": row["chart_id"],
+                            "lat": row["lat"],
+                            "lon": row["lon"],
+                            "forecast_days": row["forecast_days"],
+                            "chart_folder": row["chart_folder"],
+                            "s3_files": s3_files,
+                            "created_at": row["created_at"],
+                        })
+        except Exception as e:
+            logging.error(f"Error fetching chart runs for user {user_id}: {e}")
+        return chart_runs

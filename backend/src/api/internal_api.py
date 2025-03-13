@@ -209,3 +209,30 @@ def get_logs():
                 "exception_type": type(e).__name__
             }
         }), 500
+    
+    # Retrieves all of the user charts
+    @internal_api_bp.route('/api/charts/save', methods=['POST'])
+    def save_chart_run():
+        data = request.json
+        user_id = data["user_id"]
+        lat = data["lat"]
+        lon = data["lon"]
+        forecast_days = data["forecast_days"]
+        chart_folder = data["chart_folder"]
+        s3_files = data["s3_files"]
+
+        success = chart_run_manager.save_chart_run(
+            user_id, lat, lon, forecast_days, chart_folder, s3_files
+        )
+        if not success:
+            return jsonify({"error": "Failed to save chart run"}), 500
+        return jsonify({"message": "Chart run saved"}), 200
+
+    @internal_api_bp.route('/api/charts', methods=['GET'])
+    def get_charts_for_user():
+        user_id = request.args.get("user_id")
+        if not user_id:
+            return jsonify({"error": "user_id required"}), 400
+
+        chart_runs = chart_run_manager.get_chart_runs_for_user(user_id)
+        return jsonify(chart_runs)
