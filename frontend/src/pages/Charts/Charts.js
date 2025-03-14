@@ -28,34 +28,34 @@ const Charts = () => {
     try {
       setLoading(true);
       setError('');
-      // Do not clear newChartRun so we can append it immediately
       const payload = {
         lat: Number(lat),
         lon: Number(lon),
         days: Number(forecastDays),
         user_id: user.id,
       };
-
+  
       const res = await fetch('http://localhost:5001/api/charts/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
       });
-
+  
       if (!res.ok) {
         throw new Error(`Generate chart failed: ${res.statusText}`);
       }
-      const data = await res.json();
-      // Save the new chart run and also prepend it to our past chart runs
-      setNewChartRun(data);
-      setChartRuns(prevRuns => [data, ...prevRuns]);
+      const newlyInsertedChartRun = await res.json();
+  
+      // Prepend that new run so it shows up immediately
+      setChartRuns(prevRuns => [newlyInsertedChartRun, ...prevRuns]);
+  
     } catch (err) {
       setError(err.message);
     } finally {
       setLoading(false);
     }
   };
-
+  
   // (B) Load all past chart runs from the DB for this user
   const loadPastCharts = async () => {
     try {
@@ -144,7 +144,6 @@ const Charts = () => {
       {/* (C) Display all chart runs (new and past) in the gallery layout */}
       {chartRuns.length > 0 && (
         <div className="chart-run-cards-container" style={{ marginTop: '20px' }}>
-
           {chartRuns.map((run) => (
             <div key={run.chart_id} className="chart-run-card">
               <div className="chart-info">
@@ -153,7 +152,7 @@ const Charts = () => {
                 <p>Created at: {new Date(run.created_at).toUTCString()}</p>
               </div>
               <div className="charts-grid">
-                {run.s3_files.length > 0 && (
+                {run.s3_files?.length > 0 && (
                   <div className="chart-thumbnail">
                     <button onClick={() => handleViewChart(run)} className="thumbnail-button">
                       <img src={run.s3_files[0]} alt="First hour thumbnail" />

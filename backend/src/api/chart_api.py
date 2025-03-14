@@ -2,19 +2,20 @@ from flask import Blueprint, request, jsonify
 import requests
 import logging
 from db.database_manager import DatabaseManager
+
 # from db.mysql_connection import get_mysql_connection  # if needed
 
-charts_api_bp = Blueprint('charts_bp', __name__)
+charts_api_bp = Blueprint("charts_bp", __name__)
 database_manager = DatabaseManager()
 
-# This is a POST request because we are POSTING info to the EC2 chartserver API 
+
 @charts_api_bp.route("/api/charts/generate", methods=["POST"])
 def generate_charts():
     """
     1) Parse lat/lon/days/user_id from request
-    2) Call your external chart-server
+    2) Call the external chart-server
     3) Save the chart run in MySQL
-    4) Return the chart-server JSON
+    4) RETURN the newly inserted DB row to React (so the shape is consistent).
     """
     try:
         data = request.json
@@ -23,46 +24,56 @@ def generate_charts():
         forecast_days = data["days"]
         user_id = data["user_id"]
 
-        # Build chart-server URL for EC2 instance
+        # 1) Call your external chart-server
         chart_server_url = (
             f"http://ec2-3-221-177-106.compute-1.amazonaws.com:5000/generate-skew"
             f"?days={forecast_days}&lat={lat}&lon={lon}&user_id={user_id}"
         )
-
         response = requests.get(chart_server_url, timeout=30)
         response.raise_for_status()
 
-        result = response.json()
+        result_from_ec2 = response.json()
         """
-        result example:
+        Something like:
         {
-          "chart_folder": "chart_2025-03-13_02-16-17",
-          "days_requested": 1,
-          "latitude": 52.537,
-          "longitude": 13.376,
-          "s3_files": [ ... array of SVG URLs ... ],
-          "user_id": "user_2sirXuIdmQh7eiB3GwHxZlcQYbI"
+            "latitude": ...,
+            "longitude": ...,
+            "days_requested": ...,
+            "chart_folder": ...,
+            "s3_files": [...],
+            "user_id": ...
         }
         """
+        s3_files = result_from_ec2.get("s3_files", [])
+        chart_folder = result_from_ec2.get("chart_folder")
 
-        # Now store in MySQL. We can pass user_id, lat, lon, forecast_days, chart_folder, s3_files
-        # 'days_requested' matches forecast_days, 'chart_folder' is from result, 's3_files' from result
-        # If the result key is named differently, adjust accordingly.
-        chart_folder = result.get("chart_folder")
-        s3_files = result.get("s3_files", [])
-
-        success = database_manager.save_chart_run(
+        # 2) Save to DB (we have lat, lon, forecast_days from the original request)
+        #    and we know s3_files + chart_folder from the result
+        new_chart_id = database_manager.save_chart_run(
             user_id=user_id,
             lat=lat,
             lon=lon,
             forecast_days=forecast_days,
             chart_folder=chart_folder,
-            s3_files=s3_files
+            s3_files=s3_files,
         )
-        if not success:
-            logging.error("Failed to save chart run in DB")
 
-        return jsonify(result), 200
+        if not new_chart_id:
+            logging.error("Failed to save chart run in DB.")
+            return jsonify({"error": "Could not save chart run to DB"}), 500
+
+        # 3) Retrieve the newly inserted row from the DB so that
+        #    we return the EXACT shape your React code expects.
+        new_chart_run = database_manager.get_chart_run_by_id(new_chart_id)
+        if not new_chart_run:
+            return (
+                jsonify({"error": "Inserted but could not retrieve new chart run"}),
+                500,
+            )
+
+        # Return the new row from DB to the front end
+        # This ensures your newly created run has { chart_id, lat, lon, ... } etc.
+        return jsonify(new_chart_run), 200
 
     except Exception as e:
         logging.error(f"Error generating chart: {e}")
