@@ -36,5 +36,10 @@
     margin-top: 10px;
   }
 
+  .chart-viewer h1 {
+    font-size: 1.5em; /* Increase the font size */
+    font-weight: bold; /* Make it bold */
+    margin-bottom: 20px;
+  }
   
   

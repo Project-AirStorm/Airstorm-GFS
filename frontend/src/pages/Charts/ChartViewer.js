@@ -6,6 +6,8 @@ const ChartViewer = () => {
   const location = useLocation();
   const queryParams = new URLSearchParams(location.search);
   const chartId = queryParams.get('chartId');
+  const lat = queryParams.get('lat');
+  const lon = queryParams.get('lon');
 
   const [s3Files, setS3Files] = useState([]);
   const [currentHour, setCurrentHour] = useState(0);
@@ -17,7 +19,7 @@ const ChartViewer = () => {
       setError('Chart ID is missing.');
       return;
     }
-    // Try to retrieve s3Files from sessionStorage using the chartId key.
+    // Retrieve s3Files from sessionStorage using the chartId key.
     const storedData = sessionStorage.getItem(`chart_${chartId}`);
     if (storedData) {
       try {
@@ -66,7 +68,9 @@ const ChartViewer = () => {
 
   return (
     <div className="chart-viewer">
-      <h1>Chart Viewer</h1>
+      <h1>
+        ({lat}, {lon})
+      </h1>
       {error ? (
         <div className="error">{error}</div>
       ) : (

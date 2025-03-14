@@ -68,10 +68,15 @@ const Charts = () => {
     }
   };
 
-  // (C) Open Chart Viewer in a new tab, passing the full SVG array via sessionStorage
+  // (C) Open Chart Viewer in a new tab, passing chartId, lat and lon as query parameters
   const handleViewChart = (chartRun) => {
+    // Save the s3_files in sessionStorage as before.
     sessionStorage.setItem(`chart_${chartRun.chart_id}`, JSON.stringify(chartRun.s3_files));
-    window.open(`/chart-viewer?chartId=${chartRun.chart_id}`, '_blank');
+    // Pass chartId, lat and lon via the URL
+    window.open(
+      `/chart-viewer?chartId=${chartRun.chart_id}&lat=${chartRun.lat}&lon=${chartRun.lon}`,
+      '_blank'
+    );
   };
 
   // (D) Delete a chart run both from the database and from local state
@@ -102,7 +107,6 @@ const Charts = () => {
       <div className="chart-inputs">
         <div className="latlon-container">
           <div className="input-group">
-            {/* <label>Latitude:</label> */}
             <input
               type="number"
               value={lat}
@@ -111,7 +115,6 @@ const Charts = () => {
             />
           </div>
           <div className="input-group">
-            {/* <label>Longitude:</label> */}
             <input
               type="number"
               value={lon}
@@ -120,7 +123,6 @@ const Charts = () => {
             />
           </div>
           <div className="input-group">
-            {/* <label>Forecast Days:</label> */}
             <select
               value={forecastDays}
               onChange={(e) => setForecastDays(Number(e.target.value))}
@@ -153,24 +155,24 @@ const Charts = () => {
         </div>
       </div>
       {error && <div className="error">{error}</div>}
-      {/* (C) Display all chart runs (new and past) in the gallery layout */}
+      {/* Display all chart runs (new and past) in the gallery layout */}
       {chartRuns.length > 0 && (
         <div className="chart-run-cards-container" style={{ marginTop: '20px' }}>
           {chartRuns.map((run) => (
             <div key={run.chart_id} className="chart-run-card">
               <div className="chart-card-header">
-                <strong>{run.chart_folder}</strong>
-                <button
-                  className="trash-button"
-                  onClick={() => handleDeleteChart(run.chart_id)}
-                  title="Delete Chart"
-                >
-                  <Trash size={16} />
-                </button>
-              </div>
-              <div className="chart-info">
-                <p>(Lat: {run.lat}, Lon: {run.lon}, Days: {run.forecast_days})</p>
-                <p>Created at: {new Date(run.created_at).toUTCString()}</p>
+                <div className="chart-folder">
+                  <strong>{run.chart_folder}</strong>
+                </div>
+                <div className="chart-trash">
+                  <button
+                    className="trash-button"
+                    onClick={() => handleDeleteChart(run.chart_id)}
+                    title="Delete Chart"
+                  >
+                    <Trash size={16} />
+                  </button>
+                </div>
               </div>
               <div className="charts-grid">
                 {run.s3_files?.length > 0 && (
@@ -178,7 +180,12 @@ const Charts = () => {
                     <button onClick={() => handleViewChart(run)} className="thumbnail-button">
                       <img src={run.s3_files[0]} alt="First hour thumbnail" />
                     </button>
-                    <div className="chart-title">View Full Chart</div>
+                    <div className="chart-details">
+                      <p>(Lat: {run.lat}, Lon: {run.lon}, Days: {run.forecast_days})</p>
+                      <div className="chart-date">
+                        <i>{new Date(run.created_at).toUTCString()}</i>
+                      </div>
+                    </div>
                   </div>
                 )}
               </div>

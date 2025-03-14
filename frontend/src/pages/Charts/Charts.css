@@ -100,6 +100,7 @@
 
 /* Each chart run card */
 .chart-run-card {
+  position: relative;
   border: 1px solid #ddd;
   border-radius: 5px;
   padding: 10px;
@@ -149,18 +150,40 @@
 }
 
 /* New CSS for chart card header with trash icon */
+
 .chart-card-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+  position: relative;
+  text-align: center;
+  padding: 0 40px; /* Reserve space on the sides for icons */
   margin-bottom: 5px;
 }
 
+
 /* Style for the trash button */
+
+.chart-folder {
+  display: inline-block; /* So that text-align: center takes effect */
+  font-weight: bold;
+}
+
+.chart-trash {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
 .trash-button {
   background: none;
   border: none;
   cursor: pointer;
-  color: #d00; /* red color */
+  color: #d00; /* Red color for the trash icon */
   padding: 2px;
+}
+
+/* Smaller font for the creation date */
+.chart-date {
+  font-size: 0.8em;
+  text-align: center;
+  margin-top: 5px;
 }
