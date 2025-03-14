@@ -8,7 +8,11 @@ const ChartViewer = () => {
   const chartId = queryParams.get('chartId');
   const lat = queryParams.get('lat');
   const lon = queryParams.get('lon');
-
+  // "start" should be passed as the chart creation datetime (ISO string)
+  const startParam = queryParams.get('start');
+  // If no start parameter, default to current time (but in production, you should pass it)
+  const forecastStart = startParam ? new Date(startParam) : new Date();
+  
   const [s3Files, setS3Files] = useState([]);
   const [currentHour, setCurrentHour] = useState(0);
   const [error, setError] = useState('');
@@ -66,6 +70,30 @@ const ChartViewer = () => {
     setCurrentHour(Number(e.target.value));
   };
 
+  // Compute the forecast time for the current slider position.
+  // The forecast time is calculated as forecastStart plus the hour offset.
+  // We keep minutes from forecastStart, but zero-out seconds.
+  const getForecastTime = () => {
+    const forecastTime = new Date(forecastStart.getTime() + currentHour * 3600000);
+    // Zero out seconds and milliseconds (keeping the minutes from the creation time)
+    forecastTime.setSeconds(0, 0);
+
+    // Format the time (e.g., "15:00 UTC Friday, March 14, 2025")
+    const timeStr = forecastTime.toLocaleTimeString('en-GB', {
+      hour: '2-digit',
+      minute: '2-digit',
+      timeZone: 'UTC'
+    });
+    const dateStr = forecastTime.toLocaleDateString('en-US', {
+      weekday: 'long',
+      month: 'long',
+      day: 'numeric',
+      year: 'numeric',
+      timeZone: 'UTC'
+    });
+    return `${timeStr} UTC ${dateStr}`;
+  };
+
   return (
     <div className="chart-viewer">
       <h1>
@@ -88,7 +116,7 @@ const ChartViewer = () => {
                 onChange={handleSliderChange}
                 className="hour-slider"
               />
-              <div id="hour-display">Hour: {currentHour}</div>
+              <div id="hour-display">{getForecastTime()}</div>
             </>
           )}
         </>

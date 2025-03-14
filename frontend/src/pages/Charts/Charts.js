@@ -74,7 +74,7 @@ const Charts = () => {
     sessionStorage.setItem(`chart_${chartRun.chart_id}`, JSON.stringify(chartRun.s3_files));
     // Pass chartId, lat and lon via the URL
     window.open(
-      `/chart-viewer?chartId=${chartRun.chart_id}&lat=${chartRun.lat}&lon=${chartRun.lon}`,
+      `/chart-viewer?chartId=${chartRun.chart_id}&lat=${chartRun.lat}&lon=${chartRun.lon}&start=${encodeURIComponent(new Date(chartRun.created_at).toISOString())}`,
       '_blank'
     );
   };
