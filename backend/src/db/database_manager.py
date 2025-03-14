@@ -252,3 +252,17 @@ class DatabaseManager:
         except Exception as e:
             logging.error(f"Error in get_chart_run_by_id: {e}")
             return None
+
+    def delete_chart(self, chart_id):
+        """
+        Deletes a row from UserCharts by chart_id.
+        Returns True if a row was deleted, False otherwise.
+        """
+        try:
+            with get_mysql_connection() as conn:
+                with conn.cursor() as cursor:
+                    cursor.execute("DELETE FROM UserCharts WHERE chart_id = %s", (chart_id,))
+                    return cursor.rowcount > 0
+        except Exception as e:
+            logging.error(f"Error deleting chart run {chart_id}: {e}")
+            return False

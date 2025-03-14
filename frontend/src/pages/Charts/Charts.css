@@ -147,3 +147,20 @@
   padding: 0;
   cursor: pointer;
 }
+
+/* New CSS for chart card header with trash icon */
+.chart-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 5px;
+}
+
+/* Style for the trash button */
+.trash-button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #d00; /* red color */
+  padding: 2px;
+}

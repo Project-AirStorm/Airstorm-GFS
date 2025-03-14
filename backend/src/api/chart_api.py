@@ -92,3 +92,21 @@ def get_user_charts():
 
     chart_runs = database_manager.get_chart_runs_for_user(user_id)
     return jsonify(chart_runs), 200
+
+@charts_api_bp.route("/api/charts/delete", methods=["DELETE"])
+def delete_user_chart():
+    """
+    DELETE /api/charts/delete?chart_id=123
+    Deletes a chart by chart_id in the UserCharts table
+    """
+    chart_id = request.args.get("chart_id")
+    if not chart_id:
+        return jsonify({"error": "Missing chart_id"}), 400
+
+    # Attempt to delete the chart
+    success = database_manager.delete_chart(chart_id)
+    if success:
+        return jsonify({"message": f"Chart {chart_id} deleted"}), 200
+    else:
+        return jsonify({"error": f"Could not delete chart {chart_id}"}), 404
+

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Plus } from 'lucide-react';
+import { Plus, Trash } from 'lucide-react';
 import './Charts.css';
 import { UserSession } from '../../utils/UserSession';
 
@@ -15,8 +15,6 @@ const Charts = () => {
   const [forecastDays, setForecastDays] = useState(1);
   const [chartType, setChartType] = useState('skewt');
   const [loading, setLoading] = useState(false);
-  // newChartRun holds the newly generated chart run (with full s3_files array)
-  const [newChartRun, setNewChartRun] = useState(null);
   const [error, setError] = useState('');
   // chartRuns holds past chart runs from the database
   const [chartRuns, setChartRuns] = useState([]);
@@ -34,28 +32,27 @@ const Charts = () => {
         days: Number(forecastDays),
         user_id: user.id,
       };
-  
+
       const res = await fetch('http://localhost:5001/api/charts/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
       });
-  
+
       if (!res.ok) {
         throw new Error(`Generate chart failed: ${res.statusText}`);
       }
       const newlyInsertedChartRun = await res.json();
-  
+
       // Prepend that new run so it shows up immediately
       setChartRuns(prevRuns => [newlyInsertedChartRun, ...prevRuns]);
-  
     } catch (err) {
       setError(err.message);
     } finally {
       setLoading(false);
     }
   };
-  
+
   // (B) Load all past chart runs from the DB for this user
   const loadPastCharts = async () => {
     try {
@@ -75,6 +72,22 @@ const Charts = () => {
   const handleViewChart = (chartRun) => {
     sessionStorage.setItem(`chart_${chartRun.chart_id}`, JSON.stringify(chartRun.s3_files));
     window.open(`/chart-viewer?chartId=${chartRun.chart_id}`, '_blank');
+  };
+
+  // (D) Delete a chart run both from the database and from local state
+  const handleDeleteChart = async (chartId) => {
+    try {
+      const res = await fetch(`http://localhost:5001/api/charts/delete?chart_id=${chartId}`, {
+        method: 'DELETE'
+      });
+      if (!res.ok) {
+        throw new Error(`Delete chart failed: ${res.statusText}`);
+      }
+      // Remove the deleted chart from local state
+      setChartRuns(prevRuns => prevRuns.filter(run => run.chart_id !== chartId));
+    } catch (err) {
+      setError(err.message);
+    }
   };
 
   // Auto-load past charts on mount (if user data is ready)
@@ -146,8 +159,17 @@ const Charts = () => {
         <div className="chart-run-cards-container" style={{ marginTop: '20px' }}>
           {chartRuns.map((run) => (
             <div key={run.chart_id} className="chart-run-card">
-              <div className="chart-info">
+              <div className="chart-card-header">
                 <strong>{run.chart_folder}</strong>
+                <button
+                  className="trash-button"
+                  onClick={() => handleDeleteChart(run.chart_id)}
+                  title="Delete Chart"
+                >
+                  <Trash size={16} />
+                </button>
+              </div>
+              <div className="chart-info">
                 <p>(Lat: {run.lat}, Lon: {run.lon}, Days: {run.forecast_days})</p>
                 <p>Created at: {new Date(run.created_at).toUTCString()}</p>
               </div>
