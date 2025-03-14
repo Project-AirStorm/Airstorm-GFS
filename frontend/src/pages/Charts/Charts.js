@@ -99,11 +99,10 @@ const Charts = () => {
 
   return (
     <div className="charts-page">
-      <h1>Generate Weather Charts</h1>
       <div className="chart-inputs">
         <div className="latlon-container">
           <div className="input-group">
-            <label>Latitude:</label>
+            {/* <label>Latitude:</label> */}
             <input
               type="number"
               value={lat}
@@ -112,7 +111,7 @@ const Charts = () => {
             />
           </div>
           <div className="input-group">
-            <label>Longitude:</label>
+            {/* <label>Longitude:</label> */}
             <input
               type="number"
               value={lon}
@@ -121,7 +120,7 @@ const Charts = () => {
             />
           </div>
           <div className="input-group">
-            <label>Forecast Days:</label>
+            {/* <label>Forecast Days:</label> */}
             <select
               value={forecastDays}
               onChange={(e) => setForecastDays(Number(e.target.value))}
