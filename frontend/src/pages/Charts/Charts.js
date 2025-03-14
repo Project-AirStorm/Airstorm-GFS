@@ -139,7 +139,14 @@ const Charts = () => {
             className="generate-btn"
           >
             <Plus size={16} className="plus-icon" />
-            {loading ? 'Generating...' : 'Generate Chart'}
+            {loading ? (
+              <>
+                Generating...
+                <span className="spinner"></span>
+              </>
+            ) : (
+              'Generate Chart'
+            )}
           </button>
         </div>
         <div className="chart-type-tabs">

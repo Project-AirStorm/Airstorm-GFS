@@ -29,7 +29,7 @@ def generate_charts():
             f"http://ec2-3-221-177-106.compute-1.amazonaws.com:5000/generate-skew"
             f"?days={forecast_days}&lat={lat}&lon={lon}&user_id={user_id}"
         )
-        response = requests.get(chart_server_url, timeout=30)
+        response = requests.get(chart_server_url, timeout=300)
         response.raise_for_status()
 
         result_from_ec2 = response.json()
