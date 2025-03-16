@@ -690,6 +690,11 @@ const LocationPanel = ({
       
       console.log('Using enhanced KML rendering...');
       
+      // Find the KML file metadata for better tooltips
+      const currentFile = kmlFiles.find(file => file.id.toString() === fileId.toString());
+      const fileName = currentFile?.fileName || 'KML File';
+      const fileDescription = currentFile?.description || '';
+      
       // Create a DOMParser to parse the KML XML properly
       const parser = new DOMParser();
       let xmlDoc;
@@ -772,7 +777,12 @@ const LocationPanel = ({
                   if (!isNaN(lng) && !isNaN(lat)) {
                     dataLayer.add({
                       geometry: new window.google.maps.Data.Point(new window.google.maps.LatLng(lat, lng)),
-                      properties: { name, description }
+                      properties: { 
+                        name, 
+                        description,
+                        fileName: fileName,
+                        fileDescription: fileDescription
+                      }
                     });
                   }
                 }
@@ -804,7 +814,12 @@ const LocationPanel = ({
               if (coords) {
                 dataLayer.add({
                   geometry: new window.google.maps.Data.Point(new window.google.maps.LatLng(coords.lat, coords.lng)),
-                  properties: { name, description }
+                  properties: { 
+                    name, 
+                    description,
+                    fileName: fileName,
+                    fileDescription: fileDescription
+                  }
                 });
               }
             }
@@ -908,12 +923,20 @@ const LocationPanel = ({
               // Add as polygon if it's a polygon or if first and last points match
               if (isPolygon || (path.length > 2 && path[0].lat === path[path.length-1].lat && path[0].lng === path[path.length-1].lng)) {
                 dataLayer.add(new window.google.maps.Data.Feature({
-                  geometry: new window.google.maps.Data.Polygon([path])
+                  geometry: new window.google.maps.Data.Polygon([path]),
+                  properties: {
+                    fileName: fileName,
+                    fileDescription: fileDescription
+                  }
                 }));
               } else {
                 // Otherwise add as line
                 dataLayer.add(new window.google.maps.Data.Feature({
-                  geometry: new window.google.maps.Data.LineString(path)
+                  geometry: new window.google.maps.Data.LineString(path),
+                  properties: {
+                    fileName: fileName,
+                    fileDescription: fileDescription
+                  }
                 }));
               }
             } catch (e) {
@@ -930,7 +953,11 @@ const LocationPanel = ({
               
               if (!isNaN(lng) && !isNaN(lat) && lng >= -180 && lng <= 180 && lat >= -90 && lat <= 90) {
                 dataLayer.add(new window.google.maps.Data.Feature({
-                  geometry: new window.google.maps.Data.Point(new window.google.maps.LatLng(lat, lng))
+                  geometry: new window.google.maps.Data.Point(new window.google.maps.LatLng(lat, lng)),
+                  properties: {
+                    fileName: fileName,
+                    fileDescription: fileDescription
+                  }
                 }));
               }
             }
@@ -1014,27 +1041,41 @@ const LocationPanel = ({
           // Get the feature properties
           const feature = event.feature;
           
-          // Collect information to display
-          const properties = feature.getProperty('properties') || {};
+          // Get the file information added earlier
+          const fileName = feature.getProperty('fileName') || 'KML File';
+          const fileDescription = feature.getProperty('fileDescription') || '';
+          
+          // Get the feature type and coordinates
           const featureType = feature.getGeometry().getType();
+          const position = event.latLng;
+          const coordinates = `${position.lat().toFixed(5)}, ${position.lng().toFixed(5)}`;
           
           // Try to get name and description from the KML data
           const name = feature.getProperty('name') || '';
           const description = feature.getProperty('description') || '';
           
           // Build info content
-          let infoContent = '<div style="max-width: 250px;">';
+          let infoContent = '<div style="max-width: 280px;">';
+          
+          // Add file information
+          infoContent += `<div style="font-size: 12px; color: #888; margin-bottom: 5px;">From: ${fileName}</div>`;
           
           // Add name if available
           if (name) {
             infoContent += `<h3 style="margin: 0; font-size: 16px;">${name}</h3>`;
-          } else {
-            infoContent += `<h3 style="margin: 0; font-size: 16px;">KML ${featureType}</h3>`;
           }
+          
+          // Add coordinates
+          infoContent += `<div style="font-size: 12px; color: #555; margin-top: 3px;">${coordinates}</div>`;
           
           // Add description if available
           if (description) {
             infoContent += `<div style="margin-top: 5px;">${description}</div>`;
+          }
+          
+          // Add file description if available and different from element description
+          if (fileDescription && fileDescription !== description) {
+            infoContent += `<div style="margin-top: 8px; font-style: italic; font-size: 12px; color: #666;">${fileDescription}</div>`;
           }
           
           // Close the div
@@ -1080,6 +1121,12 @@ const LocationPanel = ({
       if (!mapRef?.current) return;
       
       console.log('Trying direct KML endpoint...');
+      
+      // Find the KML file metadata for better tooltips
+      const currentFile = kmlFiles.find(file => file.id.toString() === fileId.toString());
+      const fileName = currentFile?.fileName || 'KML File';
+      const fileDescription = currentFile?.description || '';
+      
       const timestamp = new Date().getTime();
       const kmlUrl = `${REACT_APP_API_URL}/api/kml-files/${fileId}?userId=${userId}&t=${timestamp}`;
       
