@@ -192,35 +192,76 @@ const LocationPanel = ({
     }
   }, [userId, activeTab]);
   
-  // Make sure KML files are loaded but not shown by default
+  // Reference to track if this is the initial mount of the component
+  const isInitialMountRef = useRef(true);
+  
+  // Handle KML files initialization and state management
   useEffect(() => {
-    if (userId && kmlFiles.length > 0) {
-      // Reset all files to not active if this is a fresh load (component mount)
-      const updatedFiles = kmlFiles.map(file => ({
-        ...file,
-        isActive: false // Ensure all are inactive by default
-      }));
+    if (!userId) return;
+    
+    if (kmlFiles.length > 0) {
+      // Get current active state for each file to preserve
+      // This helps maintain consistent state across tab switches
+      const currentActiveState = {};
+      kmlFiles.forEach(file => {
+        currentActiveState[file.id] = !!file.isActive;
+      });
       
-      // Only update if there's a change to prevent infinite loop
-      if (JSON.stringify(updatedFiles) !== JSON.stringify(kmlFiles)) {
-        setKmlFiles(updatedFiles);
+      // Don't reset active state on non-initial renders to prevent flashing
+      if (isInitialMountRef.current) {
+        console.log('Initial KML files load - ensuring proper active states');
+        isInitialMountRef.current = false;
         
-        // Also update localStorage if in development mode
-        if (window.location.hostname === 'localhost') {
-          try {
-            const localKmlFiles = JSON.parse(localStorage.getItem('kmlFiles') || '[]');
-            const updatedLocalFiles = localKmlFiles.map(file => ({
-              ...file,
-              isActive: false
-            }));
-            localStorage.setItem('kmlFiles', JSON.stringify(updatedLocalFiles));
-          } catch (error) {
-            console.log('Error updating localStorage KML files:', error);
+        // Keep track of which files had their active state forced to false
+        const changedFiles = [];
+        
+        const updatedFiles = kmlFiles.map(file => {
+          // Check if layer exists - if it does, keep its active state
+          const hasKmlLayer = kmlLayers[file.id] !== undefined;
+          
+          // For consistency, if a file is marked active but has no layer, 
+          // or is marked inactive but has a layer, update it
+          if (file.isActive && !hasKmlLayer) {
+            changedFiles.push(file.id);
+            return { ...file, isActive: false };
+          } else if (!file.isActive && hasKmlLayer) {
+            changedFiles.push(file.id);
+            return { ...file, isActive: true };
+          }
+          
+          return file;
+        });
+        
+        // Only update if needed to prevent infinite loops
+        if (changedFiles.length > 0) {
+          console.log(`Fixed active state for ${changedFiles.length} KML files`);
+          setKmlFiles(updatedFiles);
+          
+          // Also update localStorage if in development mode
+          if (window.location.hostname === 'localhost') {
+            try {
+              const localKmlFiles = JSON.parse(localStorage.getItem('kmlFiles') || '[]');
+              const updatedLocalFiles = localKmlFiles.map(file => {
+                if (changedFiles.includes(file.id)) {
+                  // Only update changed files
+                  const matchingFile = updatedFiles.find(f => f.id.toString() === file.id.toString());
+                  return { 
+                    ...file, 
+                    isActive: matchingFile ? matchingFile.isActive : false,
+                    lastAccessed: new Date().toISOString()
+                  };
+                }
+                return file;
+              });
+              localStorage.setItem('kmlFiles', JSON.stringify(updatedLocalFiles));
+            } catch (error) {
+              console.log('Error updating localStorage KML files:', error);
+            }
           }
         }
       }
     }
-  }, [userId]);
+  }, [userId, kmlFiles.length, kmlLayers]);
 
   const handleFileChange = (event) => {
     const file = event.target.files[0];
@@ -373,7 +414,10 @@ const LocationPanel = ({
 
   const toggleKmlVisibility = async (fileId) => {
     try {
-      if (!userId) return;
+      if (!userId || !mapRef?.current) {
+        console.log('Cannot toggle KML: missing user ID or map reference');
+        return;
+      }
       
       // Find the file in the kmlFiles array
       const fileToToggle = kmlFiles.find(file => file.id.toString() === fileId.toString());
@@ -391,83 +435,42 @@ const LocationPanel = ({
         return;
       }
       
+      // Determine new active state
+      const newActiveState = !fileToToggle.isActive;
+      
       // Create a placeholder layer with a setMap method to prevent errors
-      // This ensures there's always a valid layer object during processing
       const placeholderLayer = {
         setMap: function() { console.log('Placeholder setMap called'); },
         processing: true
       };
       
       // First handle local state - safely update kmlLayers with the placeholder
-      setKmlLayers(prev => ({
-        ...prev,
-        [fileId]: { 
-          ...(prev[fileId] || {}),
-          ...placeholderLayer
+      setKmlLayers(prev => {
+        const updated = {...prev};
+        
+        // If turning off, completely remove the layer from state to ensure clean toggle
+        if (!newActiveState && updated[fileId]) {
+          delete updated[fileId];
+          return updated;
         }
-      }));
+        
+        // If turning on, add placeholder
+        if (newActiveState) {
+          return {
+            ...updated,
+            [fileId]: { 
+              ...(updated[fileId] || {}),
+              ...placeholderLayer
+            }
+          };
+        }
+        
+        return updated;
+      });
       
-      // Update files state
+      // Update files state immediately to reflect toggle in UI
       const updatedFiles = kmlFiles.map(file => {
         if (file.id.toString() === fileId.toString()) {
-          const newActiveState = !file.isActive;
-          
-          // Queue layer operations for next render cycle
-          setTimeout(() => {
-            try {
-              // If toggling on, add KML layer to map
-              if (newActiveState) {
-                // If kmlContent exists, we're using localStorage
-                if (file.kmlContent) {
-                  console.log('Using local KML content for rendering');
-                  loadLocalKmlLayer(file);
-                } else {
-                  // Otherwise try the backend
-                  console.log('Loading KML from backend');
-                  loadKmlLayer(file.id);
-                }
-              } else {
-                // Remove KML layer if it exists
-                console.log('Removing KML layer - toggling visibility off');
-                // Always call removeKmlLayer at least twice to ensure cleanup
-                // This works around a Google Maps rendering issue
-                removeKmlLayer(file.id);
-                // Schedule another removal after a short delay to catch any stuck objects
-                setTimeout(() => {
-                  removeKmlLayer(file.id);
-                }, 50);
-              }
-            } catch (renderError) {
-              console.log('Error during KML rendering, using fallback:', renderError);
-              
-              // Try alternate method if error occurs
-              if (file.kmlContent) {
-                // Try backend for local file
-                loadKmlLayer(file.id);
-              } else {
-                // Try simplified renderer for backend file
-                try {
-                  // Fetch content and use direct rendering
-                  const fetchAndRender = async () => {
-                    try {
-                      const response = await axios.get(
-                        `${REACT_APP_API_URL}/api/kml-files/${fileId}?userId=${userId}&format=raw`
-                      );
-                      if (response.data && response.data.kmlContent) {
-                        trySimpleKmlLayer(fileId, response.data.kmlContent);
-                      }
-                    } catch (fetchError) {
-                      console.log('Error fetching KML content:', fetchError);
-                    }
-                  };
-                  fetchAndRender();
-                } catch (fallbackError) {
-                  console.log('All rendering methods failed');
-                }
-              }
-            }
-          }, 0);
-          
           return { ...file, isActive: newActiveState };
         }
         return file;
@@ -482,7 +485,7 @@ const LocationPanel = ({
           const localKmlFiles = JSON.parse(localStorage.getItem('kmlFiles') || '[]');
           const updatedLocalFiles = localKmlFiles.map(file => {
             if (file.id.toString() === fileId.toString()) {
-              return { ...file, isActive: !file.isActive };
+              return { ...file, isActive: newActiveState };
             }
             return file;
           });
@@ -493,11 +496,73 @@ const LocationPanel = ({
         }
       }
       
+      // Handle the actual layer rendering or removal
+      if (newActiveState) {
+        // If toggling on, add KML layer to map
+        try {
+          console.log(`Adding KML layer for file: ${fileToToggle.fileName} (ID: ${fileId})`);
+          
+          // Make sure any existing layer is completely removed first (clean slate)
+          removeKmlLayer(fileId);
+          
+          // Check if we have local content or need to fetch from backend
+          if (fileToToggle.kmlContent) {
+            console.log('Using local KML content for rendering');
+            await loadLocalKmlLayer(fileToToggle);
+          } else {
+            console.log('Loading KML from backend');
+            await loadKmlLayer(fileId);
+          }
+          
+          console.log(`Successfully added KML layer for file: ${fileToToggle.fileName}`);
+        } catch (renderError) {
+          console.log('Error during KML rendering, using fallback:', renderError);
+          
+          // Try alternate method if error occurs
+          try {
+            if (fileToToggle.kmlContent) {
+              // Try backend for local file
+              await loadKmlLayer(fileId);
+            } else {
+              // Fetch content and use direct rendering
+              const response = await axios.get(
+                `${REACT_APP_API_URL}/api/kml-files/${fileId}?userId=${userId}&format=raw`
+              );
+              if (response.data && response.data.kmlContent) {
+                trySimpleKmlLayer(fileId, response.data.kmlContent);
+              }
+            }
+          } catch (fallbackError) {
+            console.error('All rendering methods failed:', fallbackError);
+            
+            // Revert UI state if all rendering methods fail
+            setKmlFiles(kmlFiles.map(file => {
+              if (file.id.toString() === fileId.toString()) {
+                return { ...file, isActive: false };
+              }
+              return file;
+            }));
+          }
+        }
+      } else {
+        // If toggling off, remove KML layer
+        console.log('Removing KML layer - toggling visibility off');
+        
+        // Call removal function multiple times to ensure complete cleanup
+        removeKmlLayer(fileId);
+        
+        // Schedule additional removal with delay to catch any stuck objects
+        setTimeout(() => {
+          removeKmlLayer(fileId);
+        }, 100);
+      }
+      
       // Try to update the backend even in development mode
       try {
         console.log(`Sending toggle request to backend for KML file ${fileId}`);
         const response = await axios.post(`${REACT_APP_API_URL}/api/kml-files/${fileId}/toggle`, {
-          userId: userId
+          userId: userId,
+          isActive: newActiveState
         });
         
         if (response.data && response.data.success) {
@@ -518,7 +583,7 @@ const LocationPanel = ({
       }
       
     } catch (error) {
-      console.log('Error toggling KML visibility:', error.message);
+      console.error('Error toggling KML visibility:', error);
     }
   };
 
@@ -596,89 +661,154 @@ const LocationPanel = ({
 
   const loadKmlLayer = async (fileId) => {
     try {
-      if (!mapRef?.current || !window.google?.maps) return;
+      if (!mapRef?.current || !window.google?.maps) {
+        console.log('Map not available for KML loading');
+        return;
+      }
       
-      // Check if layer already exists and remove it first
-      removeKmlLayer(fileId);
+      console.log(`Starting to load KML file ${fileId}`);
+      
+      // First, ensure any existing layer is completely removed
+      await new Promise(resolve => {
+        // Call removeKmlLayer and wait a moment to ensure cleanup is complete
+        removeKmlLayer(fileId);
+        setTimeout(resolve, 50);
+      });
       
       // Check if we're in local development
       const isLocalDev = window.location.hostname === 'localhost';
       
+      // Mark this layer as processing to prevent duplicate loading attempts
+      setKmlLayers(prev => ({
+        ...prev,
+        [fileId]: { 
+          processing: true,
+          setMap: function() { console.log('Processing placeholder setMap called'); }
+        }
+      }));
+      
       // Get the raw KML content
       const timestamp = new Date().getTime();
+      console.log(`Fetching KML content for file ${fileId}`);
+      
       const response = await axios.get(
-        `${REACT_APP_API_URL}/api/kml-files/${fileId}?userId=${userId}&format=raw&t=${timestamp}`
+        `${REACT_APP_API_URL}/api/kml-files/${fileId}?userId=${userId}&format=raw&t=${timestamp}`,
+        { timeout: 10000 } // Add timeout to prevent indefinite hanging
       );
+      
+      if (!response.data || !response.data.kmlContent) {
+        throw new Error('Invalid KML content received from server');
+      }
       
       // Get the KML content
       const kmlContent = response.data.kmlContent;
       
-      // For local development, skip Google Maps KML layer and use our custom renderer
+      // For local development, always use our custom renderer for more control
       if (isLocalDev) {
-        console.log('Loading backend KML with enhanced renderer (local development mode)');
-        trySimpleKmlLayer(fileId, kmlContent);
+        console.log('Using enhanced renderer for KML (development mode)');
+        await trySimpleKmlLayer(fileId, kmlContent);
         return;
       }
       
-      // Create a blob from the KML content
-      const blob = new Blob([kmlContent], {type: 'application/vnd.google-earth.kml+xml'});
-      const blobUrl = URL.createObjectURL(blob);
-      
-      // For production, try Google's KML layer first
-      console.log('Loading KML with Google Maps KML layer (production mode)');
-      
-      const kmlLayer = new window.google.maps.KmlLayer({
-        url: blobUrl,
-        map: mapRef.current,
-        preserveViewport: true,
-        suppressInfoWindows: false
-      });
-      
-      // Add event listener to fall back if Google KML layer fails
-      kmlLayer.addListener('status_changed', () => {
-        const status = kmlLayer.getStatus();
+      // In production, try Google Maps KML layer first
+      try {
+        console.log('Loading KML with Google Maps KML layer (production mode)');
         
-        if (status !== 'OK') {
-          console.log(`Using enhanced KML rendering for ${fileId}`);
-          
-          // Fall back to our custom renderer
-          trySimpleKmlLayer(fileId, kmlContent);
-        }
-      });
+        // Create a blob from the KML content
+        const blob = new Blob([kmlContent], {type: 'application/vnd.google-earth.kml+xml'});
+        const blobUrl = URL.createObjectURL(blob);
+        
+        // Create a promise to handle the KML layer loading
+        const kmlLayerPromise = new Promise((resolve, reject) => {
+          try {
+            const kmlLayer = new window.google.maps.KmlLayer({
+              url: blobUrl,
+              map: mapRef.current,
+              preserveViewport: true,
+              suppressInfoWindows: false
+            });
+            
+            // Store reference to revoke URL later
+            kmlLayer.blobUrl = blobUrl;
+            
+            // Add listener to resolve once status is known
+            const statusListener = kmlLayer.addListener('status_changed', () => {
+              const status = kmlLayer.getStatus();
+              
+              if (status === 'OK') {
+                console.log(`Google KML layer loaded successfully for ${fileId}`);
+                resolve(kmlLayer);
+              } else {
+                console.log(`Google KML layer failed with status ${status}, using fallback for ${fileId}`);
+                reject(new Error(`KML status: ${status}`));
+                
+                // Remove the failed layer from map
+                kmlLayer.setMap(null);
+                
+                // Try to revoke the blob URL since we're not using it
+                try {
+                  URL.revokeObjectURL(blobUrl);
+                } catch (e) {}
+              }
+              
+              // Remove the listener to prevent memory leaks
+              window.google.maps.event.removeListener(statusListener);
+            });
+            
+            // Add timeout to avoid waiting too long for status_changed
+            setTimeout(() => {
+              const status = kmlLayer.getStatus();
+              if (status !== 'OK') {
+                reject(new Error(`KML loading timeout, status: ${status}`));
+              }
+            }, 5000);
+          } catch (e) {
+            reject(e);
+          }
+        });
+        
+        // Wait for the KML layer to load or fail
+        const kmlLayer = await kmlLayerPromise;
+        
+        // Update state with the successful layer
+        setKmlLayers(prev => ({
+          ...prev,
+          [fileId]: kmlLayer
+        }));
+        
+        return;
+      } catch (googleKmlError) {
+        console.log('Google KML layer failed, using enhanced renderer fallback:', googleKmlError.message);
+        // Continue to fallback rendering
+      }
       
-      // Store reference to revoke URL later
-      kmlLayer.blobUrl = blobUrl;
-      
-      // Add to layers map
-      setKmlLayers(prev => ({
-        ...prev,
-        [fileId]: kmlLayer
-      }));
+      // If we get here, Google KML layer failed - use our custom renderer
+      await trySimpleKmlLayer(fileId, kmlContent);
       
     } catch (error) {
-      console.log('Error loading KML layer, using fallback renderer');
+      console.error('Error loading KML layer:', error);
+      
+      // Clear the processing state and mark layer as inactive
+      setKmlLayers(prev => {
+        const updated = {...prev};
+        if (updated[fileId]) delete updated[fileId];
+        return updated;
+      });
+      
+      // Also update the KML files state to reflect failed loading
+      setKmlFiles(prev => prev.map(file => {
+        if (file.id.toString() === fileId.toString()) {
+          return {...file, isActive: false};
+        }
+        return file;
+      }));
+      
+      // Try one more fallback approach
       try {
-        // Retrieve the KML content if we didn't already get it
-        const retrieveAndRender = async () => {
-          try {
-            const timestamp = new Date().getTime();
-            const response = await axios.get(
-              `${REACT_APP_API_URL}/api/kml-files/${fileId}?userId=${userId}&format=raw&t=${timestamp}`
-            );
-            
-            if (response.data && response.data.kmlContent) {
-              trySimpleKmlLayer(fileId, response.data.kmlContent);
-            } else {
-              console.log('Could not retrieve KML content');
-            }
-          } catch (retrieveError) {
-            console.log('Error retrieving KML content');
-          }
-        };
-        
-        retrieveAndRender();
+        console.log('Attempting direct KML endpoint as last resort');
+        tryDirectKmlEndpoint(fileId);
       } catch (fallbackError) {
-        console.log('Unable to render KML file');
+        console.error('All KML rendering methods failed');
       }
     }
   };
@@ -1194,218 +1324,374 @@ const LocationPanel = ({
   const removeKmlLayer = (fileId) => {
     console.log(`Removing KML layer for file ID: ${fileId}`);
     
-    // Check if this layer exists in our state
-    if (kmlLayers[fileId]) {
-      try {
-        // Get a reference to the layer we're removing
-        const layer = kmlLayers[fileId];
-        console.log(`Found layer to remove:`, typeof layer);
-        
-        // Revoke blob URL if it exists to prevent memory leaks
-        if (layer.blobUrl) {
-          try {
-            URL.revokeObjectURL(layer.blobUrl);
-            console.log(`Revoked blob URL for layer ${fileId}`);
-          } catch (e) {
-            console.log(`Error revoking blob URL: ${e.message}`);
-          }
-        }
-        
-        // Close info window if it exists
-        if (layer.infoWindow) {
-          try {
-            layer.infoWindow.close();
-            console.log(`Closed info window for layer ${fileId}`);
-          } catch (e) {
-            console.log(`Error closing info window: ${e.message}`);
-          }
-        }
-        
-        // Remove all event listeners if possible
-        if (layer.listeners && Array.isArray(layer.listeners)) {
-          layer.listeners.forEach(listener => {
-            try {
-              window.google.maps.event.removeListener(listener);
-            } catch (e) {
-              console.log(`Error removing listener: ${e.message}`);
-            }
-          });
-          console.log(`Removed event listeners for layer ${fileId}`);
-        }
-        
-        // For Data layers, also try to clear all features
-        if (layer instanceof window.google.maps.Data) {
-          try {
-            layer.forEach(feature => {
-              layer.remove(feature);
-            });
-            console.log(`Removed all features from Data layer ${fileId}`);
-          } catch (e) {
-            console.log(`Error removing features: ${e.message}`);
-          }
-        }
-        
-        // Remove from map - the most important step
-        try {
-          if (typeof layer.setMap === 'function') {
-            layer.setMap(null);
-            console.log(`Removed layer ${fileId} from map`);
-          } else {
-            console.log(`Layer ${fileId} doesn't have setMap method, using alternative removal`);
-            
-            // For built-in Google Maps objects, try alternatives
-            if (window.google?.maps) {
-              // For Data layers, try setting null map
-              if (layer instanceof window.google.maps.Data) {
-                layer.setMap(null);
-              }
-              
-              // For marker arrays, try to clear them
-              if (layer.markers && Array.isArray(layer.markers)) {
-                layer.markers.forEach(marker => {
-                  if (marker && typeof marker.setMap === 'function') {
-                    marker.setMap(null);
-                  }
-                });
-              }
-              
-              // For KmlLayers, try a new instance
-              if (layer instanceof window.google.maps.KmlLayer) {
-                new window.google.maps.KmlLayer({ map: null });
-              }
-            }
-          }
-        } catch (e) {
-          console.log(`Error removing layer from map: ${e.message}`);
-        }
-        
-        // Clear any references to DOM elements
-        if (layer.iframe) {
-          try {
-            if (document.body.contains(layer.iframe)) {
-              document.body.removeChild(layer.iframe);
-            }
-            layer.iframe = null;
-            console.log(`Removed iframe for layer ${fileId}`);
-          } catch (e) {
-            console.log(`Error removing iframe: ${e.message}`);
-          }
-        }
-        
-        console.log(`KML layer ${fileId} successfully removed and cleaned up`);
-      } catch (error) {
-        console.log(`Error cleaning up KML layer ${fileId}: ${error.message}`);
-      }
+    // Safely check for Google Maps API availability
+    if (!window.google?.maps || !mapRef?.current) {
+      console.log('Google Maps not available for layer removal');
       
-      // Always update state to remove the layer reference
+      // Still clean up state even if Google Maps isn't available
       setKmlLayers(prev => {
         const updated = { ...prev };
-        delete updated[fileId];
+        if (updated[fileId]) delete updated[fileId];
         return updated;
       });
-    } else {
-      console.log(`No layer found for file ID: ${fileId}`);
+      
+      return;
     }
     
-    // Force a refresh of map objects as a last resort
+    // Create a local copy of the layer to avoid race conditions with state updates
+    const layer = kmlLayers[fileId];
+    
+    // If no layer exists in our state, just return
+    if (!layer) {
+      console.log(`No layer found for file ID: ${fileId}`);
+      return;
+    }
+    
     try {
-      if (mapRef?.current) {
-        // This triggers Google Maps to re-render and often fixes stuck objects
-        const currentCenter = mapRef.current.getCenter();
-        const currentZoom = mapRef.current.getZoom();
-        mapRef.current.setZoom(currentZoom - 0.0001);
-        setTimeout(() => {
-          mapRef.current.setZoom(currentZoom);
-          mapRef.current.setCenter(currentCenter);
-        }, 5);
+      console.log(`Found layer to remove, type:`, typeof layer);
+      
+      // STEP 1: Remove event listeners (should be done before any other cleanup)
+      if (layer.listeners && Array.isArray(layer.listeners)) {
+        layer.listeners.forEach(listener => {
+          try {
+            window.google.maps.event.removeListener(listener);
+          } catch (e) {
+            console.log(`Error removing listener: ${e.message}`);
+          }
+        });
+        console.log(`Removed event listeners for layer ${fileId}`);
       }
-    } catch (e) {
-      console.log(`Error refreshing map: ${e.message}`);
+      
+      // STEP 2: Close info windows
+      if (layer.infoWindow) {
+        try {
+          layer.infoWindow.close();
+          console.log(`Closed info window for layer ${fileId}`);
+        } catch (e) {
+          console.log(`Error closing info window: ${e.message}`);
+        }
+      }
+      
+      // STEP 3: For Google Maps Data layers, clear all features
+      if (layer instanceof window.google.maps.Data) {
+        try {
+          layer.forEach(feature => {
+            try {
+              layer.remove(feature);
+            } catch (err) {
+              console.log(`Error removing feature: ${err.message}`);
+            }
+          });
+          console.log(`Removed all features from Data layer ${fileId}`);
+        } catch (e) {
+          console.log(`Error accessing features: ${e.message}`);
+        }
+      }
+      
+      // STEP 4: Remove layer from map - the most important step
+      try {
+        if (typeof layer.setMap === 'function') {
+          layer.setMap(null);
+          console.log(`Removed layer ${fileId} from map`);
+        } else {
+          console.log(`Layer ${fileId} doesn't have setMap method, using alternative removal`);
+          
+          // For built-in Google Maps objects, try alternatives
+          if (window.google?.maps) {
+            // For marker arrays, try to clear them
+            if (layer.markers && Array.isArray(layer.markers)) {
+              layer.markers.forEach(marker => {
+                if (marker && typeof marker.setMap === 'function') {
+                  marker.setMap(null);
+                }
+              });
+            }
+            
+            // For KmlLayers, try a new instance
+            if (layer instanceof window.google.maps.KmlLayer) {
+              new window.google.maps.KmlLayer({ map: null });
+            }
+          }
+        }
+      } catch (e) {
+        console.log(`Error removing layer from map: ${e.message}`);
+      }
+      
+      // STEP 5: Revoke blob URL if it exists (after layer is removed from map)
+      if (layer.blobUrl) {
+        try {
+          URL.revokeObjectURL(layer.blobUrl);
+          console.log(`Revoked blob URL for layer ${fileId}`);
+        } catch (e) {
+          console.log(`Error revoking blob URL: ${e.message}`);
+        }
+      }
+      
+      // STEP 6: Clear any references to DOM elements
+      if (layer.iframe) {
+        try {
+          if (document.body.contains(layer.iframe)) {
+            document.body.removeChild(layer.iframe);
+          }
+          layer.iframe = null;
+          console.log(`Removed iframe for layer ${fileId}`);
+        } catch (e) {
+          console.log(`Error removing iframe: ${e.message}`);
+        }
+      }
+      
+      console.log(`KML layer ${fileId} successfully removed and cleaned up`);
+    } catch (error) {
+      console.error(`Error cleaning up KML layer ${fileId}:`, error);
+    } finally {
+      // STEP 7: ALWAYS update state to remove the layer reference, regardless of errors
+      setKmlLayers(prev => {
+        const updated = { ...prev };
+        if (updated[fileId]) delete updated[fileId];
+        return updated;
+      });
+      
+      // STEP 8: Force a refresh of map objects as a last resort
+      try {
+        if (mapRef?.current) {
+          // This triggers Google Maps to re-render and often fixes stuck objects
+          const currentCenter = mapRef.current.getCenter();
+          const currentZoom = mapRef.current.getZoom();
+          
+          // Microscopically change zoom level to trigger redraw without user noticing
+          mapRef.current.setZoom(currentZoom - 0.0001);
+          
+          // Restore original zoom after a short delay
+          setTimeout(() => {
+            mapRef.current.setZoom(currentZoom);
+            mapRef.current.setCenter(currentCenter);
+          }, 50);
+        }
+      } catch (e) {
+        console.log(`Error refreshing map: ${e.message}`);
+      }
     }
   };
 
   // Function to load KML content from localStorage
-  const loadLocalKmlLayer = (file) => {
+  const loadLocalKmlLayer = async (file) => {
     try {
-      if (!mapRef?.current || !window.google?.maps) return;
+      if (!mapRef?.current || !window.google?.maps) {
+        console.log('Map not available for local KML loading');
+        return;
+      }
       
-      // Check if layer already exists and remove it first
-      removeKmlLayer(file.id);
+      const fileId = file.id.toString();
+      console.log(`Loading local KML file: ${file.fileName} (ID: ${fileId})`);
       
-      console.log('Loading local KML content directly with enhanced renderer');
+      // First, ensure any existing layer is completely removed
+      await new Promise(resolve => {
+        // Call removeKmlLayer and wait a moment to ensure cleanup is complete
+        removeKmlLayer(fileId);
+        setTimeout(resolve, 50);
+      });
       
-      // For local development, ALWAYS use the simpler parsing
-      // Skip the Google Maps KML layer attempt entirely
-      trySimpleKmlLayer(file.id, file.kmlContent);
+      // Mark this layer as processing to prevent duplicate loading attempts
+      setKmlLayers(prev => ({
+        ...prev,
+        [fileId]: { 
+          processing: true,
+          setMap: function() { console.log('Processing placeholder setMap called'); }
+        }
+      }));
+      
+      console.log('Loading local KML content with enhanced renderer');
+      
+      // Always use our own renderer for local KML content for better control
+      await trySimpleKmlLayer(fileId, file.kmlContent);
       
     } catch (error) {
-      console.log('Error loading local KML, trying fallback');
-      trySimpleKmlLayer(file.id, file.kmlContent);
+      console.error('Error loading local KML:', error);
+      
+      // Clear the processing state and mark layer as inactive
+      setKmlLayers(prev => {
+        const updated = {...prev};
+        if (updated[file.id]) delete updated[file.id];
+        return updated;
+      });
+      
+      // Also update the KML files state to reflect failed loading
+      setKmlFiles(prev => prev.map(kmlFile => {
+        if (kmlFile.id.toString() === file.id.toString()) {
+          return {...kmlFile, isActive: false};
+        }
+        return kmlFile;
+      }));
     }
   };
 
   // Load active KML layers when map or kmlFiles change
   useEffect(() => {
-    if (mapRef?.current && kmlFiles.length > 0) {
-      console.log('Loading active KML layers...');
-      // Load all active KML files
-      kmlFiles.forEach(file => {
-        if (file.isActive) {
-          console.log(`Loading active KML file: ${file.id} - ${file.fileName}`);
-          // Check if this is a local file (has kmlContent) or backend file
-          if (file.kmlContent) {
-            loadLocalKmlLayer(file);
-          } else {
-            loadKmlLayer(file.id);
-          }
-        } else {
-          // Ensure inactive files are not displayed
-          removeKmlLayer(file.id);
-        }
-      });
+    // Guard against invalid map or missing kmlFiles
+    if (!mapRef?.current || !window.google?.maps) {
+      console.log('Map not ready yet for KML layers');
+      return;
     }
     
-    // Cleanup function to remove all layers
-    return () => {
+    if (kmlFiles.length === 0) {
+      console.log('No KML files to process');
+      return;
+    }
+    
+    console.log('Loading active KML layers...');
+    
+    // Initialize a set to track files that should be active
+    const activeFileIds = new Set();
+    
+    // Create a debounced function for processing layers
+    // This prevents too many simultaneous operations
+    const processQueue = [];
+    let processingQueue = false;
+    
+    const processNextInQueue = async () => {
+      if (processQueue.length === 0) {
+        processingQueue = false;
+        return;
+      }
+      
+      processingQueue = true;
+      const nextItem = processQueue.shift();
+      
       try {
+        await nextItem.action();
+      } catch (error) {
+        console.error(`Error processing queued KML operation:`, error);
+      } finally {
+        // Process next item after a short delay to avoid overwhelming the browser
+        setTimeout(() => processNextInQueue(), 50);
+      }
+    };
+    
+    const queueOperation = (action, priority = false) => {
+      const queueItem = { action };
+      if (priority) {
+        processQueue.unshift(queueItem);
+      } else {
+        processQueue.push(queueItem);
+      }
+      
+      if (!processingQueue) {
+        processNextInQueue();
+      }
+    };
+    
+    // First, identify all layers that should be active or inactive
+    kmlFiles.forEach(file => {
+      const fileId = file.id.toString();
+      const existingLayer = kmlLayers[fileId];
+      const shouldBeActive = file.isActive;
+      
+      if (shouldBeActive) {
+        activeFileIds.add(fileId);
+        
+        // If file should be active but no layer exists, load it
+        if (!existingLayer) {
+          console.log(`Loading active KML file: ${fileId} - ${file.fileName}`);
+          
+          queueOperation(async () => {
+            try {
+              // Check if this is a local file (has kmlContent) or backend file
+              if (file.kmlContent) {
+                await loadLocalKmlLayer(file);
+              } else {
+                await loadKmlLayer(fileId);
+              }
+            } catch (error) {
+              console.error(`Error loading KML layer ${fileId}:`, error);
+            }
+          });
+        }
+      } else {
+        // If file should NOT be active but a layer exists, remove it
+        if (existingLayer) {
+          console.log(`Removing inactive KML file: ${fileId} - ${file.fileName}`);
+          
+          queueOperation(() => {
+            removeKmlLayer(fileId);
+          }, true); // Priority true for removals to free up resources faster
+        }
+      }
+    });
+    
+    // Check for any orphaned layers (layers without corresponding active files)
+    Object.keys(kmlLayers).forEach(fileId => {
+      if (!activeFileIds.has(fileId)) {
+        console.log(`Removing orphaned KML layer: ${fileId}`);
+        queueOperation(() => {
+          removeKmlLayer(fileId);
+        }, true); // Priority true for orphaned layers
+      }
+    });
+    
+    // Cleanup function to remove all layers when component unmounts
+    return () => {
+      console.log('Cleaning up all KML layers on unmount');
+      
+      try {
+        // First, empty the processing queue to prevent operations after unmount
+        processQueue.length = 0;
+        
         // Safely remove all KML layers
-        Object.keys(kmlLayers).forEach(fileId => {
+        const layersToRemove = {...kmlLayers};
+        Object.keys(layersToRemove).forEach(fileId => {
           try {
-            const layer = kmlLayers[fileId];
+            const layer = layersToRemove[fileId];
             
-            // Check if layer exists and has expected methods
-            if (layer) {
-              // Revoke blob URL if it exists
-              if (layer.blobUrl) {
+            // Skip if layer doesn't exist
+            if (!layer) return;
+            
+            // Clear all resources in proper order
+            
+            // 1. Remove event listeners
+            if (layer.listeners && Array.isArray(layer.listeners)) {
+              layer.listeners.forEach(listener => {
                 try {
-                  URL.revokeObjectURL(layer.blobUrl);
-                } catch (e) {
-                  console.log('Error revoking blob URL:', e);
-                }
-              }
-              
-              // Close info window if it exists
-              if (layer.infoWindow) {
-                try {
-                  layer.infoWindow.close();
-                } catch (e) {
-                  console.log('Error closing info window:', e);
-                }
-              }
-              
-              // Remove from map if setMap method exists
+                  window.google.maps.event.removeListener(listener);
+                } catch (e) {}
+              });
+            }
+            
+            // 2. Close info windows
+            if (layer.infoWindow) {
+              try {
+                layer.infoWindow.close();
+              } catch (e) {}
+            }
+            
+            // 3. Remove from map
+            try {
               if (typeof layer.setMap === 'function') {
                 layer.setMap(null);
-              } else {
-                console.log(`Layer ${fileId} doesn't have setMap method`);
               }
+            } catch (e) {}
+            
+            // 4. Revoke blob URLs
+            if (layer.blobUrl) {
+              try {
+                URL.revokeObjectURL(layer.blobUrl);
+              } catch (e) {}
+            }
+            
+            // 5. Remove DOM elements
+            if (layer.iframe && document.body.contains(layer.iframe)) {
+              try {
+                document.body.removeChild(layer.iframe);
+              } catch (e) {}
             }
           } catch (layerError) {
             console.log(`Error cleaning up layer ${fileId}:`, layerError);
           }
         });
+        
+        // Clear kmlLayers state
+        setKmlLayers({});
       } catch (cleanupError) {
-        console.log('Error in cleanup function:', cleanupError);
+        console.error('Error in cleanup function:', cleanupError);
       }
     };
   }, [mapRef?.current, kmlFiles]);
