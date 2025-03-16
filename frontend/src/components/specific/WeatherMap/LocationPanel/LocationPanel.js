@@ -859,40 +859,8 @@ const LocationPanel = ({
           console.log('Rendered placemarks from KML file');
           return;
         } else {
-          // Create a fallback placemark at map center
-          const mapCenter = mapRef.current.getCenter();
-          const fallbackDataLayer = new window.google.maps.Data();
-          
-          fallbackDataLayer.add({
-            geometry: new window.google.maps.Data.Point(mapCenter),
-            properties: {
-              name: "KML Center",
-              description: "A reference point for this KML file"
-            }
-          });
-          
-          // Style the fallback point
-          fallbackDataLayer.setStyle({
-            icon: {
-              path: window.google.maps.SymbolPath.CIRCLE,
-              scale: 10,
-              fillColor: '#FF8C00',
-              fillOpacity: 0.7,
-              strokeColor: '#FFFFFF',
-              strokeWeight: 2
-            }
-          });
-          
-          // Add to map
-          fallbackDataLayer.setMap(mapRef.current);
-          
-          // Add to layers map
-          setKmlLayers(prev => ({
-            ...prev,
-            [fileId]: fallbackDataLayer
-          }));
-          
-          console.log('Basic KML fallback rendering created');
+          // Just log that we couldn't find any placemarks instead of creating a fallback marker
+          console.log('No placemarks found in KML file');
           return;
         }
       }
@@ -1115,34 +1083,9 @@ const LocationPanel = ({
       const timestamp = new Date().getTime();
       const kmlUrl = `${REACT_APP_API_URL}/api/kml-files/${fileId}?userId=${userId}&t=${timestamp}`;
       
-      // Create a fallback Data layer for when KML loading fails completely
+      // Create an empty Data layer for when KML loading fails completely
+      // We won't add any markers to avoid the dot in the center
       const fallbackDataLayer = new window.google.maps.Data();
-      
-      // Add a simple marker at the map center as fallback
-      try {
-        const mapCenter = mapRef.current.getCenter();
-        fallbackDataLayer.add({
-          geometry: new window.google.maps.Data.Point(mapCenter),
-          properties: {
-            name: "KML File Location",
-            description: "The KML file couldn't be rendered properly. This is a fallback marker."
-          }
-        });
-        
-        // Style the fallback marker
-        fallbackDataLayer.setStyle({
-          icon: {
-            path: window.google.maps.SymbolPath.CIRCLE,
-            scale: 10,
-            fillColor: '#FFA500',
-            fillOpacity: 0.8,
-            strokeColor: '#FFFFFF',
-            strokeWeight: 2
-          }
-        });
-      } catch (fallbackError) {
-        console.warn('Error creating fallback marker:', fallbackError);
-      }
       
       const kmlLayer = new window.google.maps.KmlLayer({
         url: kmlUrl,
@@ -1155,10 +1098,8 @@ const LocationPanel = ({
       const kmlLoadingTimeout = setTimeout(() => {
         const status = kmlLayer && kmlLayer.getStatus ? kmlLayer.getStatus() : 'UNKNOWN';
         if (status !== 'OK') {
-          console.warn(`KML loading timeout - using fallback. Status: ${status}`);
-          // Use fallback layer
-          fallbackDataLayer.setMap(mapRef.current);
-          // Store the fallback in the layers
+          console.warn(`KML loading timeout - no fallback marker will be shown. Status: ${status}`);
+          // Store the empty fallback layer for proper management
           setKmlLayers(prev => ({
             ...prev,
             [fileId]: fallbackDataLayer
@@ -1171,12 +1112,9 @@ const LocationPanel = ({
         clearTimeout(kmlLoadingTimeout); // Clear the timeout since we got a status
         
         if (status !== 'OK') {
-          console.log(`KML rendering note: ${status} - Using fallback method`);
+          console.log(`KML rendering note: ${status} - No fallback marker will be shown`);
           
-          // Use the fallback data layer if KML failed to load
-          fallbackDataLayer.setMap(mapRef.current);
-          
-          // Update the layers map with the fallback
+          // Update the layers map with the empty fallback
           setKmlLayers(prev => ({
             ...prev,
             [fileId]: fallbackDataLayer
@@ -1185,13 +1123,10 @@ const LocationPanel = ({
           // Only show a message for certain error types
           if (status === 'LIMITS_EXCEEDED') {
             // This is an actual problem that needs user attention
-            alert(`The KML file is too complex to render directly. A simplified version has been shown instead.`);
+            alert(`The KML file is too complex to render directly.`);
           }
         } else {
           console.log('Direct KML endpoint loaded successfully');
-          
-          // KML loaded successfully, remove fallback
-          fallbackDataLayer.setMap(null);
           
           // Update the layers map
           setKmlLayers(prev => ({
