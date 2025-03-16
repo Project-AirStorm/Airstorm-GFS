@@ -39,6 +39,7 @@ const Maps = () => {
   const [savedLocations, setSavedLocations] = useState([]);
   const [kmlLayers, setKmlLayers] = useState({});
   const [mapInitialized, setMapInitialized] = useState(false);
+  const [locationMarkers, setLocationMarkers] = useState([]);
 
   // API Handlers
   const handleSaveLocation = async () => {
@@ -117,112 +118,200 @@ const Maps = () => {
 
   }, []);
 
+  // Declare function references first to avoid initialization order problems
+  const initializeMapRef = useRef(null);
+  const loadGoogleMapsRef = useRef(null);
+  const handleSavedLocationsAfterMapInitRef = useRef(null);
+  
+  // Function to handle saved locations after map initialization
+  const handleSavedLocationsAfterMapInit = useCallback(() => {
+    // A separate function to load saved locations after map init
+    // to avoid circular dependencies
+    if (mapRef.current && user?.id) {
+      loadSavedLocations();
+    }
+  }, [loadSavedLocations, user?.id]);
+
+  // Store reference
+  handleSavedLocationsAfterMapInitRef.current = handleSavedLocationsAfterMapInit;
+
+  // Separate function to initialize the map
+  const initializeMap = useCallback(() => {
+    if (!mapContainer.current || !window.google?.maps) {
+      console.log('Cannot initialize map: container or Google Maps not ready');
+      return;
+    }
+    
+    console.log('Initializing map');
+    
+    try {
+      const mapInstance = new window.google.maps.Map(mapContainer.current, {
+        center: { lat: 36, lng: -86 },
+        zoom: 4,
+        // Configure map type controls (Map/Satellite)
+        mapTypeControl: true,
+        mapTypeControlOptions: {
+          style: window.google.maps.MapTypeControlStyle.HORIZONTAL_BAR,
+          position: window.google.maps.ControlPosition.TOP_LEFT
+        },
+        // Configure fullscreen control
+        fullscreenControl: true,
+        fullscreenControlOptions: {
+          position: window.google.maps.ControlPosition.TOP_RIGHT
+        },
+        // Other map options
+        streetViewControl: false,
+        zoomControl: true,
+        zoomControlOptions: {
+          position: window.google.maps.ControlPosition.RIGHT_BOTTOM
+        }
+      });
+
+      markerRef.current = new window.google.maps.Marker({
+        map: mapInstance,
+        position: null,
+        icon: {
+          path: window.google.maps.SymbolPath.CIRCLE,
+          fillColor: '#FF0000',
+          fillOpacity: 1,
+          strokeWeight: 0,
+          scale: 8
+        },
+        visible: false
+      });
+
+      // Only add meteosource overlay if a weather variable is selected
+      if (selectedVariable !== 'none') {
+        const meteosourceOverlay = new window.google.maps.ImageMapType({
+          getTileUrl: (coord, zoom) => {
+            const timeParam = timeOffset === 'now' ? 'now' : timeOffset;
+            return `${REACT_APP_API_URL}/api/meteosource/tile?x=${coord.x}&y=${coord.y}&zoom=${zoom}&variable=${selectedVariable}&datetime=${timeParam}`;
+          },
+          tileSize: new window.google.maps.Size(256, 256),
+          name: 'Weather Data'
+        });
+
+        mapInstance.overlayMapTypes.push(meteosourceOverlay);
+      }
+      
+      mapRef.current = mapInstance;
+      mapInstance.addListener('click', handleMapClick);
+      setMapInitialized(true);
+      
+      // Load saved locations once map is initialized
+      setTimeout(() => {
+        if (handleSavedLocationsAfterMapInitRef.current) {
+          handleSavedLocationsAfterMapInitRef.current();
+        }
+      }, 300); // Short delay to ensure map is fully ready
+      
+    } catch (error) {
+      console.error('Error in map initialization:', error);
+    }
+  }, [selectedVariable, timeOffset, handleMapClick]);
+  
+  // Store reference
+  initializeMapRef.current = initializeMap;
+
   // Initialize Google Maps
   const loadGoogleMaps = useCallback(async () => {
     try {
-      const response = await axios.get(`${REACT_APP_API_URL}/api/google-maps-init`);
-      const { googleMapsKey } = response.data;
-
-      // Only load the script if it hasn't been loaded yet
-      if (!window.google?.maps) {
-        const script = document.createElement('script');
-        script.src = `https://maps.googleapis.com/maps/api/js?key=${googleMapsKey}&callback=initMap&v=weekly`;
-        script.async = true;
-        script.defer = true;
-        document.head.appendChild(script);
-      } else {
-        // If script is already loaded, initialize directly
-        initializeMap();
+      // Check for existing Google Maps script
+      const existingScript = document.querySelector('script[src*="maps.googleapis.com/maps/api/js"]');
+      
+      // If Google Maps is already loaded, just initialize the map directly
+      if (window.google?.maps) {
+        console.log('Google Maps API already loaded, initializing map directly');
+        if (initializeMapRef.current) {
+          initializeMapRef.current();
+        }
         return;
       }
-
+      
+      // If the script tag exists but Google Maps isn't loaded yet,
+      // just wait for the callback to happen
+      if (existingScript) {
+        console.log('Google Maps script already exists, waiting for callback');
+        window.initMap = () => {
+          console.log('Google Maps callback received');
+          if (initializeMapRef.current) {
+            initializeMapRef.current();
+          }
+        };
+        return;
+      }
+      
+      // Otherwise, we need to load the script
+      console.log('Fetching Google Maps API key and loading script');
+      const response = await axios.get(`${REACT_APP_API_URL}/api/google-maps-init`);
+      
+      if (!response.data || !response.data.googleMapsKey) {
+        console.error('Failed to get Google Maps API key from server');
+        return;
+      }
+      
+      const { googleMapsKey } = response.data;
+      
+      // Set up the callback before adding the script
       window.initMap = () => {
-        initializeMap();
+        console.log('Google Maps callback received');
+        if (initializeMapRef.current) {
+          initializeMapRef.current();
+        }
       };
-
-      loadSavedLocations();
+      
+      // Create new script tag
+      const script = document.createElement('script');
+      script.src = `https://maps.googleapis.com/maps/api/js?key=${googleMapsKey}&callback=initMap&v=weekly`;
+      script.async = true;
+      script.defer = true;
+      
+      // Add script to document
+      document.head.appendChild(script);
+      
     } catch (error) {
       console.error('Error initializing map:', error);
     }
-  }, [loadSavedLocations, selectedVariable, timeOffset, handleMapClick]);
+  }, []);
   
-  // Separate function to initialize the map
-  const initializeMap = useCallback(() => {
-    if (!mapContainer.current) return;
-    
-    const mapInstance = new window.google.maps.Map(mapContainer.current, {
-      center: { lat: 36, lng: -86 },
-      zoom: 4,
-      // Configure map type controls (Map/Satellite)
-      mapTypeControl: true,
-      mapTypeControlOptions: {
-        style: window.google.maps.MapTypeControlStyle.HORIZONTAL_BAR,
-        position: window.google.maps.ControlPosition.TOP_LEFT
-      },
-      // Configure fullscreen control
-      fullscreenControl: true,
-      fullscreenControlOptions: {
-        position: window.google.maps.ControlPosition.TOP_RIGHT
-      },
-      // Other map options
-      streetViewControl: false,
-      zoomControl: true,
-      zoomControlOptions: {
-        position: window.google.maps.ControlPosition.RIGHT_BOTTOM
-      }
-    });
-
-    markerRef.current = new window.google.maps.Marker({
-      map: mapInstance,
-      position: null,
-      icon: {
-        path: window.google.maps.SymbolPath.CIRCLE,
-        fillColor: '#FF0000',
-        fillOpacity: 1,
-        strokeWeight: 0,
-        scale: 8
-      },
-      visible: false
-    });
-
-    // Only add meteosource overlay if a weather variable is selected
-    if (selectedVariable !== 'none') {
-      const meteosourceOverlay = new window.google.maps.ImageMapType({
-        getTileUrl: (coord, zoom) => {
-          const timeParam = timeOffset === 'now' ? 'now' : timeOffset;
-          return `${REACT_APP_API_URL}/api/meteosource/tile?x=${coord.x}&y=${coord.y}&zoom=${zoom}&variable=${selectedVariable}&datetime=${timeParam}`;
-        },
-        tileSize: new window.google.maps.Size(256, 256),
-        name: 'Weather Data'
-      });
-
-      mapInstance.overlayMapTypes.push(meteosourceOverlay);
-    }
-    mapRef.current = mapInstance;
-    mapInstance.addListener('click', handleMapClick);
-    setMapInitialized(true);
-  }, [selectedVariable, timeOffset, handleMapClick]);
+  // Store reference
+  loadGoogleMapsRef.current = loadGoogleMaps;
 
   // Load Google Maps on component mount and rerender when switching back to the page
   useEffect(() => {
     // This will run both when component first mounts and when switching back to the page
     if (window.google?.maps) {
       // If Google Maps is already loaded, just initialize the map
-      initializeMap();
+      if (initializeMapRef.current) {
+        initializeMapRef.current();
+      }
     } else {
       // If Google Maps isn't loaded yet, load it (which will then initialize the map)
-      loadGoogleMaps();
+      if (loadGoogleMapsRef.current) {
+        loadGoogleMapsRef.current();
+      }
     }
     
+    // Create cleanup function that doesn't depend on locationMarkers state
+    // to avoid dependency cycles and infinite loops
     return () => {
       // Cleanup when component unmounts or before reinitialization
-      if (markerRef.current) markerRef.current.setMap(null);
+      if (markerRef.current) {
+        markerRef.current.setMap(null);
+      }
+      
+      // Get a stable reference to current markers for cleanup
+      const currentMarkers = locationMarkers;
+      currentMarkers.forEach(marker => {
+        if (marker) marker.setMap(null);
+      });
+      
       if (window.google?.maps && mapRef.current) {
         window.google.maps.event.clearInstanceListeners(mapRef.current);
       }
       // Don't set mapRef.current to null to maintain reference
     };
-  }, [loadGoogleMaps, initializeMap]);
+  }, []); // No dependencies to avoid infinite loop
 
   // Update map overlay when variable or time changes
   useEffect(() => {
@@ -252,6 +341,87 @@ const Maps = () => {
       mapRef.current.addListener('click', handleMapClick);
     }
   }, [selectedVariable, timeOffset, handleMapClick]);
+  
+  // Load saved locations when user changes
+  useEffect(() => {
+    if (user?.id && mapInitialized) {
+      console.log(`User data available (${user.id}), loading saved locations`);
+      loadSavedLocations();
+    }
+  }, [user?.id, mapInitialized, loadSavedLocations]);
+
+  // Display saved locations on the map
+  useEffect(() => {
+    // Check if map and Google Maps are ready
+    if (!mapRef.current || !window.google?.maps) {
+      return;
+    }
+    
+    // Clear existing location markers
+    locationMarkers.forEach(marker => {
+      if (marker) marker.setMap(null);
+    });
+    
+    // If no saved locations, don't proceed
+    if (!savedLocations.length) {
+      setLocationMarkers([]);
+      return;
+    }
+    
+    console.log(`Creating ${savedLocations.length} location markers on map`);
+    
+    // Create markers for saved locations
+    const markers = savedLocations.map(location => {
+      if (!location || isNaN(location.latitude) || isNaN(location.longitude)) {
+        return null;
+      }
+      
+      const marker = new window.google.maps.Marker({
+        position: { lat: location.latitude, lng: location.longitude },
+        map: mapRef.current,
+        title: location.name,
+        icon: {
+          path: window.google.maps.SymbolPath.CIRCLE,
+          fillColor: location.isFavorite ? '#FFD700' : '#4A90E2', // Gold for favorites, blue for normal
+          fillOpacity: 0.9,
+          strokeWeight: 1,
+          strokeColor: '#FFFFFF',
+          scale: 8
+        }
+      });
+      
+      // Add click event to center map on marker
+      marker.addListener('click', () => {
+        mapRef.current.setCenter({ lat: location.latitude, lng: location.longitude });
+        mapRef.current.setZoom(10);
+      });
+      
+      // Add info window
+      const infoWindow = new window.google.maps.InfoWindow({
+        content: `
+          <div style="padding: 5px; max-width: 200px;">
+            <div style="font-weight: bold; margin-bottom: 5px;">${location.name}</div>
+            <div>Latitude: ${location.latitude.toFixed(5)}</div>
+            <div>Longitude: ${location.longitude.toFixed(5)}</div>
+            ${location.isFavorite ? '<div style="color: #FFD700; margin-top: 5px;">★ Favorite Location</div>' : ''}
+          </div>
+        `
+      });
+      
+      // Show info window on hover
+      marker.addListener('mouseover', () => {
+        infoWindow.open(mapRef.current, marker);
+      });
+      
+      marker.addListener('mouseout', () => {
+        infoWindow.close();
+      });
+      
+      return marker;
+    }).filter(Boolean); // Remove any null markers
+    
+    setLocationMarkers(markers);
+  }, [savedLocations]); // Removed locationMarkers from dependencies to avoid loop
 
   return (
     <div className="dashboard-container">
