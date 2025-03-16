@@ -396,7 +396,7 @@ const Maps = () => {
         mapRef.current.setZoom(10);
       });
       
-      // Add info window
+      // Add info window with custom CSS to hide the close button
       const infoWindow = new window.google.maps.InfoWindow({
         content: `
           <div style="padding: 5px; max-width: 200px;">
@@ -405,6 +405,9 @@ const Maps = () => {
             <div>Longitude: ${location.longitude.toFixed(5)}</div>
             ${location.isFavorite ? '<div style="color: #FFD700; margin-top: 5px;">★ Favorite Location</div>' : ''}
           </div>
+          <style>
+            .gm-ui-hover-effect {display: none !important;}
+          </style>
         `
       });
       

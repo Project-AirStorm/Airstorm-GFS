@@ -849,6 +849,7 @@ const LocationPanel = ({
               content += `<p>${description}</p>`;
             }
             content += '</div>';
+            content += '<style>.gm-ui-hover-effect {display: none !important;}</style>';
             
             infoWindow.setContent(content);
             infoWindow.setPosition(event.latLng);
@@ -1078,8 +1079,9 @@ const LocationPanel = ({
             infoContent += `<div style="margin-top: 8px; font-style: italic; font-size: 12px; color: #666;">${fileDescription}</div>`;
           }
           
-          // Close the div
+          // Close the div and add CSS to hide the close button
           infoContent += '</div>';
+          infoContent += '<style>.gm-ui-hover-effect {display: none !important;}</style>';
           
           // Set info window content and position
           infoWindow.setContent(infoContent);
