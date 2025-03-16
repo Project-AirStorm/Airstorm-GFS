@@ -1,6 +1,7 @@
 // src/config/weatherConfig.js
 
 export const weatherVariables = [
+  { value: 'none', label: 'No Overlay' },
   { value: 'temperature', label: 'Temperature' },
   { value: 'feels_like_temperature', label: 'Feels Like' },
   { value: 'clouds', label: 'Cloud Cover' },
@@ -9,8 +10,6 @@ export const weatherVariables = [
   { value: 'wind_gust', label: 'Wind Gust' },
   { value: 'pressure', label: 'Pressure' },
   { value: 'humidity', label: 'Humidity' },
-  { value: 'wave_height', label: 'Wave Height' },
-  { value: 'wave_period', label: 'Wave Period' },
   { value: 'air_quality', label: 'Air Quality' },
   { value: 'ozone_surface', label: 'Surface Ozone' },
   { value: 'ozone_total', label: 'Total Ozone' },
@@ -19,6 +18,7 @@ export const weatherVariables = [
 ];
 
 export const units = {
+  none: '',
   temperature: '°C',
   feels_like_temperature: '°C',
   clouds: '%',
@@ -27,8 +27,6 @@ export const units = {
   wind_gust: 'm/s',
   pressure: 'hPa',
   humidity: '%',
-  wave_height: 'm',
-  wave_period: 's',
   air_quality: 'Index',
   ozone_surface: 'µg/m³',
   ozone_total: 'Dobson',

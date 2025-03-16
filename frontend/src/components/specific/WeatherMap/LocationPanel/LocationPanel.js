@@ -40,7 +40,7 @@ const LocationPanel = ({
   const [kmlFiles, setKmlFiles] = useState([]);
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef(null);
-  // Load user's KML files with improved error handling and logging
+  // Load user's KML files with improved error handling and synchronization
   const loadKmlFiles = async () => {
     try {
       if (!userId) {
@@ -48,46 +48,98 @@ const LocationPanel = ({
         return;
       }
       
-      // Always check localStorage in dev mode
-      const isLocalDev = window.location.hostname === 'localhost';
-      if (isLocalDev) {
-        loadLocalKmlFiles();
-      }
+      // First, we'll try to load from the backend
+      let backendFiles = [];
+      let backendSuccess = false;
       
-      // And always try the backend
       try {
         console.log(`Loading KML files from backend for user ${userId}...`);
         const response = await axios.get(`${REACT_APP_API_URL}/api/kml-files?userId=${userId}`);
         
         if (response.data && Array.isArray(response.data)) {
           console.log(`Successfully loaded ${response.data.length} KML files from backend`);
-          setKmlFiles(response.data);
+          backendFiles = response.data;
+          backendSuccess = true;
+          
+          // Save these as the source of truth
+          setKmlFiles(backendFiles);
         } else {
           console.warn('Backend returned invalid KML files data:', response.data);
-          
-          // Only fall back to localStorage if backend response is invalid
-          if (!isLocalDev) {
-            loadLocalKmlFiles();
-          }
         }
       } catch (error) {
         console.error('Backend KML loading failed:', error.message);
         
-        // Add more detailed error information
         if (error.response) {
           console.log('Response status:', error.response.status);
           console.log('Response data:', error.response.data);
         } else if (error.request) {
           console.log('No response received from server');
         }
-        
-        // Only fall back to localStorage if not already loaded
-        if (!isLocalDev) {
-          loadLocalKmlFiles();
+      }
+      
+      // Now handle localStorage sync and fall back if needed
+      const isLocalDev = window.location.hostname === 'localhost';
+      
+      if (isLocalDev || !backendSuccess) {
+        try {
+          console.log('Checking localStorage for KML files...');
+          // Get all files in localStorage
+          const localKmlFiles = JSON.parse(localStorage.getItem('kmlFiles') || '[]');
+          
+          if (backendSuccess) {
+            // SYNCHRONIZATION MODE: Backend successfully loaded, so sync localStorage
+            console.log('Synchronizing localStorage with backend data');
+            
+            // Get backend file IDs for comparison
+            const backendFileIds = backendFiles.map(file => file.id.toString());
+            
+            // Filter local storage to remove files that no longer exist in backend
+            const validLocalFiles = localKmlFiles.filter(file => {
+              // Keep only files that exist in backend or are for other users
+              return file.userId !== userId || backendFileIds.includes(file.id.toString());
+            });
+            
+            // If we've removed any files, update localStorage
+            if (validLocalFiles.length !== localKmlFiles.length) {
+              console.log(`Removed ${localKmlFiles.length - validLocalFiles.length} deleted files from localStorage`);
+              localStorage.setItem('kmlFiles', JSON.stringify(validLocalFiles));
+            }
+            
+            // If in dev mode, supplement backend data with local files
+            if (isLocalDev) {
+              // Get user's local files that aren't in the backend list
+              const localOnlyFiles = validLocalFiles.filter(
+                file => file.userId === userId && !backendFileIds.includes(file.id.toString())
+              );
+              
+              if (localOnlyFiles.length > 0) {
+                console.log(`Adding ${localOnlyFiles.length} local-only files to the display list`);
+                setKmlFiles([...backendFiles, ...localOnlyFiles]);
+              }
+            }
+          } else {
+            // FALLBACK MODE: Backend failed, so use localStorage as fallback
+            console.log('Using localStorage as fallback for KML files');
+            const userFiles = localKmlFiles.filter(file => file.userId === userId);
+            setKmlFiles(userFiles);
+          }
+        } catch (localError) {
+          console.error('Error processing localStorage KML files:', localError);
+          
+          // If we have backend files but localStorage failed, still use the backend files
+          if (backendSuccess) {
+            console.log('Using backend files despite localStorage error');
+            setKmlFiles(backendFiles);
+          } else {
+            // Both sources failed, show empty list
+            console.log('Both backend and localStorage failed, showing empty KML file list');
+            setKmlFiles([]);
+          }
         }
       }
     } catch (error) {
       console.error('Error in loadKmlFiles function:', error);
+      setKmlFiles([]);
     }
   };
 
@@ -95,6 +147,47 @@ const LocationPanel = ({
     if (userId && activeTab === 'kml') {
       // Use improved loading function that handles both local and backend data
       console.log('KML tab active - loading KML files');
+      
+      // First, let's do a clean-up of any potentially orphaned localStorage entries
+      const isLocalDev = window.location.hostname === 'localhost';
+      if (isLocalDev) {
+        try {
+          // Get all localStorage entries
+          const localKmlFiles = JSON.parse(localStorage.getItem('kmlFiles') || '[]');
+          
+          // Check if we need to clean up old entries
+          // Simple heuristic - if there are files for this user with lastAccessed older than 30 days
+          const now = new Date();
+          const thirtyDaysAgo = new Date(now.setDate(now.getDate() - 30));
+          
+          // Add a lastAccessed field to track when files were last seen
+          // Keep only files that have been accessed in the last 30 days
+          const cleanedFiles = localKmlFiles.map(file => {
+            // Add lastAccessed if it doesn't exist
+            if (!file.lastAccessed) {
+              file.lastAccessed = new Date().toISOString();
+            }
+            return file;
+          }).filter(file => {
+            // Keep files for other users
+            if (file.userId !== userId) return true;
+            
+            // For this user's files, check the last accessed date
+            const lastAccessed = new Date(file.lastAccessed);
+            return lastAccessed > thirtyDaysAgo;
+          });
+          
+          // If we've removed any files, update localStorage
+          if (cleanedFiles.length !== localKmlFiles.length) {
+            console.log(`Cleaned up ${localKmlFiles.length - cleanedFiles.length} stale KML files from localStorage`);
+            localStorage.setItem('kmlFiles', JSON.stringify(cleanedFiles));
+          }
+        } catch (error) {
+          console.error('Error cleaning up localStorage KML files:', error);
+        }
+      }
+      
+      // Now load files normally
       loadKmlFiles();
     }
   }, [userId, activeTab]);
@@ -267,12 +360,12 @@ const LocationPanel = ({
   };
   
   // Load KML files from local storage for development
+  // This function is now only used during file upload as we've consolidated loading in loadKmlFiles
   const loadLocalKmlFiles = () => {
     try {
-      const localKmlFiles = JSON.parse(localStorage.getItem('kmlFiles') || '[]');
-      // Filter to only show files for the current user
-      const userFiles = localKmlFiles.filter(file => file.userId === userId);
-      setKmlFiles(userFiles);
+      // This will be a full reload from the new source of truth
+      console.log('Reloading KML files after changes');
+      loadKmlFiles();
     } catch (error) {
       console.error('Error loading KML files from local storage:', error);
     }
@@ -438,17 +531,10 @@ const LocationPanel = ({
       // Remove layer if it exists
       removeKmlLayer(fileId);
       
-      // Update local state
-      setKmlFiles(kmlFiles.filter(file => file.id !== fileId));
+      // Update UI immediately for better feedback
+      setKmlFiles(prevFiles => prevFiles.filter(file => file.id.toString() !== fileId.toString()));
       
-      // Delete from localStorage in development
-      try {
-        const localKmlFiles = JSON.parse(localStorage.getItem('kmlFiles') || '[]');
-        const filteredFiles = localKmlFiles.filter(file => file.id !== fileId);
-        localStorage.setItem('kmlFiles', JSON.stringify(filteredFiles));
-      } catch (localStorageError) {
-        console.warn('Could not update localStorage:', localStorageError);
-      }
+      let backendDeleteSuccess = false;
       
       // Try backend delete - improved to work in both development and production
       try {
@@ -459,6 +545,7 @@ const LocationPanel = ({
         
         if (deleteResponse.data && deleteResponse.data.success) {
           console.log(`Successfully deleted KML file ${fileId} from database`);
+          backendDeleteSuccess = true;
         } else {
           console.warn(`Failed to delete KML file ${fileId} from database:`, deleteResponse.data);
         }
@@ -472,6 +559,35 @@ const LocationPanel = ({
           console.log('- User ID:', userId);
           console.log('- File ID:', fileId);
         }
+      }
+      
+      // Always update localStorage regardless of backend success
+      // This ensures localStorage stays in sync even if backend fails
+      try {
+        console.log('Updating localStorage to remove deleted file');
+        const localKmlFiles = JSON.parse(localStorage.getItem('kmlFiles') || '[]');
+        
+        // Remove this specific file
+        const filteredFiles = localKmlFiles.filter(file => {
+          // Don't remove files for other users
+          if (file.userId !== userId) return true;
+          // Remove the exact file that was deleted
+          return file.id.toString() !== fileId.toString();
+        });
+        
+        if (filteredFiles.length !== localKmlFiles.length) {
+          console.log(`Removed file ${fileId} from localStorage`);
+          localStorage.setItem('kmlFiles', JSON.stringify(filteredFiles));
+        }
+      } catch (localStorageError) {
+        console.warn('Could not update localStorage:', localStorageError);
+      }
+      
+      // Refresh the KML files list to ensure it's in sync
+      // This is especially important if backend succeeded but localStorage update failed
+      if (backendDeleteSuccess) {
+        console.log('Refreshing KML file list after successful deletion');
+        setTimeout(() => loadKmlFiles(), 500);
       }
     } catch (error) {
       console.error('Error deleting KML file:', error);
@@ -1457,13 +1573,42 @@ const LocationPanel = ({
                 />
               </div>
 
-              <button
-                onClick={handleUpload}
-                disabled={!selectedFile || isUploading}
-                className="save-button"
-              >
-                {isUploading ? 'Uploading...' : 'Upload KML File'}
-              </button>
+              <div className="kml-buttons-group">
+                <button
+                  onClick={handleUpload}
+                  disabled={!selectedFile || isUploading}
+                  className="save-button"
+                >
+                  {isUploading ? 'Uploading...' : 'Upload KML File'}
+                </button>
+                
+                {/* Hidden button that only appears in development mode to purge orphaned test files */}
+                {window.location.hostname === 'localhost' && (
+                  <button 
+                    onClick={() => {
+                      if (window.confirm('This will purge all KML files saved in your browser. Continue?')) {
+                        try {
+                          // Remove all KML files for this user from localStorage
+                          const localKmlFiles = JSON.parse(localStorage.getItem('kmlFiles') || '[]');
+                          const otherUserFiles = localKmlFiles.filter(file => file.userId !== userId);
+                          localStorage.setItem('kmlFiles', JSON.stringify(otherUserFiles));
+                          
+                          // Refresh the list
+                          loadKmlFiles();
+                          
+                          alert('All local KML files have been purged. Only files stored in the database will be displayed.');
+                        } catch (error) {
+                          console.error('Error purging KML files:', error);
+                          alert('Failed to purge KML files: ' + error.message);
+                        }
+                      }
+                    }}
+                    className="danger-button"
+                  >
+                    Purge Local Files
+                  </button>
+                )}
+              </div>
             </div>
 
             <div className="saved-locations-list">

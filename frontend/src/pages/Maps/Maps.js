@@ -21,11 +21,16 @@ const Maps = () => {
   const mapContainer = useRef(null);
   const mapRef = useRef(null);
   const markerRef = useRef(null);
+  const weatherControlsRef = useRef(null);
+  const locationPanelRef = useRef(null);
+  const timelineSliderRef = useRef(null);
+  const weatherGraphRef = useRef(null);
+  const zoomControlsRef = useRef(null);
   
   const { user } = UserSession();
   
   // State Management
-  const [selectedVariable, setSelectedVariable] = useState('temperature');
+  const [selectedVariable, setSelectedVariable] = useState('none');
   const [timeOffset, setTimeOffset] = useState('now');
   const [isLocationPanelCollapsed, setIsLocationPanelCollapsed] = useState(true);
   const [coordinates, setCoordinates] = useState({ lat: '', lng: '' });
@@ -180,16 +185,19 @@ const Maps = () => {
       visible: false
     });
 
-    const meteosourceOverlay = new window.google.maps.ImageMapType({
-      getTileUrl: (coord, zoom) => {
-        const timeParam = timeOffset === 'now' ? 'now' : timeOffset;
-        return `${REACT_APP_API_URL}/api/meteosource/tile?x=${coord.x}&y=${coord.y}&zoom=${zoom}&variable=${selectedVariable}&datetime=${timeParam}`;
-      },
-      tileSize: new window.google.maps.Size(256, 256),
-      name: 'Weather Data'
-    });
+    // Only add meteosource overlay if a weather variable is selected
+    if (selectedVariable !== 'none') {
+      const meteosourceOverlay = new window.google.maps.ImageMapType({
+        getTileUrl: (coord, zoom) => {
+          const timeParam = timeOffset === 'now' ? 'now' : timeOffset;
+          return `${REACT_APP_API_URL}/api/meteosource/tile?x=${coord.x}&y=${coord.y}&zoom=${zoom}&variable=${selectedVariable}&datetime=${timeParam}`;
+        },
+        tileSize: new window.google.maps.Size(256, 256),
+        name: 'Weather Data'
+      });
 
-    mapInstance.overlayMapTypes.push(meteosourceOverlay);
+      mapInstance.overlayMapTypes.push(meteosourceOverlay);
+    }
     mapRef.current = mapInstance;
     mapInstance.addListener('click', handleMapClick);
     setMapInitialized(true);
@@ -222,18 +230,21 @@ const Maps = () => {
       // Clear existing overlays but maintain click handler
       mapRef.current.overlayMapTypes.clear();
       
-      // Create new overlay with updated parameters
-      const meteosourceOverlay = new window.google.maps.ImageMapType({
-        getTileUrl: (coord, zoom) => {
-          const timeParam = timeOffset === 'now' ? 'now' : timeOffset;
-          return `${REACT_APP_API_URL}/api/meteosource/tile?x=${coord.x}&y=${coord.y}&zoom=${zoom}&variable=${selectedVariable}&datetime=${timeParam}`;
-        },
-        tileSize: new window.google.maps.Size(256, 256),
-        name: 'Weather Data'
-      });
-      
-      // Add new overlay
-      mapRef.current.overlayMapTypes.push(meteosourceOverlay);
+      // Only add MeteoSource overlay if a weather variable is selected
+      if (selectedVariable !== 'none') {
+        // Create new overlay with updated parameters
+        const meteosourceOverlay = new window.google.maps.ImageMapType({
+          getTileUrl: (coord, zoom) => {
+            const timeParam = timeOffset === 'now' ? 'now' : timeOffset;
+            return `${REACT_APP_API_URL}/api/meteosource/tile?x=${coord.x}&y=${coord.y}&zoom=${zoom}&variable=${selectedVariable}&datetime=${timeParam}`;
+          },
+          tileSize: new window.google.maps.Size(256, 256),
+          name: 'Weather Data'
+        });
+        
+        // Add new overlay
+        mapRef.current.overlayMapTypes.push(meteosourceOverlay);
+      }
       
       // Make sure click handler is still attached
       // First remove to prevent duplicates
@@ -246,60 +257,70 @@ const Maps = () => {
     <div className="dashboard-container">
       <div className="main-content">
         <div className="weather-page-container">
-          <WeatherMapControls
-            selectedVariable={selectedVariable}
-            onVariableChange={setSelectedVariable}
-            weatherVariables={weatherVariables}
-            units={units}
-          />
+          <div ref={weatherControlsRef}>
+            <WeatherMapControls
+              selectedVariable={selectedVariable}
+              onVariableChange={setSelectedVariable}
+              weatherVariables={weatherVariables}
+              units={units}
+            />
+          </div>
 
           <div ref={mapContainer} id="map" className="map-container" />
 
-          <LocationPanel
-            isCollapsed={isLocationPanelCollapsed}
-            onToggleCollapse={() => setIsLocationPanelCollapsed(!isLocationPanelCollapsed)}
-            locationName={locationName}
-            onLocationNameChange={setLocationName}
-            coordinates={coordinates}
-            onCoordinateChange={handleCoordinateChange}
-            isFavorite={isFavorite}
-            onToggleFavorite={() => setIsFavorite(!isFavorite)}
-            onSaveLocation={handleSaveLocation}
-            savedLocations={savedLocations}
-            onDeleteLocation={handleDeleteLocation}
-            userId={user?.id}
-            mapRef={mapRef}
-            kmlLayers={kmlLayers}
-            setKmlLayers={setKmlLayers}
-          />
-
-          <div className="weather-graph-container">
-            <WeatherGraph weatherType={selectedVariable} />
+          <div ref={locationPanelRef}>
+            <LocationPanel
+              isCollapsed={isLocationPanelCollapsed}
+              onToggleCollapse={() => setIsLocationPanelCollapsed(!isLocationPanelCollapsed)}
+              locationName={locationName}
+              onLocationNameChange={setLocationName}
+              coordinates={coordinates}
+              onCoordinateChange={handleCoordinateChange}
+              isFavorite={isFavorite}
+              onToggleFavorite={() => setIsFavorite(!isFavorite)}
+              onSaveLocation={handleSaveLocation}
+              savedLocations={savedLocations}
+              onDeleteLocation={handleDeleteLocation}
+              userId={user?.id}
+              mapRef={mapRef}
+              kmlLayers={kmlLayers}
+              setKmlLayers={setKmlLayers}
+            />
           </div>
 
-          <TimelineSlider onTimeChange={handleTimeChange} />
-          <div className="custom-zoom-controls">
-        <button 
-          className="custom-zoom-button" 
-          onClick={() => {
-            if (mapRef.current) {
-              mapRef.current.setZoom(mapRef.current.getZoom() + 1);
-            }
-          }}
-        >
-          +
-        </button>
-        <button 
-          className="custom-zoom-button" 
-          onClick={() => {
-            if (mapRef.current) {
-              mapRef.current.setZoom(mapRef.current.getZoom() - 1);
-            }
-          }}
-        >
-          −
-        </button>
-      </div>
+          {selectedVariable !== 'none' && (
+            <div ref={weatherGraphRef} className="weather-graph-container">
+              <WeatherGraph weatherType={selectedVariable} />
+            </div>
+          )}
+
+          {selectedVariable !== 'none' && (
+            <div ref={timelineSliderRef} className="timeline-slider-wrapper">
+              <TimelineSlider onTimeChange={handleTimeChange} />
+            </div>
+          )}
+          <div ref={zoomControlsRef} className="custom-zoom-controls">
+            <button 
+              className="custom-zoom-button" 
+              onClick={() => {
+                if (mapRef.current) {
+                  mapRef.current.setZoom(mapRef.current.getZoom() + 1);
+                }
+              }}
+            >
+              +
+            </button>
+            <button 
+              className="custom-zoom-button" 
+              onClick={() => {
+                if (mapRef.current) {
+                  mapRef.current.setZoom(mapRef.current.getZoom() - 1);
+                }
+              }}
+            >
+              −
+            </button>
+          </div>
         </div>
       </div>
     </div>
