@@ -98,6 +98,36 @@ const LocationPanel = ({
       loadKmlFiles();
     }
   }, [userId, activeTab]);
+  
+  // Make sure KML files are loaded but not shown by default
+  useEffect(() => {
+    if (userId && kmlFiles.length > 0) {
+      // Reset all files to not active if this is a fresh load (component mount)
+      const updatedFiles = kmlFiles.map(file => ({
+        ...file,
+        isActive: false // Ensure all are inactive by default
+      }));
+      
+      // Only update if there's a change to prevent infinite loop
+      if (JSON.stringify(updatedFiles) !== JSON.stringify(kmlFiles)) {
+        setKmlFiles(updatedFiles);
+        
+        // Also update localStorage if in development mode
+        if (window.location.hostname === 'localhost') {
+          try {
+            const localKmlFiles = JSON.parse(localStorage.getItem('kmlFiles') || '[]');
+            const updatedLocalFiles = localKmlFiles.map(file => ({
+              ...file,
+              isActive: false
+            }));
+            localStorage.setItem('kmlFiles', JSON.stringify(updatedLocalFiles));
+          } catch (error) {
+            console.log('Error updating localStorage KML files:', error);
+          }
+        }
+      }
+    }
+  }, [userId]);
 
   const handleFileChange = (event) => {
     const file = event.target.files[0];
