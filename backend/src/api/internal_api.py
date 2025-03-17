@@ -6,6 +6,7 @@ import io
 import base64
 import zipfile
 from datetime import datetime
+from utils.log_sanitizer import sanitize_log_message
 
 internal_api_bp = Blueprint("internal_api", __name__)
 database_service = DatabaseManager()
@@ -134,29 +135,29 @@ def get_logs():
         if os.path.exists(log_file_path):
             with open(log_file_path, 'r') as file:
                 file_logs = file.readlines()[-1000:]  # Get last 1000 lines
-                logs.extend(file_logs)
-
+                # Double-sanitize each log line as a safety measure
+                logs.extend([sanitize_log_message(line) for line in file_logs])
+        
         # If no file logs, add some basic info
         if not logs:
             logs = [
                 f"{datetime.now().isoformat()} | INFO | Application running",
                 f"{datetime.now().isoformat()} | INFO | No historical logs available",
             ]
-
+        
         # Add current runtime info
-        logs.append(
-            f"{datetime.now().isoformat()} | INFO | Log request successful")
-
+        logs.append(f"{datetime.now().isoformat()} | INFO | Log request successful")
+        
         # Clean up logs
         logs = [line.strip() for line in logs if line.strip()]
-
+        
         return jsonify(logs)
 
     except Exception as e:
-        error_message = str(e)
+        error_message = sanitize_log_message(str(e))
         logging.error(f"Error in get_logs: {error_message}")
-
-        # Return detailed error response
+        
+        # Return detailed error response with sanitized information
         return jsonify({
             "error": "Failed to fetch logs",
             "message": error_message,
@@ -360,3 +361,31 @@ def delete_kml_file(file_id):
     except Exception as e:
         logging.error(f"Error deleting KML file {file_id}: {str(e)}")
         return jsonify({"error": f"Server error: {str(e)}"}), 500
+
+
+@internal_api_bp.route('/api/charts/save', methods=['POST'])
+def save_chart_run():
+    data = request.json
+    user_id = data["user_id"]
+    lat = data["lat"]
+    lon = data["lon"]
+    forecast_days = data["forecast_days"]
+    chart_folder = data["chart_folder"]
+    s3_files = data["s3_files"]
+
+    success = chart_run_manager.save_chart_run(
+        user_id, lat, lon, forecast_days, chart_folder, s3_files
+    )
+    if not success:
+        return jsonify({"error": "Failed to save chart run"}), 500
+    return jsonify({"message": "Chart run saved"}), 200
+
+
+@internal_api_bp.route('/api/charts', methods=['GET'])
+def get_charts_for_user():
+    user_id = request.args.get("user_id")
+    if not user_id:
+        return jsonify({"error": "user_id required"}), 400
+
+    chart_runs = chart_run_manager.get_chart_runs_for_user(user_id)
+    return jsonify(chart_runs)

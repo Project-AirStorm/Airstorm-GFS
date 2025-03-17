@@ -1,4 +1,5 @@
 import logging
+import json
 from db.mysql_connection import get_mysql_connection
 
 
@@ -320,3 +321,115 @@ class DatabaseManager:
             logging.error(f"Error deleting KML file: {e}")
             
         return deleted
+
+    def save_chart_run(self, user_id, lat, lon, forecast_days, chart_folder, s3_files):
+        """
+        Inserts a row into UserCharts, returns the newly inserted chart_id.
+        """
+        try:
+            s3_file_json = json.dumps(s3_files)  # Convert Python list → JSON
+            with get_mysql_connection() as conn:
+                with conn.cursor() as cursor:
+                    sql = """
+                        INSERT INTO UserCharts
+                        (user_id, lat, lon, forecast_days, chart_folder, s3_file_array)
+                        VALUES (%s, %s, %s, %s, %s, %s)
+                    """
+                    cursor.execute(
+                        sql,
+                        (user_id, lat, lon, forecast_days, chart_folder, s3_file_json),
+                    )
+                    # MySQL's lastrowid gives us the newly inserted primary key (chart_id).
+                    new_chart_id = cursor.lastrowid
+                    conn.commit()
+                    return new_chart_id
+        except Exception as e:
+            logging.error(f"Error saving chart run: {e}")
+            return None
+
+    def get_chart_runs_for_user(self, user_id):
+        chart_runs = []
+        try:
+            with get_mysql_connection() as conn:
+                with conn.cursor() as cursor:
+                    cursor.execute(
+                        """
+                        SELECT chart_id, lat, lon, forecast_days, chart_folder, s3_file_array, created_at
+                        FROM UserCharts
+                        WHERE user_id = %s
+                        ORDER BY created_at DESC
+                    """,
+                        (user_id,),
+                    )
+                    rows = cursor.fetchall()
+                    for row in rows:
+                        s3_files = (
+                            json.loads(row["s3_file_array"])
+                            if row["s3_file_array"]
+                            else []
+                        )
+                        chart_runs.append(
+                            {
+                                "chart_id": row["chart_id"],
+                                "lat": row["lat"],
+                                "lon": row["lon"],
+                                "forecast_days": row["forecast_days"],
+                                "chart_folder": row["chart_folder"],
+                                "s3_files": s3_files,
+                                "created_at": row["created_at"],
+                            }
+                        )
+        except Exception as e:
+            logging.error(f"Error fetching chart runs for user {user_id}: {e}")
+        return chart_runs
+
+    def get_chart_run_by_id(self, chart_id):
+        """
+        Returns the single chart run matching this chart_id.
+        """
+        try:
+            with get_mysql_connection() as conn:
+                with conn.cursor() as cursor:
+                    cursor.execute(
+                        """
+                        SELECT chart_id, user_id, lat, lon,
+                            forecast_days, chart_folder,
+                            s3_file_array, created_at
+                        FROM UserCharts
+                        WHERE chart_id = %s
+                    """,
+                        (chart_id,),
+                    )
+                    row = cursor.fetchone()
+                    if row is None:
+                        return None
+                    s3_files = (
+                        json.loads(row["s3_file_array"]) if row["s3_file_array"] else []
+                    )
+                    return {
+                        "chart_id": row["chart_id"],
+                        "user_id": row["user_id"],
+                        "lat": row["lat"],
+                        "lon": row["lon"],
+                        "forecast_days": row["forecast_days"],
+                        "chart_folder": row["chart_folder"],
+                        "s3_files": s3_files,
+                        "created_at": row["created_at"],
+                    }
+        except Exception as e:
+            logging.error(f"Error in get_chart_run_by_id: {e}")
+            return None
+
+    def delete_chart(self, chart_id):
+        """
+        Deletes a row from UserCharts by chart_id.
+        Returns True if a row was deleted, False otherwise.
+        """
+        try:
+            with get_mysql_connection() as conn:
+                with conn.cursor() as cursor:
+                    cursor.execute("DELETE FROM UserCharts WHERE chart_id = %s", (chart_id,))
+                    return cursor.rowcount > 0
+        except Exception as e:
+            logging.error(f"Error deleting chart run {chart_id}: {e}")
+            return False
