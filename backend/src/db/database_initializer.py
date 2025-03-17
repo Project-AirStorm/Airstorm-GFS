@@ -47,6 +47,19 @@ class DatabaseInitializer:
                             last_name VARCHAR(255) NOT NULL
                         ) ENGINE=InnoDB;
                     """)
+                    cursor.execute("""
+                        CREATE TABLE IF NOT EXISTS UserCharts (
+                            chart_id INT AUTO_INCREMENT PRIMARY KEY,
+                            user_id VARCHAR(255) NOT NULL,
+                            lat DOUBLE NOT NULL,
+                            lon DOUBLE NOT NULL,
+                            forecast_days INT NOT NULL,
+                            chart_folder VARCHAR(255),
+                            s3_file_array JSON,
+                            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                            FOREIGN KEY (user_id) REFERENCES Users(user_id)
+                        ) ENGINE=InnoDB;
+                    """)
 
                     # Create Locations table
                     cursor.execute("""
