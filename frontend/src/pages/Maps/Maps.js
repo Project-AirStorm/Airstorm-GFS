@@ -117,6 +117,61 @@ const Maps = () => {
     setCoordinates({ lat: lat.toFixed(4), lng: lng.toFixed(4) });
 
   }, []);
+  
+  // Map right-click handler for context menu
+  const handleMapRightClick = useCallback((e) => {
+    if (!mapRef.current) return;
+    
+    const lat = e.latLng.lat();
+    const lng = e.latLng.lng();
+    
+    // Create context menu div
+    const contextMenu = document.createElement('div');
+    contextMenu.className = 'map-context-menu';
+    contextMenu.innerHTML = `
+      <div class="context-menu-title">Point-Based Products</div>
+      <div class="context-menu-item" id="generate-skewt">Generate SKEW-T Chart</div>
+    `;
+    
+    // Position the menu at click location
+    contextMenu.style.position = 'absolute';
+    contextMenu.style.left = e.pixel.x + 'px';
+    contextMenu.style.top = e.pixel.y + 'px';
+    
+    // Close menu on map click
+    const closeMenu = () => {
+      if (contextMenu.parentNode) {
+        contextMenu.parentNode.removeChild(contextMenu);
+      }
+      
+      // Remove listener after menu is closed
+      if (mapRef.current) {
+        window.google.maps.event.removeListener(mapClickListener);
+      }
+    };
+    
+    // Add the menu to the map container
+    mapContainer.current.appendChild(contextMenu);
+    
+    // Add click event to "Generate SKEW-T Chart" option
+    document.getElementById('generate-skewt').addEventListener('click', () => {
+      // Open the chart generation page with coordinates
+      window.open(
+        `/charts?lat=${lat.toFixed(4)}&lon=${lng.toFixed(4)}`,
+        '_blank'
+      );
+      closeMenu();
+    });
+    
+    // Close menu when clicking elsewhere on the map
+    const mapClickListener = mapRef.current.addListener('click', closeMenu);
+    
+    // Also close menu when clicking anywhere else on the page
+    setTimeout(() => {
+      document.addEventListener('click', closeMenu, { once: true });
+    }, 0);
+    
+  }, []);
 
   // Declare function references first to avoid initialization order problems
   const initializeMapRef = useRef(null);
@@ -196,6 +251,7 @@ const Maps = () => {
       
       mapRef.current = mapInstance;
       mapInstance.addListener('click', handleMapClick);
+      mapInstance.addListener('rightclick', handleMapRightClick);
       setMapInitialized(true);
       
       // Load saved locations once map is initialized
@@ -208,7 +264,7 @@ const Maps = () => {
     } catch (error) {
       console.error('Error in map initialization:', error);
     }
-  }, [selectedVariable, timeOffset, handleMapClick]);
+  }, [selectedVariable, timeOffset, handleMapClick, handleMapRightClick]);
   
   // Store reference
   initializeMapRef.current = initializeMap;
@@ -335,12 +391,14 @@ const Maps = () => {
         mapRef.current.overlayMapTypes.push(meteosourceOverlay);
       }
       
-      // Make sure click handler is still attached
+      // Make sure click handlers are still attached
       // First remove to prevent duplicates
       window.google.maps.event.clearListeners(mapRef.current, 'click');
+      window.google.maps.event.clearListeners(mapRef.current, 'rightclick');
       mapRef.current.addListener('click', handleMapClick);
+      mapRef.current.addListener('rightclick', handleMapRightClick);
     }
-  }, [selectedVariable, timeOffset, handleMapClick]);
+  }, [selectedVariable, timeOffset, handleMapClick, handleMapRightClick]);
   
   // Load saved locations when user changes
   useEffect(() => {

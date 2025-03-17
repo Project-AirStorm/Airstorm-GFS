@@ -293,3 +293,31 @@
   color: rgb(239 68 68);
   z-index: 1100;
 }
+
+/* Context Menu styling */
+.map-context-menu {
+  background-color: rgba(0, 0, 0, 0.85);
+  border-radius: 0.5rem;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+  color: white;
+  min-width: 200px;
+  z-index: 2000;
+  overflow: hidden;
+}
+
+.context-menu-title {
+  padding: 10px 15px;
+  font-weight: bold;
+  background-color: rgba(255, 255, 255, 0.1);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.context-menu-item {
+  padding: 10px 15px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.context-menu-item:hover {
+  background-color: rgba(255, 255, 255, 0.2);
+}
