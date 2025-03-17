@@ -130,9 +130,9 @@ const Charts = () => {
               onChange={(e) => setForecastDays(Number(e.target.value))}
             >
               <option value={1}>1 Day</option>
-              <option value={3}>3 Days</option>
-              <option value={7}>7 Days</option>
-              <option value={16}>16 Days</option>
+              <option value={3} disabled>3 Days</option>
+              <option value={7} disabled>7 Days</option>
+              <option value={16} disabled>16 Days</option>
             </select>
           </div>
           <button
