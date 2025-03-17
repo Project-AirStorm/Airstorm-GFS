@@ -13,6 +13,7 @@ from retry_requests import retry
 from functools import lru_cache
 from datetime import datetime, timedelta
 from threading import Lock
+from middleware.api_key_protection import protect_api_keys
 
 external_api_bp = Blueprint("external_api", __name__)
 
@@ -33,8 +34,62 @@ openmeteo = openmeteo_requests.Client(session=retry_session)
 # ====== Meteosource Tile API ======
 
 
+
 @external_api_bp.route('/api/meteosource/tile')
+@protect_api_keys
 def meteosource_tile():
+    try:
+        variable = request.args.get('variable', 'temperature')
+        valid_variables = [
+            "temperature", "feels_like_temperature", "clouds", "precipitation",
+            "wind_speed", "wind_gust", "pressure", "humidity", "wave_height",
+            "wave_period", "air_quality", "ozone_surface", "ozone_total",
+            "no2", "pm2.5"
+        ]
+        tile_x = request.args.get('x')
+        tile_y = request.args.get('y')
+        tile_zoom = request.args.get('zoom')
+        datetime_param = request.args.get('datetime', '+1hour')
+
+        if variable not in valid_variables:
+            variable = 'temperature'
+
+        api_key = os.getenv('BACKEND_METEOSOURCE_API_KEY')
+        if not api_key:
+            logger.error("Meteosource API key not configured")
+            return jsonify({"error": "Service configuration error"}), 500
+
+        url = (
+            f"https://www.meteosource.com/api/v1/standard/map?"
+            f"key={api_key}&tile_x={tile_x}"
+            f"&tile_y={tile_y}&tile_zoom={tile_zoom}"
+            f"&datetime={datetime_param}&variable={variable}"
+        )
+
+        response = requests.get(url)
+        response.raise_for_status()
+
+        headers = {'Content-Type': response.headers.get('Content-Type', '')}
+        expires = response.headers.get('Expires')
+
+        if expires:
+            try:
+                expires_dt = parsedate_to_datetime(expires)
+                now = datetime.now(expires_dt.tzinfo)
+                max_age = max(int((expires_dt - now).total_seconds()), 0)
+                headers['Cache-Control'] = f'public, max-age={max_age}'
+                headers['Expires'] = expires
+            except Exception as e:
+                logger.error(f"Error processing Expires header: {str(e)}")
+                headers['Cache-Control'] = 'public, max-age=3600'
+        else:
+            headers['Cache-Control'] = 'public, max-age=3600'
+
+        return Response(response.content, headers=headers)
+
+    except Exception as e:
+        # This will be handled by protect_api_keys decorator
+        raise
     try:
         variable = request.args.get('variable', 'temperature')
         valid_variables = [
@@ -93,6 +148,7 @@ def meteosource_tile():
 
 
 @external_api_bp.route("/api/geocode", methods=["GET"])
+@protect_api_keys
 def get_location_info():
     try:
         lat = request.args.get("lat", type=float)
@@ -207,6 +263,7 @@ def get_location_info():
 
 
 @external_api_bp.route('/api/places/autocomplete', methods=['GET'])
+@protect_api_keys
 def places_autocomplete():
     try:
         input_text = request.args.get('input')
@@ -239,6 +296,7 @@ def places_autocomplete():
 
 
 @external_api_bp.route('/api/places/details', methods=['GET'])
+@protect_api_keys
 def place_details():
     try:
         place_id = request.args.get('placeId')
@@ -283,6 +341,7 @@ def google_maps_init():
 
 # ====== Open-Meteo Weather API ======
 @external_api_bp.route("/api/weather", methods=["GET"])
+@protect_api_keys
 def get_weather():
     # Load API key and verify it exists
     api_key = os.getenv('BACKEND_OPENMETEO_API_KEY')
@@ -751,3 +810,5 @@ def get_alerts():
     except Exception as e:
         logger.error(f"Unexpected error in alerts endpoint: {str(e)}")
         return jsonify({"error": "Internal server error"}), 500
+    
+    

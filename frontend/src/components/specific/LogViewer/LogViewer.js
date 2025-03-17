@@ -2,7 +2,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { Badge } from "@/components/ui/badge";
-import { LogEntryComponent } from "../../../../src/utils/LogEntry";
+import { LogEntryComponent, sanitizeLogMessage } from "../../../utils/LogEntry";
 
 const LogViewer = ({ logs }) => (
   <div className="space-y-1">
@@ -11,8 +11,12 @@ const LogViewer = ({ logs }) => (
         No logs to display
       </div>
     ) : (
+      // Extra sanitization before displaying logs
       logs.map((log, index) => (
-        <LogEntryComponent key={`log-${index}`} logLine={log} />
+        <LogEntryComponent 
+          key={`log-${index}`} 
+          logLine={sanitizeLogMessage(log)} 
+        />
       ))
     )}
   </div>

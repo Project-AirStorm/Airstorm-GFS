@@ -45,7 +45,7 @@ export function UserSession() {
           });
         })
         .then((chatResponse) => {
-          console.log('User created in StreamChat:', chatResponse.data);
+          //console.log('User created in StreamChat:', chatResponse.data);
           setIsSynced(true); // Mark sync as complete
         })
         .catch((error) => {
