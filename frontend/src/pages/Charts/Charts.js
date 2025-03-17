@@ -3,6 +3,8 @@ import { Plus, Trash } from 'lucide-react';
 import './Charts.css';
 import { UserSession } from '../../utils/UserSession';
 
+const REACT_APP_API_URL = process.env.REACT_APP_API_URL;
+
 const chartTypes = [
   { id: 'skewt', label: 'Skew-T' },
   { id: 'meteogram', label: 'Meteogram' },
@@ -33,7 +35,7 @@ const Charts = () => {
         user_id: user.id,
       };
 
-      const res = await fetch('http://localhost:5001/api/charts/generate', {
+      const res = await fetch(`${REACT_APP_API_URL}/api/charts/generate`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
@@ -57,7 +59,7 @@ const Charts = () => {
   const loadPastCharts = async () => {
     try {
       setError('');
-      const res = await fetch(`http://localhost:5001/api/get-charts?user_id=${user.id}`);
+      const res = await fetch(`${REACT_APP_API_URL}/api/get-charts?user_id=${user.id}`);
       if (!res.ok) {
         throw new Error(`Fetch chart runs failed: ${res.statusText}`);
       }
@@ -82,7 +84,7 @@ const Charts = () => {
   // (D) Delete a chart run both from the database and from local state
   const handleDeleteChart = async (chartId) => {
     try {
-      const res = await fetch(`http://localhost:5001/api/charts/delete?chart_id=${chartId}`, {
+      const res = await fetch(`${REACT_APP_API_URL}/api/charts/delete?chart_id=${chartId}`, {
         method: 'DELETE'
       });
       if (!res.ok) {
