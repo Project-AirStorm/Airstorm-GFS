@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, Trash } from 'lucide-react';
+import { useLocation } from 'react-router-dom';
 import './Charts.css';
 import { UserSession } from '../../utils/UserSession';
 
@@ -20,8 +21,19 @@ const Charts = () => {
   const [error, setError] = useState('');
   // chartRuns holds past chart runs from the database
   const [chartRuns, setChartRuns] = useState([]);
-
+  
+  const location = useLocation();
   const { user } = UserSession(); // e.g., user.id = "user_2sirXuIdmQh7eiB3GwHxZlcQYbI"
+  
+  // Check for coordinates in URL parameters
+  useEffect(() => {
+    const queryParams = new URLSearchParams(location.search);
+    const latParam = queryParams.get('lat');
+    const lonParam = queryParams.get('lon');
+    
+    if (latParam) setLat(latParam);
+    if (lonParam) setLon(lonParam);
+  }, [location]);
 
   // (A) Generate a new chart run
   const handleGenerateChart = async () => {
@@ -130,9 +142,9 @@ const Charts = () => {
               onChange={(e) => setForecastDays(Number(e.target.value))}
             >
               <option value={1}>1 Day</option>
-              <option value={3}>3 Days</option>
-              <option value={7}>7 Days</option>
-              <option value={16}>16 Days</option>
+              <option value={3} disabled>3 Days</option>
+              <option value={7} disabled>7 Days</option>
+              <option value={16} disabled>16 Days</option>
             </select>
           </div>
           <button
