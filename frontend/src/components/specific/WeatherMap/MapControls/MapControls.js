@@ -12,7 +12,7 @@ const WeatherMapControls = ({ selectedVariable, onVariableChange, weatherVariabl
       >
         {weatherVariables.map((option) => (
           <option key={option.value} value={option.value}>
-            {option.label} ({units[option.value]})
+            {option.label} {units[option.value] ? `(${units[option.value]})` : ''}
           </option>
         ))}
       </select>

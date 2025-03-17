@@ -105,10 +105,10 @@ const NewChatModal = ({
             .toString(CryptoJS.enc.Hex)
             .substring(0, 64);
 
-      // Prepare channel name
+      // Prepare channel name - for direct messages, it should be the current user's name for the other person
       const channelName = isGroupChat
         ? generateGroupName(selectedUsers)
-        : selectedUsers[0].name;
+        : `${currentUser.firstName} ${currentUser.lastName}`;
 
       // Create a new channel or get existing one
       const channel = chatClient.channel(
