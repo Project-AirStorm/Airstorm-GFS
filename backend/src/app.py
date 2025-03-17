@@ -31,34 +31,34 @@ logging.basicConfig(
     datefmt='%Y-%m-%d %H:%M:%S'
 )
 
-# Create logs directory if it doesn't exist
-# if not os.path.exists('logs'):
-#     os.makedirs('logs')
+#Create logs directory if it doesn't exist
+if not os.path.exists('logs'):
+    os.makedirs('logs')
 
-# # Add file handler
-# file_handler = RotatingFileHandler(
-#     'logs/app.log',
-#     maxBytes=1024 * 1024,  # 1MB
-#     backupCount=10
-# )
-# file_handler.setFormatter(logging.Formatter(
-#     '%(asctime)s | %(name)s | %(levelname)s | %(message)s'
-# ))
-# file_handler.setLevel(logging.INFO)
+# Add file handler
+file_handler = RotatingFileHandler(
+    'logs/app.log',
+    maxBytes=1024 * 1024,  # 1MB
+    backupCount=10
+)
+file_handler.setFormatter(logging.Formatter(
+    '%(asctime)s | %(name)s | %(levelname)s | %(message)s'
+))
+file_handler.setLevel(logging.INFO)
 
-# # Create sensitive data filter
-# sensitive_filter = SensitiveDataFilter()
-# file_handler.addFilter(sensitive_filter)
+# Create sensitive data filter
+sensitive_filter = SensitiveDataFilter()
+file_handler.addFilter(sensitive_filter)
 
-# # Add the handler to the root logger
-# root_logger = logging.getLogger('')
-# root_logger.addHandler(file_handler)
-# root_logger.addFilter(sensitive_filter)
+# Add the handler to the root logger
+root_logger = logging.getLogger('')
+root_logger.addHandler(file_handler)
+root_logger.addFilter(sensitive_filter)
 
-# # Specifically configure werkzeug logger
-# werkzeug_logger = logging.getLogger('werkzeug')
-# werkzeug_logger.addHandler(file_handler)
-# werkzeug_logger.addFilter(sensitive_filter)
+# Specifically configure werkzeug logger
+werkzeug_logger = logging.getLogger('werkzeug')
+werkzeug_logger.addHandler(file_handler)
+werkzeug_logger.addFilter(sensitive_filter)
 
 # Set watchdog to ERROR level to reduce noise
 logging.getLogger("watchdog").setLevel(logging.ERROR)
