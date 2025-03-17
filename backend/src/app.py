@@ -10,6 +10,8 @@ from db.database_initializer import DatabaseInitializer
 from api.external_api import external_api_bp
 from api.internal_api import internal_api_bp
 from api.chat_api import chat_api_bp
+from api.chart_api import charts_api_bp
+
 # Import the log filter
 from utils.log_filter import SensitiveDataFilter
 
@@ -19,8 +21,9 @@ load_dotenv()
 # Initialize Flask app
 app = Flask(__name__)
 
-# Configure CORS properly
-CORS(app, resources={r"/api/*": {"origins": "http://localhost:3000"}})
+# Configure CORS properly - allow all origins for KML files to work with Google Maps
+# It's crucial that Google's servers can access our KML files
+CORS(app, resources={r"/api/*": {"origins": "*", "supports_credentials": False}})
 
 # Configure logging
 logging.basicConfig(
@@ -29,7 +32,7 @@ logging.basicConfig(
     datefmt='%Y-%m-%d %H:%M:%S'
 )
 
-# Create logs directory if it doesn't exist
+#Create logs directory if it doesn't exist
 if not os.path.exists('logs'):
     os.makedirs('logs')
 
@@ -68,8 +71,9 @@ logger = logging.getLogger(__name__)
 app.register_blueprint(external_api_bp)
 app.register_blueprint(internal_api_bp)
 app.register_blueprint(chat_api_bp)
+app.register_blueprint(charts_api_bp)
 
-# Creates the datbase
+# Creates the database
 db_initializer = DatabaseInitializer()
 
 if __name__ == "__main__":

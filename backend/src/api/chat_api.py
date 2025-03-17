@@ -23,7 +23,6 @@ stream_client = StreamChat(
     api_secret=os.getenv('STREAM_API_SECRET')
 )
 
-
 @chat_api_bp.route("/api/chat/token", methods=["GET"])
 def get_chat_token():
     """Generate a Stream Chat token for the user"""
