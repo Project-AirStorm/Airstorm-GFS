@@ -70,6 +70,7 @@ class DatabaseInitializer:
                             longitude DOUBLE NOT NULL,
                             location VARCHAR(255) NOT NULL,
                             is_favorite TINYINT DEFAULT 0,
+                            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                             FOREIGN KEY (user_id) REFERENCES Users(user_id)
                         ) ENGINE=InnoDB;
                     """)

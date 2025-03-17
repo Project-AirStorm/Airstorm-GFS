@@ -10,6 +10,8 @@ from utils.log_sanitizer import sanitize_log_message
 
 internal_api_bp = Blueprint("internal_api", __name__)
 database_service = DatabaseManager()
+# Use database_service for chart functionality
+chart_run_manager = database_service
 
 
 @internal_api_bp.route("/api/save-user", methods=["POST"])
