@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { UserButton } from '@clerk/clerk-react';
 import PropTypes from 'prop-types';
@@ -17,11 +17,14 @@ import {
   AreaChart,
   Aperture,
 } from 'lucide-react';
-import profilePic from '../../../assets/sample-profile-pic.jpeg';
 import afgscLogo from '../../../assets/afgsc-logo.png';
 import './Sidebar.css';
 import { useClerk } from '@clerk/clerk-react';
 import { UserSession } from '../../../utils/UserSession';
+import axios from 'axios';
+
+// Declare URL for Flask API
+const REACT_APP_API_URL = process.env.REACT_APP_API_URL;
 
 /**
  * NavItem component for sidebar navigation
@@ -38,7 +41,7 @@ const NavItem = ({ icon, label, badge, isActive, onClick }) => (
       {icon}
       <span className="text-sm font-semibold">{label}</span>
     </div>
-    {badge && (
+    {badge && badge !== '0' && (
       <span className="px-2 py-1 bg-red-500 text-white text-xs rounded">
         {badge}
       </span>
@@ -60,8 +63,55 @@ NavItem.propTypes = {
 const Sidebar = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { signOut } = useClerk();  // Add this line to get signOut function
+  const { signOut } = useClerk(); // Add this line to get signOut function
   const { user } = UserSession();
+  const [alertCount, setAlertCount] = useState('0');
+
+  // Set up event listener for alert count updates
+  useEffect(() => {
+    // Moved function inside useEffect
+    const fetchInitialAlertCount = async () => {
+      try {
+        const response = await axios.get(
+          `${REACT_APP_API_URL}/api/external/alerts?userId=${user.id}`
+        );
+
+        // First get favorite locations
+        const locResponse = await axios.get(
+          `${REACT_APP_API_URL}/api/locations?userId=${user.id}`
+        );
+        const favorites = locResponse.data.filter(
+          (location) => location.isFavorite
+        );
+
+        // Filter alerts for favorite locations
+        const favoriteAlerts = response.data.alerts.filter((alert) =>
+          favorites.some(
+            (loc) =>
+              loc.latitude === alert.latitude &&
+              loc.longitude === alert.longitude
+          )
+        );
+
+        setAlertCount(favoriteAlerts.length.toString());
+      } catch (error) {
+        console.error('Error fetching initial alert count:', error);
+        setAlertCount('0');
+      }
+    };
+
+    fetchInitialAlertCount();
+
+    const handleAlertCountUpdate = (event) => {
+      setAlertCount(event.detail.toString());
+    };
+
+    window.addEventListener('alertCountUpdated', handleAlertCountUpdate);
+
+    return () => {
+      window.removeEventListener('alertCountUpdated', handleAlertCountUpdate);
+    };
+  }, [user.id]);
 
   // Update the logout handler
   const handleLogout = async () => {
@@ -90,7 +140,7 @@ const Sidebar = () => {
       icon: <Bell className="w-4 h-4" />,
       label: 'Alerts',
       page: '/alerts',
-      badge: '4',
+      badge: alertCount,
     },
     {
       icon: <AreaChart className="w-4 h-4" />,
@@ -102,7 +152,7 @@ const Sidebar = () => {
       label: 'Charts',
       page: '/charts',
     },
-    
+
     {
       icon: <MessageCircle className="w-4 h-4" />,
       label: 'Chat',
@@ -139,8 +189,8 @@ const Sidebar = () => {
               className="w-8 h-8 object-contain"
             />
             <div>
-              <h1 className="text-lg font-bold text-gray-800">Airstorm</h1>
-              <p className="text-xs text-gray-500">Admin Panel</p>
+              <h1 className="text-lg font-bold text-gray-800">Heimdall</h1>
+              <p className="text-xs text-gray-500">Project Airstorm</p>
             </div>
           </div>
           <Menu className="w-5 h-5 text-gray-500" />
@@ -155,12 +205,15 @@ const Sidebar = () => {
           <div>
             <p className="text-sm font-semibold text-gray-800">
               {
-               // Uppercases the first letter of the each name
-               user.firstName.charAt(0).toUpperCase() + user.firstName.slice(1) + " " +
-               user.lastName.charAt(0).toUpperCase() + user.lastName.slice(1)
+                // Uppercases the first letter of the each name
+                user.firstName.charAt(0).toUpperCase() +
+                  user.firstName.slice(1) +
+                  ' ' +
+                  user.lastName.charAt(0).toUpperCase() +
+                  user.lastName.slice(1)
               }
             </p>
-            <p className="text-xs text-gray-500">Flight Chief</p>
+            <p className="text-xs text-gray-500">User</p>
           </div>
         </div>
       </div>
