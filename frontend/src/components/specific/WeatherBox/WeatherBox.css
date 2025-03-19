@@ -4,14 +4,15 @@
     color: rgb(0, 0, 0);
     display: flex;
     flex-direction: row;
-    background-color: aqua;
+    background-color: rgb(204, 204, 204);
     width:100%;
     margin: 0.5rem 0; /* Add some vertical spacing */
+    align-items: center;
   }
 
   .dayOfWeek{
     display: block;
-    padding: 10px;
+    padding: 15px;
     font-size: 24px;
     font-weight: 600;
     text-align: center;
@@ -22,8 +23,16 @@
     font-weight: 600;
   }
 
+  .weatherIcon{
+    display: flex;
+    size: 40;
+    padding: 15px;
+    align-items: center;
+    justify-content: center;
+  }
+
   .tempFormatting{
-    padding: 10px;
+    padding: 15px;
     font-size: 24px;
     font-weight: 600;
     color: black;

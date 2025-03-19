@@ -8,7 +8,6 @@ import {
   IoStarSharp,
 } from 'react-icons/io5';
 import {
-  TiWeatherCloudy,
   TiWeatherDownpour,
   TiWeatherPartlySunny,
   TiWeatherSnow,
@@ -56,60 +55,46 @@ const WeatherBox = ({
           );
 
           function calculateIcon(code){
-            var iconName='';
-            switch(code){
-              case 0:
-                iconName='TiWeatherSunny'
-              break;
-
-              case 1,2,3:
-                iconName='TiWeatherPartlySunny'
-                break;
-
-              case 45,48:
-                iconName='LuCloudFog'
-                break;
-              
-              case 51,53,55:
-                iconName='RiDrizzleLine'
-                break;
-              
-              case 56,57:
-                iconName='TiWeatherSnow'
-                break;
-
-              case 61,63,65:
-                iconName='TiWeatherDownpour'
-                break;
-
-              case 66, 67:
-                iconName='TiWeatherSnow'
-                break;
-
-              case 71,73,75:
-                iconName='TiWeatherSnow'
-                break;
-              
-              case 77:
-                iconName='TiWeatherSnow'
-                break;
-
-              case 80,81,82:
-                iconName='TiWeatherDownpour'
-                break;
-
-              case 85, 86:
-                iconName='TiWeatherSnow'
-                break;
-
-              case 95:
-                iconName='TiWeatherStormy'
-                break;
-
-              case 96,99:
-                iconName='RiHailLine'
-                break;
+            if(code===0){
+              return <TiWeatherSunny size={40} />;
             }
+            else if (code ===1 || code===2 || code=== 3){
+              return <TiWeatherPartlySunny size={40}/>
+            }
+            else if (code ===45 || code===48){
+              return <LuCloudFog size={40}/>
+            }
+            else if (code ===51 || code===53 || code=== 55){
+              return <RiDrizzleLine size={40}/>
+            }
+            else if (code ===56 || code===57){
+              return <TiWeatherSnow size={40}/>
+            }
+            else if (code ===61 || code===63 || code=== 65){
+              return <TiWeatherDownpour size={40}/>
+            }
+            else if (code ===66 || code===67){
+              return <TiWeatherSnow size={40}/>
+            }
+            else if (code ===71 || code===73 || code===75){
+              return <TiWeatherSnow size={40}/>
+            }
+            else if (code ===77){
+              return <TiWeatherSnow size={40}/>
+            }
+            else if (code ===80 || code===81 || code===82){
+              return <TiWeatherDownpour size={40}/>
+            }
+            else if (code ===85|| code===86){
+              return <TiWeatherSnow size={40}/>
+            }
+            else if (code ===95){
+              return <TiWeatherStormy size={40}/>
+            }
+            else if (code=== 96||code===99){
+              return <RiHailLine size={40}/>
+            }
+
           }
 
           const dailyData = response.data.daily.time.map((time, index) => ({
