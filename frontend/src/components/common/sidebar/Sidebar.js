@@ -189,7 +189,7 @@ const Sidebar = () => {
               className="w-8 h-8 object-contain"
             />
             <div>
-              <h1 className="text-lg font-bold text-gray-800">Hiemdall</h1>
+              <h1 className="text-lg font-bold text-gray-800">Heimdall</h1>
               <p className="text-xs text-gray-500">Project Airstorm</p>
             </div>
           </div>
