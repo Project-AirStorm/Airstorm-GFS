@@ -392,9 +392,7 @@ ${alert.instruction ? `Instructions: ${alert.instruction}` : ''}
                 className="filter-select flex-1"
               >
                 <option value="all">
-                  {showFavoritesOnly
-                    ? 'All Favorited Locations'
-                    : 'All Locations'}
+                  {showFavoritesOnly ? 'Favorited Locations' : 'All Locations'}
                 </option>
                 {locations.map((location) => (
                   <option key={location} value={location}>
