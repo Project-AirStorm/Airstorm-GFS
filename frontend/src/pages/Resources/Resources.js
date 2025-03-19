@@ -24,12 +24,30 @@ const Resources = ({ setCurrentPage }) => {
       category: 'Satellite Imagery',
     },
     {
+      id: 'aviation-weather',
+      title: 'Aviation Weather Center',
+      description:
+        'Official NOAA Aviation Weather Center providing satellite imagery, forecasts, and aviation-specific weather data.',
+      url: 'https://aviationweather.gov/',
+      source: 'NOAA',
+      category: 'Satellite Imagery',
+    },
+    {
       id: 'goes-east',
       title: 'GOES-East CONUS Viewer',
       description:
         'NOAA GOES-East satellite imagery for the Continental United States, offering various visualization bands and options.',
       url: 'https://www.star.nesdis.noaa.gov/GOES/conus.php?sat=G16',
       source: 'NOAA/NESDIS/STAR',
+      category: 'Satellite Imagery',
+    },
+    {
+      id: 'turbli',
+      title: 'Turbli',
+      description:
+        'Aviation weather service providing turbulence forecasts and satellite imagery for flight planning and weather analysis.',
+      url: 'https://turbli.com/',
+      source: 'Turbli',
       category: 'Satellite Imagery',
     },
     {
