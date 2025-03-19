@@ -8,11 +8,11 @@ jobs:
   send-confirmation-email:
     runs-on: ubuntu-latest
     if: contains(github.event.issue.labels.*.name, 'user-feedback')
-    
+
     permissions:
       issues: read
       contents: read
-    
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -33,18 +33,18 @@ jobs:
             const nameMatch = issueBody.match(/\*\*Name:\*\* ([^\n]+)/);
             const emailMatch = issueBody.match(/\*\*Email:\*\* ([^\n]+)/);
             const feedbackMatch = issueBody.match(/### Feedback Details\n([\s\S]+)$/);
-            
+
             const name = nameMatch ? nameMatch[1].trim() : 'User';
             const email = emailMatch ? emailMatch[1].trim() : '';
             const feedbackDetails = feedbackMatch ? feedbackMatch[1].trim() : issueBody;
-            
+
             const date = new Date().toLocaleDateString('en-US', {
               weekday: 'long',
               year: 'numeric',
               month: 'long',
               day: 'numeric'
             });
-            
+
             core.setOutput('recipient_email', email);
             core.setOutput('recipient_name', name);
             core.setOutput('issue_title', context.payload.issue.title);
@@ -59,21 +59,21 @@ jobs:
             echo "Error: Template file not found"
             exit 1
           fi
-          
+
           template=$(cat ".github/email-templates/external-feedback-open.html")
-          
+
           # Replace template variables with proper escaping
           email_content="${template//\{\{name\}\}/${{ steps.extract-metadata.outputs.recipient_name }}}"
           email_content="${email_content//\{\{issue_number\}\}/${{ steps.extract-metadata.outputs.issue_number }}}"
           email_content="${email_content//\{\{issue_title\}\}/${{ steps.extract-metadata.outputs.issue_title }}}"
           email_content="${email_content//\{\{submission_date\}\}/${{ steps.extract-metadata.outputs.submission_date }}}"
           email_content="${email_content//\{\{feedback_details\}\}/${{ steps.extract-metadata.outputs.feedback_details }}}"
-          
+
           # Create JSON message file with proper escaping
           cat > message.json << EOF
           {
             "Subject": {
-              "Data": "[Project AirStorm Support] ${{ steps.extract-metadata.outputs.issue_title }} [Issue: #${{ steps.extract-metadata.outputs.issue_number }}]",
+              "Data": "[Project Airstorm Support] ${{ steps.extract-metadata.outputs.issue_title }} [Issue: #${{ steps.extract-metadata.outputs.issue_number }}]",
               "Charset": "UTF-8"
             },
             "Body": {
