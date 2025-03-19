@@ -1,4 +1,5 @@
 import React from 'react';
+import { useState } from 'react';
 import PropTypes from 'prop-types';
 import axios from 'axios';
 import {
@@ -17,6 +18,8 @@ import {
 import { LuCloudFog } from "react-icons/lu";
 import { RiDrizzleLine } from "react-icons/ri";
 import { RiHailLine } from "react-icons/ri";
+import { FaChevronUp } from "react-icons/fa";
+import { FaChevronDown } from "react-icons/fa";
 import './WeatherBox.css';
 
 const REACT_APP_API_URL = process.env.REACT_APP_API_URL;
@@ -56,43 +59,43 @@ const WeatherBox = ({
 
           function calculateIcon(code){
             if(code===0){
-              return <TiWeatherSunny size={40} />;
+              return <TiWeatherSunny size={50} />;
             }
             else if (code ===1 || code===2 || code=== 3){
-              return <TiWeatherPartlySunny size={40}/>
+              return <TiWeatherPartlySunny size={50}/>
             }
             else if (code ===45 || code===48){
-              return <LuCloudFog size={40}/>
+              return <LuCloudFog size={50}/>
             }
             else if (code ===51 || code===53 || code=== 55){
-              return <RiDrizzleLine size={40}/>
+              return <RiDrizzleLine size={50}/>
             }
             else if (code ===56 || code===57){
-              return <TiWeatherSnow size={40}/>
+              return <TiWeatherSnow size={50}/>
             }
             else if (code ===61 || code===63 || code=== 65){
-              return <TiWeatherDownpour size={40}/>
+              return <TiWeatherDownpour size={50}/>
             }
             else if (code ===66 || code===67){
-              return <TiWeatherSnow size={40}/>
+              return <TiWeatherSnow size={50}/>
             }
             else if (code ===71 || code===73 || code===75){
-              return <TiWeatherSnow size={40}/>
+              return <TiWeatherSnow size={50}/>
             }
             else if (code ===77){
-              return <TiWeatherSnow size={40}/>
+              return <TiWeatherSnow size={50}/>
             }
             else if (code ===80 || code===81 || code===82){
-              return <TiWeatherDownpour size={40}/>
+              return <TiWeatherDownpour size={50}/>
             }
             else if (code ===85|| code===86){
-              return <TiWeatherSnow size={40}/>
+              return <TiWeatherSnow size={50}/>
             }
             else if (code ===95){
-              return <TiWeatherStormy size={40}/>
+              return <TiWeatherStormy size={50}/>
             }
             else if (code=== 96||code===99){
-              return <RiHailLine size={40}/>
+              return <RiHailLine size={50}/>
             }
 
           }
@@ -125,14 +128,29 @@ const WeatherBox = ({
         fetchWeatherData();
       }, [latitude, longitude]); // Dependencies array includes latitude and longitude
 
+      const WeatherExtend = () => {
+        const [isOpen, setOpen] = useState(false);
+
+        const handleClick = () => {
+          setOpen(!isOpen);
+      };
+
+      const hiddenComponent = () =>{
+        return (      
+          <div className="bg-white border border-gray-200 rounded-lg shadow-lg p-6 w-full max-w-md">
+            <h3 className="text-lg font-semibold text-gray-800 mb-3">Hidden Content</h3>
+          </div>
+        )
+
+      };
+
       return (
         <div className="weather-boxes-container">
           {forecastData && forecastData.map((day, index) => (
             <div className='weather-box' key={index} role="region">
                 {
-                  //placeholder date
                   <div className='dayOfWeek'>{day.dayOfWeek}
-                  <div className= 'date'>{day.date}</div>             
+                    <div className= 'date'>{day.date}</div>             
                   </div>           
                 }
 
@@ -140,73 +158,33 @@ const WeatherBox = ({
 
             {            
             <div className='tempFormatting'>
-              <div className='minTemp' units='°'>{day.temperature_min}</div>
+              <div className='minTemp' units='°'>{day.temperature_min}°</div>
               <div>/</div>
-              <div className='maxTemp' units='°'>{day.temperature_max}</div>
+              <div className='maxTemp' units='°'>{day.temperature_max}°</div>
             </div>
             }
+            <div className='openButton'>
+              <button onClick={handleClick} aria-expanded={isOpen}>
+                {isOpen ? (<FaChevronUp className="transition-transform duration-300" size={50}/>):(<FaChevronDown className="transition-transform duration-300" size={50}/>)}
+              </button>
+
+              <div className={`transition-all duration-300 overflow-hidden ${isOpen ? 'max-h-screen opacity-100' : 'max-h-0 opacity-0'}`}>
+                {isOpen && <hiddenComponent/>}
+              </div>
+              
+              </div>
+
           </div>
           ))}
         </div>
       );
+
+    };
+
+      
   }
 
 export default WeatherBox;
-
-    //GraphCastForecast.js
-    /*const GraphCastForecast = () => {
-      const [forecast, setForecast] = useState(null);
-      const [loading, setLoading] = useState(true);
-      const [error, setError] = useState(null);
-      const [userLocation, setUserLocation] = useState(null);
-    
-      useEffect(() => {
-        if ('geolocation' in navigator) {
-          navigator.geolocation.getCurrentPosition(
-            async (position) => {
-              const { latitude, longitude } = position.coords;
-              setUserLocation({ latitude, longitude });
-    
-              try {
-                const response = await axios.get(
-                  `https://customer-api.open-meteo.com/v1/forecast?apikey=${process.env.REACT_APP_OPENMETEO_API_KEY}`,
-                  {
-                    params: {
-                      latitude,
-                      longitude,
-                      current: [
-                        'temperature_2m',
-                        'relative_humidity_2m',
-                        'precipitation',
-                        'cloud_cover',
-                      ],
-                      daily: [
-                        'temperature_2m_max',
-                        'temperature_2m_min',
-                        'precipitation_sum',
-                        'precipitation_probability_max',
-                        'cloud_cover_mean',
-                        'weather_code',
-                      ],
-                      temperature_unit: 'fahrenheit',
-                      precipitation_unit: 'inch',
-                      forecast_days: 16,
-                      timezone: 'auto',
-                      models: 'best_match',
-                    },
-                  }
-                );
-              }
-
-
-    const dailyData = response.data.daily.time.map((time, index) => ({
-      time: new Date(time).toLocaleDateString('en-US', {
-        month: 'short',
-        day: 'numeric',
-      }),
-      temperature_min: Math.round(response.data.daily.temperature_2m_max[index]),
-      temperature_max: Math.round(response.data.daily.temperature_2m_min[index])
-    }))*/
 
 
     
