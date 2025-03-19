@@ -257,7 +257,7 @@ ${alert.instruction ? `Instructions: ${alert.instruction}` : ''}
             <div>
               <h2 className="content-title">Weather Alerts</h2>
               <p className="content-description">
-                Active weather alerts for your saved locations
+                Active weather alerts for your favorited locations
               </p>
             </div>
 

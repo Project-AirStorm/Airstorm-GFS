@@ -8,11 +8,11 @@ jobs:
   send-closure-email:
     runs-on: ubuntu-latest
     if: contains(github.event.issue.labels.*.name, 'user-feedback')
-    
+
     permissions:
       issues: read
       contents: read
-    
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -32,10 +32,10 @@ jobs:
             const issueBody = context.payload.issue.body;
             const nameMatch = issueBody.match(/\*\*Name:\*\* ([^\n]+)/);
             const emailMatch = issueBody.match(/\*\*Email:\*\* ([^\n]+)/);
-            
+
             const name = nameMatch ? nameMatch[1].trim() : 'User';
             const email = emailMatch ? emailMatch[1].trim() : '';
-            
+
             // Format dates
             const submissionDate = new Date(context.payload.issue.created_at)
               .toLocaleDateString('en-US', {
@@ -44,7 +44,7 @@ jobs:
                 month: 'long',
                 day: 'numeric'
               });
-            
+
             const closureDate = new Date(context.payload.issue.closed_at)
               .toLocaleDateString('en-US', {
                 weekday: 'long',
@@ -52,12 +52,12 @@ jobs:
                 month: 'long',
                 day: 'numeric'
               });
-            
+
             // Get the last comment as resolution notes
             const resolutionComment = context.payload.issue.comments > 0 
               ? 'This ticket has been reviewed and resolved.' 
               : 'This ticket has been reviewed and resolved.';
-            
+
             core.setOutput('recipient_email', email);
             core.setOutput('recipient_name', name);
             core.setOutput('issue_title', context.payload.issue.title);
@@ -70,7 +70,7 @@ jobs:
         id: email-content
         run: |
           template=$(cat .github/email-templates/external-feedback-close.html)
-          
+
           # Replace template variables
           email_content="${template//\{\{name\}\}/${{ steps.extract-metadata.outputs.recipient_name }}}"
           email_content="${email_content//\{\{issue_number\}\}/${{ steps.extract-metadata.outputs.issue_number }}}"
@@ -78,10 +78,10 @@ jobs:
           email_content="${email_content//\{\{submission_date\}\}/${{ steps.extract-metadata.outputs.submission_date }}}"
           email_content="${email_content//\{\{closure_date\}\}/${{ steps.extract-metadata.outputs.closure_date }}}"
           email_content="${email_content//\{\{resolution_comment\}\}/${{ steps.extract-metadata.outputs.resolution_comment }}}"
-          
+
           # Save the processed template to a temporary file
           echo "$email_content" > processed_template.html
-          
+
           # Store the content in a way that preserves newlines for the next step
           echo "EMAIL_CONTENT<<EOF" >> $GITHUB_ENV
           cat processed_template.html >> $GITHUB_ENV
@@ -91,14 +91,14 @@ jobs:
         run: |
           # First, encode the HTML content to escape special characters
           ENCODED_HTML=$(echo "$EMAIL_CONTENT" | python3 -c 'import json,sys; print(json.dumps(sys.stdin.read()))')
-          
+
           # Create the JSON with the encoded HTML
           aws ses send-email \
             --from "support@projectairstorm.com" \
             --destination "ToAddresses=${{ steps.extract-metadata.outputs.recipient_email }}" \
             --message '{
               "Subject": {
-                "Data": "[Project AirStorm Support] Ticket Closed: '"${{ steps.extract-metadata.outputs.issue_title }}"' [Issue: #'"${{ steps.extract-metadata.outputs.issue_number }}"']",
+                "Data": "[Project Airstorm Support] Ticket Closed: '"${{ steps.extract-metadata.outputs.issue_title }}"' [Issue: #'"${{ steps.extract-metadata.outputs.issue_number }}"']",
                 "Charset": "UTF-8"
               },
               "Body": {

@@ -83,18 +83,18 @@ const Resources = ({ setCurrentPage }) => {
     // Monitoring & Project Resources
     {
       id: 'aws-cloudwatch',
-      title: 'AirStorm GFS CloudWatch Dashboard',
+      title: 'Heimdall AWS CloudWatch Dashboard',
       description:
-        'AWS CloudWatch dashboard for monitoring AirStorm GFS application performance and metrics.',
-      url: 'https://cloudwatch.amazonaws.com/dashboard.html?dashboard=AirStormGFS&context=eyJSIjoidXMtZWFzdC0xIiwiRCI6ImN3LWRiLTE0Nzk5NzEyMDc4NCIsIlUiOiJ1cy1lYXN0LTFfeUN0eFdxY3MyIiwiQyI6IjUwc2VsaHVpbjQwMWRmdjRiYmF1NmxwdHRmIiwiSSI6InVzLWVhc3QtMTpmMjc2MjgzMS05YmRkLTRlYTItYTQ4OS1kZDY3ZTczNDIzNmYiLCJNIjoiUHVibGljIn0%3D&start=PT168H&end=null',
+        'AWS CloudWatch Dashboard for monitoring Heimdall application performance and metrics.',
+      url: 'https://cloudwatch.amazonaws.com/dashboard.html?dashboard=Heimdall&context=eyJSIjoidXMtZWFzdC0xIiwiRCI6ImN3LWRiLTE0Nzk5NzEyMDc4NCIsIlUiOiJ1cy1lYXN0LTFfeUN0eFdxY3MyIiwiQyI6IjUwc2VsaHVpbjQwMWRmdjRiYmF1NmxwdHRmIiwiSSI6InVzLWVhc3QtMTphMDk1NGFhOS1iZGZlLTRkZjQtODRkNi0zMWVkODM1NjgzYWYiLCJPIjoiYXJuOmF3czppYW06OjE0Nzk5NzEyMDc4NDpyb2xlL3NlcnZpY2Utcm9sZS9DV0RCU2hhcmluZy1QdWJsaWNSZWFkT25seUFjY2Vzcy1SSjNUUEc1ViIsIk0iOiJQdWJsaWMifQ%3D%3D&start=PT168H&end=null',
       source: 'Amazon Web Services',
       category: 'Monitoring Tools',
     },
     {
       id: 'project-airstorm',
-      title: 'Project AirStorm GitHub Repository',
+      title: 'Project Airstorm GitHub Repository',
       description:
-        'Official GitHub repository for the AirStorm project, containing source code, documentation, and development resources.',
+        'Official GitHub repository for the Airstorm project, containing source code, documentation, and development resources.',
       url: 'https://github.com/Project-AirStorm',
       source: 'GitHub',
       category: 'Project Resources',
