@@ -78,7 +78,9 @@ const AlertsComponent = () => {
         setLoading(true);
         // Get all user locations
         const userLocations = await fetchUserLocations();
-        const favorites = userLocations.filter(location => location.isFavorite);
+        const favorites = userLocations.filter(
+          (location) => location.isFavorite
+        );
 
         const response = await axios.get(
           `${REACT_APP_API_URL}/api/external/alerts?userId=${user.id}`
@@ -94,7 +96,7 @@ const AlertsComponent = () => {
                 loc.longitude === alert.longitude
             )
           );
-          
+
           // Set all alerts in state
           setAlerts(allAlerts);
 
@@ -125,14 +127,19 @@ const AlertsComponent = () => {
   useEffect(() => {
     if (showFavoritesOnly && favoriteLocations.length > 0) {
       // Only include locations that are favorites
-      const favoriteLocationNames = favoriteLocations.map(loc => {
-        // Find matching alert location names for this favorite
-        return alerts.filter(alert => 
-          loc.latitude === alert.latitude && 
-          loc.longitude === alert.longitude
-        ).map(alert => alert.location_name);
-      }).flat();
-      
+      const favoriteLocationNames = favoriteLocations
+        .map((loc) => {
+          // Find matching alert location names for this favorite
+          return alerts
+            .filter(
+              (alert) =>
+                loc.latitude === alert.latitude &&
+                loc.longitude === alert.longitude
+            )
+            .map((alert) => alert.location_name);
+        })
+        .flat();
+
       const uniqueFavoriteLocations = [...new Set(favoriteLocationNames)];
       setLocations(uniqueFavoriteLocations);
     } else {
@@ -151,13 +158,13 @@ const AlertsComponent = () => {
         const response = await axios.get(
           `${REACT_APP_API_URL}/api/locations?userId=${user.id}`
         );
-        const favorites = response.data.filter(loc => loc.isFavorite);
+        const favorites = response.data.filter((loc) => loc.isFavorite);
         setFavoriteLocations(favorites);
       } catch (err) {
         console.error('Error fetching favorite locations:', err);
       }
     };
-    
+
     fetchFavoriteLocations();
   }, [user.id]);
 
@@ -218,24 +225,24 @@ ${alert.instruction ? `Instructions: ${alert.instruction}` : ''}
       </div>
     );
   }
-  
+
   const processedAlerts = alerts
     .filter((alert) => {
       // Filter by favorite status if showFavoritesOnly is true
-      const favoriteMatch = !showFavoritesOnly || 
+      const favoriteMatch =
+        !showFavoritesOnly ||
         favoriteLocations.some(
-          (loc) => 
-            loc.latitude === alert.latitude && 
-            loc.longitude === alert.longitude
+          (loc) =>
+            loc.latitude === alert.latitude && loc.longitude === alert.longitude
         );
-      
+
       const severityMatch =
         filterSeverity === 'all' || alert.severity === filterSeverity;
       const locationMatch =
         filterLocation === 'all' || alert.location_name === filterLocation;
       const certaintyMatch =
         filterCertainty === 'all' || alert.certainty === filterCertainty;
-        
+
       return favoriteMatch && severityMatch && locationMatch && certaintyMatch;
     })
     .sort((a, b) => {
@@ -306,7 +313,8 @@ ${alert.instruction ? `Instructions: ${alert.instruction}` : ''}
             <div>
               <h2 className="content-title">Weather Alerts</h2>
               <p className="content-description">
-                Active weather alerts for {showFavoritesOnly ? 'your favorited' : 'all'} locations
+                Active weather alerts for{' '}
+                {showFavoritesOnly ? 'your favorited' : 'all'} locations.
               </p>
             </div>
 
@@ -319,15 +327,18 @@ ${alert.instruction ? `Instructions: ${alert.instruction}` : ''}
                 }}
                 className="button-toggle flex items-center gap-2"
               >
-                {showFavoritesOnly ? 'Show Favorites Only' : 'Show All Locations'}
+                {showFavoritesOnly
+                  ? 'Show All Locations'
+                  : 'Show Favoried Locations'}
               </button>
-              
+
               <button
                 onClick={toggleExpandAll}
                 className="button-toggle flex items-center gap-2"
               >
-                {Object.keys(expandedAlerts).length ===
-                processedAlerts.length ? 'Collapse All' : 'Expand All'}
+                {Object.keys(expandedAlerts).length === processedAlerts.length
+                  ? 'Collapse All'
+                  : 'Expand All'}
               </button>
 
               <button
@@ -381,7 +392,9 @@ ${alert.instruction ? `Instructions: ${alert.instruction}` : ''}
                 className="filter-select flex-1"
               >
                 <option value="all">
-                  {showFavoritesOnly ? 'All Favorited Locations' : 'All Locations'}
+                  {showFavoritesOnly
+                    ? 'All Favorited Locations'
+                    : 'All Locations'}
                 </option>
                 {locations.map((location) => (
                   <option key={location} value={location}>
