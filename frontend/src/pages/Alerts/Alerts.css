@@ -158,12 +158,28 @@
 }
 
 .filter-select {
-  padding: 0.5rem 2.5rem 0.5rem 0.75rem;
+  padding: 0.5rem 0.75rem;
   border: 1px solid rgb(209 213 219);
   border-radius: 0.375rem;
   background-color: rgb(249 250 251);
   color: rgb(31 41 55);
   font-size: 0.875rem;
+}
+
+.button-toggle {
+  padding: 0.5rem 0.75rem;
+  border: 1px solid rgb(37 99 235);
+  border-radius: 0.375rem;
+  background-color: rgb(239 246 255);
+  color: rgb(37 99 235);
+  font-size: 0.875rem;
+  appearance: none;
+  background-image: none;
+  transition: all 0.2s ease;
+}
+
+.button-toggle:hover {
+  background-color: rgb(219 234 254);
 }
 
 .filter-select:focus {

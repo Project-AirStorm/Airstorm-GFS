@@ -45,7 +45,9 @@ const AlertsComponent = () => {
   const [sortBy, setSortBy] = useState('date');
   const [locations, setLocations] = useState([]);
   const [filterCertainty, setFilterCertainty] = useState('all');
+  const [showFavoritesOnly, setShowFavoritesOnly] = useState(true);
   const [activeView, setActiveView] = useState('overview');
+  const [favoriteLocations, setFavoriteLocations] = useState([]);
 
   // Reset Filters Variables
   const resetFilters = () => {
@@ -53,18 +55,20 @@ const AlertsComponent = () => {
     setFilterCertainty('all');
     setFilterLocation('all');
     setSortBy('date');
+    setShowFavoritesOnly(true);
+    // The locations dropdown options will automatically update due to the useEffect dependency
   };
 
   // Fetch Alerts
   useEffect(() => {
-    const fetchFavoriteLocations = async () => {
+    const fetchUserLocations = async () => {
       try {
         const response = await axios.get(
           `${REACT_APP_API_URL}/api/locations?userId=${user.id}`
         );
-        return response.data.filter((location) => location.isFavorite);
+        return response.data;
       } catch (err) {
-        console.error('Error fetching favorite locations:', err);
+        console.error('Error fetching user locations:', err);
         return [];
       }
     };
@@ -72,25 +76,29 @@ const AlertsComponent = () => {
     const fetchAlerts = async () => {
       try {
         setLoading(true);
-        // First get favorite locations
-        const favorites = await fetchFavoriteLocations();
+        // Get all user locations
+        const userLocations = await fetchUserLocations();
+        const favorites = userLocations.filter(location => location.isFavorite);
 
         const response = await axios.get(
           `${REACT_APP_API_URL}/api/external/alerts?userId=${user.id}`
         );
 
         if (response.data && response.data.alerts) {
-          // Filter alerts to only include favorite locations
-          const favoriteAlerts = response.data.alerts.filter((alert) =>
+          // Store all alerts but initially show only favorites if showFavoritesOnly is true
+          const allAlerts = response.data.alerts;
+          const favoriteAlerts = allAlerts.filter((alert) =>
             favorites.some(
               (loc) =>
                 loc.latitude === alert.latitude &&
                 loc.longitude === alert.longitude
             )
           );
-          setAlerts(favoriteAlerts);
+          
+          // Set all alerts in state
+          setAlerts(allAlerts);
 
-          // Update alert count
+          // Update alert count based on favorites only (for notification badge)
           alertCountUpdated(favoriteAlerts.length);
         } else {
           setAlerts([]);
@@ -113,13 +121,45 @@ const AlertsComponent = () => {
     return () => clearInterval(interval);
   }, [user.id]); // Updated dependencies
 
-  /// Only update the locations state with favorite locations
+  /// Update locations dropdown based on filter setting
   useEffect(() => {
-    const uniqueLocations = [
-      ...new Set(alerts.map((alert) => alert.location_name)),
-    ];
-    setLocations(uniqueLocations);
-  }, [alerts]);
+    if (showFavoritesOnly && favoriteLocations.length > 0) {
+      // Only include locations that are favorites
+      const favoriteLocationNames = favoriteLocations.map(loc => {
+        // Find matching alert location names for this favorite
+        return alerts.filter(alert => 
+          loc.latitude === alert.latitude && 
+          loc.longitude === alert.longitude
+        ).map(alert => alert.location_name);
+      }).flat();
+      
+      const uniqueFavoriteLocations = [...new Set(favoriteLocationNames)];
+      setLocations(uniqueFavoriteLocations);
+    } else {
+      // Include all locations
+      const uniqueLocations = [
+        ...new Set(alerts.map((alert) => alert.location_name)),
+      ];
+      setLocations(uniqueLocations);
+    }
+  }, [alerts, showFavoritesOnly, favoriteLocations]);
+
+  // Fetch favorite locations
+  useEffect(() => {
+    const fetchFavoriteLocations = async () => {
+      try {
+        const response = await axios.get(
+          `${REACT_APP_API_URL}/api/locations?userId=${user.id}`
+        );
+        const favorites = response.data.filter(loc => loc.isFavorite);
+        setFavoriteLocations(favorites);
+      } catch (err) {
+        console.error('Error fetching favorite locations:', err);
+      }
+    };
+    
+    fetchFavoriteLocations();
+  }, [user.id]);
 
   const toggleExpand = (alertId) => {
     setExpandedAlerts((prev) => ({
@@ -135,27 +175,6 @@ const AlertsComponent = () => {
       return 'Invalid Date';
     }
   };
-
-  if (loading) {
-    return (
-      <div className="alerts-body">
-        <div className="text-center py-8">Loading alerts...</div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="alerts-body">
-        <div className="alert-item alert-high">
-          <div className="alert-header">
-            <h3 className="alert-type">Error</h3>
-          </div>
-          <p className="alert-message">{error}</p>
-        </div>
-      </div>
-    );
-  }
 
   // Copy to clipboard feature
   const copyToClipboard = async (alert, e) => {
@@ -179,15 +198,45 @@ ${alert.instruction ? `Instructions: ${alert.instruction}` : ''}
     }
   };
 
+  if (loading) {
+    return (
+      <div className="alerts-body">
+        <div className="text-center py-8">Loading alerts...</div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="alerts-body">
+        <div className="alert-item alert-high">
+          <div className="alert-header">
+            <h3 className="alert-type">Error</h3>
+          </div>
+          <p className="alert-message">{error}</p>
+        </div>
+      </div>
+    );
+  }
+  
   const processedAlerts = alerts
     .filter((alert) => {
+      // Filter by favorite status if showFavoritesOnly is true
+      const favoriteMatch = !showFavoritesOnly || 
+        favoriteLocations.some(
+          (loc) => 
+            loc.latitude === alert.latitude && 
+            loc.longitude === alert.longitude
+        );
+      
       const severityMatch =
         filterSeverity === 'all' || alert.severity === filterSeverity;
       const locationMatch =
         filterLocation === 'all' || alert.location_name === filterLocation;
       const certaintyMatch =
         filterCertainty === 'all' || alert.certainty === filterCertainty;
-      return severityMatch && locationMatch && certaintyMatch;
+        
+      return favoriteMatch && severityMatch && locationMatch && certaintyMatch;
     })
     .sort((a, b) => {
       switch (sortBy) {
@@ -257,32 +306,33 @@ ${alert.instruction ? `Instructions: ${alert.instruction}` : ''}
             <div>
               <h2 className="content-title">Weather Alerts</h2>
               <p className="content-description">
-                Active weather alerts for your favorited locations
+                Active weather alerts for {showFavoritesOnly ? 'your favorited' : 'all'} locations
               </p>
             </div>
 
             <div className="flex gap-2">
               <button
+                onClick={() => {
+                  setShowFavoritesOnly(!showFavoritesOnly);
+                  // Reset location filter when toggling view
+                  setFilterLocation('all');
+                }}
+                className="button-toggle flex items-center gap-2"
+              >
+                {showFavoritesOnly ? 'Show Favorites Only' : 'Show All Locations'}
+              </button>
+              
+              <button
                 onClick={toggleExpandAll}
-                className="filter-select flex items-center gap-2"
+                className="button-toggle flex items-center gap-2"
               >
                 {Object.keys(expandedAlerts).length ===
-                processedAlerts.length ? (
-                  <>
-                    <ChevronsUp className="w-4 h-4" />
-                    Collapse All
-                  </>
-                ) : (
-                  <>
-                    <ChevronsDown className="w-4 h-4" />
-                    Expand All
-                  </>
-                )}
+                processedAlerts.length ? 'Collapse All' : 'Expand All'}
               </button>
 
               <button
                 onClick={resetFilters}
-                className="filter-select flex items-center gap-2"
+                className="button-toggle flex items-center gap-2"
               >
                 Reset Filters
               </button>
@@ -330,7 +380,9 @@ ${alert.instruction ? `Instructions: ${alert.instruction}` : ''}
                 onChange={(e) => setFilterLocation(e.target.value)}
                 className="filter-select flex-1"
               >
-                <option value="all">All Locations</option>
+                <option value="all">
+                  {showFavoritesOnly ? 'All Favorited Locations' : 'All Locations'}
+                </option>
                 {locations.map((location) => (
                   <option key={location} value={location}>
                     {location}
