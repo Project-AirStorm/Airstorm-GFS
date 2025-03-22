@@ -1,77 +1,287 @@
-/* Analysis.css */
-.analysis-body {
-    background-color: white;
-    padding: 1.5rem;
-    border-radius: 0.5rem;
-    border: 1px solid rgb(229 231 235);
-    margin-bottom: 1.5rem;
-    width: 100%;
-  }
-  
-  .analysis-header {
-    margin-bottom: 2rem;
-  }
-  
-  .metrics-selector {
-    display: flex;
-    gap: 1rem;
-    margin-bottom: 2rem;
-    overflow-x: auto;
+/* Add these styles to your Analysis.css file */
 
-    padding-bottom: 0.5rem;
-  }
-  
-  .metric-button {
-    padding: 0.5rem 1rem;
-    border: 1px solid rgb(229 231 235);
-    border-radius: 0.375rem;
-    background-color: white;
-    color: rgb(75 85 99);
-    font-size: 0.875rem;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    white-space: nowrap;
-  }
-  
-  .metric-button:hover {
-    background-color: rgb(249 250 251);
-  }
-  
-  .metric-button.active {
-    background-color: rgb(37 99 235);
-    color: white;
-    border-color: rgb(37 99 235);
-  }
-  
+/* Comparison tags for error metrics in analysis details */
+.metric-comparison-tag {
+  font-size: 0.75rem;
+  padding: 3px 8px;
+  border-radius: 4px;
+  margin-top: 6px;
+  text-align: center;
+  font-weight: 500;
+  color: white;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.graphcast-better {
+  background-color: #82ca9d;
+}
+
+.nwp-better {
+  background-color: #ff7300;
+}
+
+.similar {
+  background-color: #6c757d;
+}
+
+/* Make the error metric charts a bit taller to accommodate the tags */
+.error-metric-chart {
+  margin-bottom: 16px;
+}
+
+/* Ensure proper padding in the error metrics container */
+.error-metrics-container {
+  padding: 8px 0;
+}
+
+/* Existing styles in your Analysis.css file - keep these */
+
+.dashboard-container {
+  width: 100%;
+  padding: 20px;
+}
+
+.main-content {
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+  margin-bottom: 20px;
+  overflow: hidden;
+}
+
+.analysis-body {
+  padding: 20px;
+}
+
+.analysis-header {
+  margin-bottom: 20px;
+}
+
+.content-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-bottom: 10px;
+}
+
+.content-description {
+  color: #666;
+  margin-bottom: 16px;
+}
+
+.timeframe-info {
+  font-size: 0.9rem;
+  color: #777;
+}
+
+.metrics-selector {
+  display: flex;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.metric-button {
+  display: flex;
+  align-items: center;
+  padding: 8px 12px;
+  background-color: #f5f5f5;
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-size: 0.9rem;
+}
+
+.metric-button:hover {
+  background-color: #eaeaea;
+}
+
+.metric-button.active {
+  background-color: #007bff;
+  color: white;
+  border-color: #007bff;
+}
+
+.timeframe-toggle {
+  margin-left: auto;
+}
+
+.analysis-content {
+  display: grid;
+  grid-template-columns: 1fr;
+  grid-gap: 20px;
+}
+
+@media (min-width: 992px) {
   .analysis-content {
-    display: grid;
-    grid-template-columns: 2fr 1fr;
-    gap: 1.5rem;
+    grid-template-columns: 3fr 2fr;
   }
-  
-  .analysis-chart {
-    background-color: rgb(249 250 251);
-    border-radius: 0.5rem;
-    padding: 1rem;
-  }
-  
-  .chart-placeholder {
-    height: 400px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: rgb(107 114 128);
-    text-align: center;
-  }
-  
-  .analysis-details {
-    background-color: rgb(249 250 251);
-    border-radius: 0.5rem;
-    padding: 1rem;
-  }
-  
-  .details-title {
-    font-size: 1rem;
-    font-weight: 600;
-    color: rgb(31 41 55);
-  }
+}
+
+.analysis-chart {
+  background-color: #f9f9f9;
+  padding: 16px;
+  border-radius: 8px;
+}
+
+.chart-title {
+  font-size: 1.2rem;
+  margin-bottom: 10px;
+  font-weight: 500;
+}
+
+.chart-unit {
+  font-size: 0.9rem;
+  color: #777;
+  margin-left: 5px;
+}
+
+.analysis-details {
+  background-color: #f9f9f9;
+  padding: 16px;
+  border-radius: 8px;
+}
+
+.details-title {
+  font-size: 1.2rem;
+  margin-bottom: 10px;
+  font-weight: 500;
+}
+
+.details-subtitle {
+  font-size: 1rem;
+  margin-bottom: 10px;
+  color: #555;
+}
+
+.error-metrics-container {
+  margin: 10px 0 20px;
+}
+
+.error-metric-title {
+  font-size: 0.9rem;
+  margin-bottom: 5px;
+  font-weight: 500;
+}
+
+.metric-summary {
+  margin-top: 20px;
+  padding-top: 15px;
+  border-top: 1px solid #eaeaea;
+}
+
+.summary-title {
+  font-size: 1rem;
+  margin-bottom: 10px;
+  font-weight: 500;
+}
+
+.summary-text {
+  font-size: 0.9rem;
+  margin-bottom: 10px;
+}
+
+.data-note {
+  font-size: 0.85rem;
+  color: #777;
+}
+
+.custom-tooltip {
+  background-color: rgba(255, 255, 255, 0.9);
+  border: 1px solid #ccc;
+  padding: 10px;
+  border-radius: 4px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.tooltip-label {
+  font-weight: 600;
+  margin-bottom: 5px;
+}
+
+.tooltip-value {
+  font-size: 0.85rem;
+  margin: 3px 0;
+}
+
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 400px;
+}
+
+.loading-spinner {
+  border: 3px solid #f3f3f3;
+  border-top: 3px solid #007bff;
+  border-radius: 50%;
+  width: 30px;
+  height: 30px;
+  animation: spin 1s linear infinite;
+  margin-bottom: 15px;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.error-message-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 30px;
+  text-align: center;
+}
+
+.error-title {
+  color: #dc3545;
+  margin-bottom: 10px;
+}
+
+.error-message {
+  margin-bottom: 20px;
+}
+
+.error-icon {
+  color: #dc3545;
+  margin-bottom: 15px;
+}
+
+.error-checklist {
+  text-align: left;
+  margin: 10px 0 20px;
+}
+
+.retry-button {
+  padding: 8px 16px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+}
+
+.icon-left {
+  margin-right: 8px;
+}
+
+.error-details {
+  margin-top: 20px;
+  width: 100%;
+  max-width: 600px;
+  text-align: left;
+}
+
+.error-json {
+  max-height: 200px;
+  overflow: auto;
+  background-color: #f5f5f5;
+  padding: 10px;
+  border-radius: 4px;
+  font-size: 0.8rem;
+}
