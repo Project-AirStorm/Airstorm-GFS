@@ -19,7 +19,7 @@ import {
   Thermometer, 
   Droplets, 
   Wind, 
-  Cloudy,
+  Cloud,
   MapPin,
   AlertCircle
 } from 'lucide-react';
@@ -41,7 +41,7 @@ const METRICS = [
   { id: 'temperature', apiId: 'temperature_2m', label: 'Temperature', icon: <Thermometer className="w-4 h-4" /> },
   { id: 'precipitation', apiId: 'precipitation', label: 'Precipitation', icon: <Droplets className="w-4 h-4" /> },
   { id: 'wind', apiId: 'wind_speed_10m', label: 'Wind Speed', icon: <Wind className="w-4 h-4" /> },
-  { id: 'humidity', apiId: 'relative_humidity_2m', label: 'Humidity', icon: <Cloudy className="w-4 h-4" /> }
+  { id: 'cloudCover', apiId: 'cloud_cover', label: 'Cloud Cover', icon: <Cloud className="w-4 h-4" /> }
 ];
 
 // Default location (fallback if geolocation fails)
@@ -67,13 +67,13 @@ const Analysis = () => {
     temperature: [],
     precipitation: [],
     wind: [],
-    humidity: []
+    cloudCover: []
   });
   const [errorMetrics, setErrorMetrics] = useState({
     temperature: { graphcast: {}, nwp: {} },
     precipitation: { graphcast: {}, nwp: {} },
     wind: { graphcast: {}, nwp: {} },
-    humidity: { graphcast: {}, nwp: {} }
+    cloudCover: { graphcast: {}, nwp: {} }
   });
   
   // Location state with geolocation support
@@ -259,7 +259,7 @@ const Analysis = () => {
       console.log(`Fetching data from ${startDate} to ${endDate} for location: ${location.name} (${location.lat}, ${location.lon})`);
       
       // Parameters for API requests
-      const hourlyParams = "temperature_2m,relative_humidity_2m,precipitation,wind_speed_10m";
+      const hourlyParams = "temperature_2m,cloud_cover,precipitation,wind_speed_10m";
       
       // Fetch real historical weather data as ground truth
       console.log("Fetching historical weather data...");
@@ -372,6 +372,14 @@ const processWeatherData = (historicalData, forecastData) => {
     // Log the keys in the hourly data to see exactly what's available
     console.log("Hourly data keys in forecast response:", Object.keys(forecastData.hourly));
     
+    // DEBUGGING: Check for cloud cover specifically
+    console.log("Checking for cloud cover in historical data:");
+    console.log("Historical hourly keys:", Object.keys(historicalData.hourly));
+    const cloudCoverKeys = Object.keys(forecastData.hourly).filter(key => 
+      key.includes('cloud_cover') || key.includes('cloud') || key.includes('cc')
+    );
+    console.log("Possible cloud cover keys in forecast data:", cloudCoverKeys);
+    
     // Check for existence of model-specific data
     // For historical forecasts, we expect keys like "gfs_graphcast025_temperature_2m" and "gfs_hrrr_temperature_2m"
     const graphcastTempKey = `${MODELS.GRAPHCAST}_temperature_2m`;
@@ -382,6 +390,12 @@ const processWeatherData = (historicalData, forecastData) => {
     
     console.log(`Checking for GraphCast temperature data (${graphcastTempKey}): ${hasGraphcastTemp ? "FOUND" : "NOT FOUND"}`);
     console.log(`Checking for NWP temperature data (${nwpTempKey}): ${hasNwpTemp ? "FOUND" : "NOT FOUND"}`);
+    
+    // DEBUGGING: Check key patterns for cloud cover specifically
+    const graphcastCloudKey = `${MODELS.GRAPHCAST}_cloud_cover`;
+    const nwpCloudKey = `${MODELS.NWP}_cloud_cover`;
+    console.log(`Looking for GraphCast cloud cover: ${graphcastCloudKey} exists: ${forecastData.hourly.hasOwnProperty(graphcastCloudKey)}`);
+    console.log(`Looking for NWP cloud cover: ${nwpCloudKey} exists: ${forecastData.hourly.hasOwnProperty(nwpCloudKey)}`);
     
     // If we don't find the expected format, try to see if there's an alternative format
     if (!hasGraphcastTemp && !hasNwpTemp) {
@@ -413,11 +427,44 @@ const processWeatherData = (historicalData, forecastData) => {
       temperature: [],
       precipitation: [],
       wind: [],
-      humidity: []
+      cloudCover: []
     };
     
-    // Helper function to determine the correct key format for model parameters
+    // DEBUGGING: Enhanced getModelParamKey function for cloud cover issues
     const getModelParamKey = (model, param) => {
+      // Special handling for cloud cover which might have a different format
+      if (param === 'cloud_cover') {
+        console.log(`Looking for cloud cover key with model: ${model}`);
+        
+        // Try different potential formats for cloud cover
+        const cloudCoverFormats = [
+          `${model}_${param}`,
+          `${model}_cloud_cover`,
+          `${model}_clouds`,
+          `${model}_cc`
+        ];
+        
+        for (const format of cloudCoverFormats) {
+          if (forecastData.hourly[format]) {
+            console.log(`Found cloud cover data with key: ${format}`);
+            return format;
+          }
+        }
+        
+        // If still not found, look for any key containing both model and cloud
+        const cloudKey = Object.keys(forecastData.hourly).find(key => 
+          key.includes(model) && (key.includes('cloud') || key.includes('cc'))
+        );
+        
+        if (cloudKey) {
+          console.log(`Found cloud cover with alternative key: ${cloudKey}`);
+          return cloudKey;
+        }
+        
+        console.log(`No cloud cover key found for model ${model}`);
+        return null;
+      }
+      
       // First check for the direct format: {model}_{param}
       const directKey = `${model}_${param}`;
       if (forecastData.hourly[directKey]) {
@@ -446,10 +493,22 @@ const processWeatherData = (historicalData, forecastData) => {
       const apiParam = metric.apiId;
       const metricId = metric.id;
       
+      // DEBUGGING: Add specific logging for cloud cover
+      if (metricId === 'cloudCover') {
+        console.log("⚠️ PROCESSING CLOUD COVER DATA ⚠️");
+        console.log("Looking for historical cloud cover with key:", apiParam);
+      }
+      
       // Check for historical data
       if (!histHourly[apiParam]) {
         console.warn(`Historical data missing ${apiParam}`);
+        if (metricId === 'cloudCover') {
+          console.error("❌ HISTORICAL CLOUD COVER DATA MISSING!");
+          console.log("Available historical data keys:", Object.keys(histHourly));
+        }
         continue;
+      } else if (metricId === 'cloudCover') {
+        console.log("✅ Historical cloud cover data found!");
       }
       
       // Find the GraphCast data key
@@ -459,6 +518,27 @@ const processWeatherData = (historicalData, forecastData) => {
       
       console.log(`${metricId} - GraphCast key format: ${graphcastKey || "NOT FOUND"}`);
       console.log(`${metricId} - NWP key format: ${nwpKey || "NOT FOUND"}`);
+      
+      // DEBUGGING: Add more detail for cloud cover keys
+      if (metricId === 'cloudCover') {
+        if (!graphcastKey) {
+          console.error("❌ NO GRAPHCAST CLOUD COVER KEY FOUND!");
+          // Try to find any key that might contain cloud cover data for GraphCast
+          const possibleKeys = Object.keys(forecastData.hourly).filter(key => 
+            key.includes(MODELS.GRAPHCAST) && (key.includes('cloud') || key.includes('cc'))
+          );
+          console.log("Possible GraphCast cloud cover keys:", possibleKeys);
+        }
+        
+        if (!nwpKey) {
+          console.error("❌ NO NWP CLOUD COVER KEY FOUND!");
+          // Try to find any key that might contain cloud cover data for NWP
+          const possibleKeys = Object.keys(forecastData.hourly).filter(key => 
+            key.includes(MODELS.NWP) && (key.includes('cloud') || key.includes('cc'))
+          );
+          console.log("Possible NWP cloud cover keys:", possibleKeys);
+        }
+      }
       
       // Determine if we have data for each model
       const hasGraphcastData = !!graphcastKey && Array.isArray(forecastData.hourly[graphcastKey]);
@@ -537,6 +617,14 @@ const processWeatherData = (historicalData, forecastData) => {
             isSum
           ) : null;
           
+        // DEBUGGING: Add specific logging for cloud cover values
+        if (metricId === 'cloudCover' && index === 0) {
+          console.log(`Cloud cover values for first day (${dateStr}):`);
+          console.log(`- Historical: ${historicalValue}`);
+          console.log(`- GraphCast: ${graphcastValue}`);
+          console.log(`- NWP: ${nwpValue}`);
+        }
+        
         // Skip if we don't have historical data (except for precipitation which can be 0)
         if (historicalValue === null && !isSum) {
           return;
@@ -576,10 +664,16 @@ const processWeatherData = (historicalData, forecastData) => {
       });
     }
     
-    // Log some data points to verify we have the right data
-    if (processed.temperature.length > 0) {
-      console.log("Sample temperature data point:", processed.temperature[0]);
-    }
+    // DEBUGGING: Check processed data for each metric
+    console.log("Processed data point counts:");
+    Object.keys(processed).forEach(key => {
+      console.log(`- ${key}: ${processed[key].length} points`);
+      if (processed[key].length > 0) {
+        console.log(`  Sample: ${JSON.stringify(processed[key][0])}`);
+      } else {
+        console.log(`  No data points for ${key}!`);
+      }
+    });
     
     // Apply timeframe filtering
     const maxDays = parseInt(timeframe, 10) || 16;
@@ -596,7 +690,7 @@ const processWeatherData = (historicalData, forecastData) => {
       temperature: limitDataToTimeframe(processed.temperature),
       precipitation: limitDataToTimeframe(processed.precipitation),
       wind: limitDataToTimeframe(processed.wind),
-      humidity: limitDataToTimeframe(processed.humidity)
+      cloudCover: limitDataToTimeframe(processed.cloudCover)
     };
     
     // Log data counts for debugging
@@ -604,7 +698,7 @@ const processWeatherData = (historicalData, forecastData) => {
       temperature: limitedData.temperature.length,
       precipitation: limitedData.precipitation.length,
       wind: limitedData.wind.length,
-      humidity: limitedData.humidity.length
+      cloudCover: limitedData.cloudCover.length
     });
     
     // Update state with processed data
@@ -829,7 +923,7 @@ const processWeatherData = (historicalData, forecastData) => {
         return 'mm';
       case 'wind':
         return 'km/h';
-      case 'humidity':
+      case 'cloudCover':
         return '%';
       default:
         return '';
