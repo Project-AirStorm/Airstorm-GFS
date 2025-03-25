@@ -211,17 +211,34 @@ const ComparisonChart = ({ data, metricName, metricUnit }) => {
             />
             
             <Tooltip content={<CustomTooltip unit={metricUnit} />} />
-            
-            <Legend 
-              verticalAlign="top" 
-              align="center"
-              height={60}
-              iconSize={14}
-              iconType="plainline"
-              layout="horizontal"
-              margin={{ top: 0, right: 0, left: 0, bottom: 20 }}
-            />
-            
+          
+            // Update in ComparisonChart.js
+<Legend 
+  verticalAlign="top" 
+  align="center"
+  height={60}
+  iconSize={16}
+  iconType="line"
+  formatter={(value, entry, index) => {
+    // Custom class names for different legend items
+    let customClassName = "";
+    if (value.includes("Historical")) {
+      customClassName = "recharts-legend-item-historical";
+    } else if (value.includes("GraphCast")) {
+      customClassName = "recharts-legend-item-graphcast";
+    } else if (value.includes("NWP")) {
+      customClassName = "recharts-legend-item-nwp";
+    }
+    
+    // Return the legend item with custom class
+    return <span className={customClassName}>{value}</span>;
+  }}
+  wrapperStyle={{
+    position: "relative",
+    top: -20
+  }}
+  onClick={null} // Disable click handler
+/>
             <Line 
               name="Historical Data (Ground Truth)" 
               dataKey="historical" 
