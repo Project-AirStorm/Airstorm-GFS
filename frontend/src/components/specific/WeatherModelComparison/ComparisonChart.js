@@ -78,7 +78,15 @@ const ComparisonChart = ({ data, metricName, metricUnit }) => {
               }}
             />
             <Tooltip content={<CustomTooltip unit={metricUnit} />} />
-            <Legend verticalAlign="top" height={36} />
+            <Legend 
+  verticalAlign="top" 
+  align="center"
+  height={60}
+  iconSize={14}
+  iconType="plainline"
+  layout="horizontal"
+  margin={{ top: 0, right: 0, left: 0, bottom: 20 }}
+/>
             <Line 
               name="Historical Data (Ground Truth)" 
               dataKey="historical" 

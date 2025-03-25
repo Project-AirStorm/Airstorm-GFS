@@ -1,4 +1,3 @@
-// src/pages/Analysis/Analysis.js
 import React from 'react';
 import WeatherModelComparison from '../../components/specific/WeatherModelComparison/WeatherModelComparison';
 import OverviewSwitch from '../../components/specific/OverviewSwitch/OverviewSwitch';
