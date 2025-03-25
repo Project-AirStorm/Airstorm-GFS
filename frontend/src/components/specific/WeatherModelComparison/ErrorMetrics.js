@@ -71,9 +71,7 @@ const ErrorMetrics = ({ selectedMetric, errorMetrics, metricLabel, location }) =
   return (
     <div className="analysis-details">
       <h3 className="details-title">Model Performance Metrics</h3>
-      <div className="details-subtitle">
-        {metricLabel} Comparison Metrics
-      </div>
+      
       
       {/* Error metrics visualization */}
       <div className="error-metrics-container">

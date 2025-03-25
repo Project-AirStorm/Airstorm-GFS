@@ -77,10 +77,24 @@
   gap: 1.5rem;
 }
 
+/* Chart container */
 .analysis-chart {
   background-color: rgb(249 250 251);
   border-radius: 0.5rem;
   padding: 1rem;
+  position: relative;
+  overflow: visible;
+}
+
+/* Make sure ALL ticks are visible */
+.analysis-chart .recharts-cartesian-axis-tick {
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+.analysis-chart .recharts-xAxis .recharts-cartesian-axis-tick text,
+.analysis-chart .recharts-xAxis .recharts-cartesian-axis-tick line {
+  display: block !important;
 }
 
 .chart-title {
@@ -97,7 +111,7 @@
   font-weight: normal;
 }
 
-/* Axis title styling - NEW */
+/* Axis title styling */
 .axis-title {
   font-size: 0.8rem;
   color: rgb(107 114 128);
@@ -130,11 +144,6 @@
   margin-bottom: 0.5rem;
 }
 
-.details-subtitle {
-  font-size: 0.875rem;
-  color: rgb(75 85 99);
-  margin-bottom: 1rem;
-}
 
 /* Error metrics styling */
 .error-metrics-container {
@@ -212,7 +221,7 @@
   border: 1px solid rgb(229 231 235);
 }
 
-/* Legend styling */
+/* Updated Legend styling */
 .recharts-default-legend {
   display: flex;
   justify-content: center;
@@ -221,9 +230,9 @@
 }
 
 .recharts-legend-item {
-  display: inline-flex !important;
+  display: inline-flex;
   align-items: center;
-  margin-right: 0 !important;
+  margin-right: 0;
 }
 
 .tooltip-label {
@@ -346,6 +355,12 @@
   /* Adjust axis titles for smaller screens */
   .y-axis-title {
     left: -2rem;
+  }
+
+  /* Ensure chart renders correctly on tablet */
+  .analysis-chart {
+    max-width: 100%;
+    overflow-x: hidden;
   }
 }
 

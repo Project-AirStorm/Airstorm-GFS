@@ -1,17 +1,6 @@
 // src/components/specific/WeatherModelComparison/WeatherModelComparison.js
 import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
-import {
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend,
-  ResponsiveContainer,
-  ReferenceLine
-} from 'recharts';
 import { 
   Thermometer, 
   Droplets, 
@@ -26,6 +15,7 @@ import ErrorState from './ErrorState';
 import LoadingState from './LoadingState';
 import LocationDetection from './LocationDetection';
 import ErrorMetrics from './ErrorMetrics';
+import ComparisonChart from './ComparisonChart';  // Import the ComparisonChart component
 
 // Import data utilities
 import { fetchHistoricalData, processWeatherData } from './dataUtils';
@@ -54,26 +44,6 @@ const DEFAULT_LOCATION = {
   lat: 36,
   lon: -86,
   name: 'Nashville, TN'
-};
-
-/**
- * Custom tooltip component for the charts
- */
-const CustomTooltip = ({ active, payload, label }) => {
-  if (active && payload && payload.length) {
-    return (
-      <div className="custom-tooltip">
-        <p className="tooltip-label">{label}</p>
-        {payload.map((entry, index) => (
-          <p key={index} className="tooltip-value" style={{ color: entry.color }}>
-            {entry.name}: {entry.value !== null && entry.value !== undefined ? entry.value.toFixed(2) : 'N/A'} 
-            {entry.unit}
-          </p>
-        ))}
-      </div>
-    );
-  }
-  return null;
 };
 
 /**
@@ -111,17 +81,24 @@ const WeatherModelComparison = () => {
     error: null
   });
 
-  // Get current date and date 16 days ago for API requests
-  const getCurrentDateRange = useCallback(() => {
-    const endDate = new Date();
-    const startDate = new Date();
-    startDate.setDate(startDate.getDate() - parseInt(timeframe, 10));
-    
-    return {
-      startDate: startDate.toISOString().split('T')[0],
-      endDate: endDate.toISOString().split('T')[0]
-    };
-  }, [timeframe]);
+ // Get current date and properly offset date ranges
+const getCurrentDateRange = useCallback(() => {
+  // Start with current date
+  const currentDate = new Date();
+  
+  // End date should be 5 days before current date
+  const endDate = new Date(currentDate);
+  endDate.setDate(endDate.getDate() - 5);
+  
+  // Start date should be (timeframe) days before the end date
+  const startDate = new Date(endDate);
+  startDate.setDate(startDate.getDate() - parseInt(timeframe, 10));
+  
+  return {
+    startDate: startDate.toISOString().split('T')[0],
+    endDate: endDate.toISOString().split('T')[0]
+  };
+}, [timeframe]);
   
   // Detect user's location on component mount
   useEffect(() => {
@@ -234,7 +211,7 @@ const WeatherModelComparison = () => {
     };
     
     fetchAndProcessData();
-  }, [location, timeframe, locationStatus.detecting]);
+  }, [location, timeframe, locationStatus.detecting, getCurrentDateRange]);
   
   // Calculate error metrics for model comparison
   const calculateErrorMetrics = (data) => {
@@ -333,16 +310,6 @@ const WeatherModelComparison = () => {
     return metric ? metric.unit : '';
   };
   
-  // Get color for a data series
-  const getSeriesColor = (series) => {
-    switch (series) {
-      case 'historical': return '#8884d8';
-      case 'graphcast': return '#82ca9d';
-      case 'nwp': return '#ff7300';
-      default: return '#8884d8';
-    }
-  };
-  
   // Retry location detection
   const handleRetryLocation = () => {
     setLocationStatus({ detecting: true, error: null });
@@ -418,102 +385,18 @@ const WeatherModelComparison = () => {
           </div>
           
           <div className="analysis-content">
-            <div className="analysis-chart">
-              <h2 className="chart-title">
-                {METRICS.find(m => m.id === selectedMetric)?.label} Comparison
-                <span className="chart-unit">{getMetricUnit()}</span>
-              </h2>
-              
-              {hasData ? (
-                <ResponsiveContainer width="100%" height={400}>
-                  <LineChart
-                    data={getCurrentMetricData()}
-                    margin={{ top: 20, right: 30, left: 20, bottom: 30 }}
-                  >
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis 
-                      dataKey="displayDate" 
-                      tick={{ fontSize: 12 }}
-                      label={{ 
-                        value: 'Date', 
-                        position: 'insideBottom', 
-                        offset: -10 
-                      }}
-                    />
-                    <YAxis 
-                      domain={['auto', 'auto']}
-                      tick={{ fontSize: 12 }}
-                      label={{ 
-                        value: `${METRICS.find(m => m.id === selectedMetric)?.label} (${getMetricUnit()})`, 
-                        angle: -90, 
-                        position: 'insideLeft',
-                        style: { textAnchor: 'middle' } 
-                      }}
-                    />
-                    <Tooltip content={<CustomTooltip />} />
-                    <Legend verticalAlign="bottom" height={36} />
-                    
-                    {/* Historical data line */}
-                    <Line
-                      type="monotone"
-                      dataKey="historical"
-                      name="Historical"
-                      stroke={getSeriesColor('historical')}
-                      strokeWidth={2}
-                      dot={{ r: 4, strokeWidth: 1 }}
-                      activeDot={{ r: 6 }}
-                      unit={getMetricUnit()}
-                    />
-                    
-                    {/* GraphCast model line */}
-                    <Line
-                      type="monotone"
-                      dataKey="graphcast"
-                      name="GraphCast AI"
-                      stroke={getSeriesColor('graphcast')}
-                      strokeWidth={2}
-                      dot={{ r: 4, strokeWidth: 1 }}
-                      activeDot={{ r: 6 }}
-                      unit={getMetricUnit()}
-                    />
-                    
-                    {/* NWP model line */}
-                    <Line
-                      type="monotone"
-                      dataKey="nwp"
-                      name="NWP Model"
-                      stroke={getSeriesColor('nwp')}
-                      strokeWidth={2}
-                      dot={{ r: 4, strokeWidth: 1 }}
-                      activeDot={{ r: 6 }}
-                      unit={getMetricUnit()}
-                    />
-                    
-                    {/* If showing temperature, add min/max reference lines */}
-                    {selectedMetric === 'temperature' && (
-                      <>
-                        <ReferenceLine
-                          y={Math.min(...getCurrentMetricData().map(d => d.min).filter(v => v !== null))}
-                          stroke="#8884d8"
-                          strokeDasharray="3 3"
-                          label={{ value: 'Min', position: 'insideBottomRight' }}
-                        />
-                        <ReferenceLine
-                          y={Math.max(...getCurrentMetricData().map(d => d.max).filter(v => v !== null))}
-                          stroke="#82ca9d"
-                          strokeDasharray="3 3"
-                          label={{ value: 'Max', position: 'insideTopRight' }}
-                        />
-                      </>
-                    )}
-                  </LineChart>
-                </ResponsiveContainer>
-              ) : (
-                <div className="chart-placeholder">
-                  <p>No data available for this metric.</p>
-                </div>
-              )}
-            </div>
+            {/* Use the ComparisonChart component instead of directly using LineChart */}
+            {hasData ? (
+              <ComparisonChart
+                data={getCurrentMetricData()}
+                metricName={METRICS.find(m => m.id === selectedMetric)?.label || ''}
+                metricUnit={getMetricUnit()}
+              />
+            ) : (
+              <div className="chart-placeholder">
+                <p>No data available for this metric.</p>
+              </div>
+            )}
             
             {/* Error metrics panel */}
             <ErrorMetrics

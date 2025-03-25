@@ -1,5 +1,5 @@
 // src/components/specific/WeatherModelComparison/ComparisonChart.js
-import React from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import PropTypes from 'prop-types';
 import {
   LineChart,
@@ -12,9 +12,7 @@ import {
   ResponsiveContainer
 } from 'recharts';
 
-/**
- * Custom tooltip for the comparison chart
- */
+// Custom tooltip component remains the same...
 const CustomTooltip = ({ active, payload, unit }) => {
   if (active && payload && payload.length) {
     const item = payload[0].payload;
@@ -35,12 +33,133 @@ const CustomTooltip = ({ active, payload, unit }) => {
   return null;
 };
 
-/**
- * Comparison chart component that displays the model comparison
- */
 const ComparisonChart = ({ data, metricName, metricUnit }) => {
+  // Add significant state management
+  const [chartSize, setChartSize] = useState({ width: 0, height: 0 });
+  const [forceRender, setForceRender] = useState(0);
+  const chartContainerRef = useRef(null);
+  const chartMounted = useRef(false);
+  
+  // Determine chart parameters based on data
+  const maxDay = data && data.length > 0 ? Math.max(...data.map(d => d.day)) : 16;
+  
+  // Create hardcoded ticks based on forecast length
+  const getFixedTicks = () => {
+    if (maxDay >= 15) {
+      return [1, 3, 5, 7, 9, 11, 13, 15]; // 16-day forecast
+    } else if (maxDay >= 9) {
+      return [1, 3, 5, 7, 9]; // 10-day forecast
+    } else {
+      return [1, 3, 5, 7]; // 7-day forecast
+    }
+  };
+  
+  const fixedTicks = getFixedTicks();
+  
+  // Function to directly manipulate DOM to hide unwanted ticks
+  const enforceTickVisibility = () => {
+    if (!chartContainerRef.current) return;
+    
+    const tickElements = chartContainerRef.current.querySelectorAll('.recharts-xAxis .recharts-cartesian-axis-tick');
+    if (!tickElements || tickElements.length === 0) return;
+    
+    // Loop through all tick elements
+    tickElements.forEach(tick => {
+      const tickText = tick.querySelector('text');
+      if (!tickText) return;
+      
+      const dayText = tickText.textContent.trim();
+      const dayNumber = parseInt(dayText.replace('Day ', ''), 10);
+      
+      // Check if this tick should be visible
+      if (isNaN(dayNumber) || !fixedTicks.includes(dayNumber)) {
+        tick.style.display = 'none';
+      } else {
+        tick.style.display = '';
+      }
+    });
+  };
+  
+  // Initial setup and cleanup
+  useEffect(() => {
+    // Create a style element to add CSS directly to the document
+    const styleEl = document.createElement('style');
+    styleEl.type = 'text/css';
+    styleEl.innerHTML = `
+      /* Override Recharts styling for this component only */
+      .comparison-chart-wrapper .recharts-cartesian-axis-tick:nth-child(even) {
+        display: none !important;
+      }
+      
+      /* Make sure tick lines align with grid lines */
+      .comparison-chart-wrapper .recharts-cartesian-grid-vertical line {
+        stroke-opacity: 1;
+      }
+    `;
+    document.head.appendChild(styleEl);
+    
+    chartMounted.current = true;
+    
+    return () => {
+      document.head.removeChild(styleEl);
+      chartMounted.current = false;
+    };
+  }, []);
+  
+  // Handle chart size changes and trigger renders
+  useEffect(() => {
+    if (!chartContainerRef.current) return;
+    
+    // Create a sequence of delayed renders to ensure proper layout
+    const renderSequence = [50, 150, 300, 600];
+    
+    // Set up render timers
+    const timers = renderSequence.map((delay, index) => 
+      setTimeout(() => {
+        if (chartMounted.current) {
+          setForceRender(prev => prev + 1);
+          if (delay >= 300) {
+            // After the chart has had time to render, fix ticks
+            enforceTickVisibility();
+          }
+        }
+      }, delay)
+    );
+    
+    // Create a ResizeObserver to detect size changes
+    const resizeObserver = new ResizeObserver(entries => {
+      if (entries[0]) {
+        const { width, height } = entries[0].contentRect;
+        setChartSize({ width, height });
+        // Delayed enforcement of tick visibility after resize
+        setTimeout(enforceTickVisibility, 100);
+      }
+    });
+    
+    // Start observing the chart container
+    resizeObserver.observe(chartContainerRef.current);
+    
+    // Clean up timers and observer
+    return () => {
+      timers.forEach(timer => clearTimeout(timer));
+      resizeObserver.disconnect();
+    };
+  }, [data, maxDay]); // Re-run when data or max day changes
+  
+  // Re-run enforceTickVisibility when forced render happens
+  useEffect(() => {
+    if (forceRender > 0) {
+      enforceTickVisibility();
+    }
+  }, [forceRender]);
+
   return (
-    <div className="analysis-chart">
+    <div 
+      className="analysis-chart comparison-chart-wrapper" 
+      ref={chartContainerRef}
+      // Add a unique key to force complete re-renders when necessary
+      key={`chart-${maxDay}-${forceRender}`}
+    >
       <h3 className="chart-title">
         {metricName} Forecast Comparison
         <span className="chart-unit">({metricUnit})</span>
@@ -51,12 +170,25 @@ const ComparisonChart = ({ data, metricName, metricUnit }) => {
             data={data}
             margin={{ top: 20, right: 30, left: 20, bottom: 30 }}
           >
-            <CartesianGrid strokeDasharray="3 3" />
+            <CartesianGrid 
+              strokeDasharray="3 3" 
+              // Ensure vertical grid lines align with ticks
+              vertical={true}
+              verticalCoordinatesGenerator={
+                (props) => {
+                  // Generate coordinates for grid lines at each tick position
+                  const { xAxis, width } = props;
+                  return fixedTicks.map(tick => xAxis.scale(tick));
+                }
+              }
+            />
+            
             <XAxis 
               dataKey="day" 
               name="Day" 
               type="number"
-              domain={[1, 'dataMax']}
+              domain={[1, maxDay]}
+              ticks={fixedTicks}
               tickFormatter={(day) => `Day ${day}`}
               label={{ 
                 value: 'Day', 
@@ -64,10 +196,10 @@ const ComparisonChart = ({ data, metricName, metricUnit }) => {
                 offset: -5,
                 fontSize: 14
               }}
-              interval={Math.ceil(data.length / 10)}
               allowDecimals={false}
               padding={{ left: 10, right: 10 }}
             />
+            
             <YAxis 
               label={{ 
                 value: `${metricName} (${metricUnit})`, 
@@ -77,16 +209,19 @@ const ComparisonChart = ({ data, metricName, metricUnit }) => {
                 fontSize: 14
               }}
             />
+            
             <Tooltip content={<CustomTooltip unit={metricUnit} />} />
+            
             <Legend 
-  verticalAlign="top" 
-  align="center"
-  height={60}
-  iconSize={14}
-  iconType="plainline"
-  layout="horizontal"
-  margin={{ top: 0, right: 0, left: 0, bottom: 20 }}
-/>
+              verticalAlign="top" 
+              align="center"
+              height={60}
+              iconSize={14}
+              iconType="plainline"
+              layout="horizontal"
+              margin={{ top: 0, right: 0, left: 0, bottom: 20 }}
+            />
+            
             <Line 
               name="Historical Data (Ground Truth)" 
               dataKey="historical" 
@@ -97,6 +232,7 @@ const ComparisonChart = ({ data, metricName, metricUnit }) => {
               activeDot={{ r: 6, strokeWidth: 1, stroke: '#fff' }}
               connectNulls={false}
             />
+            
             <Line 
               name="GraphCast Model" 
               dataKey="graphcast" 
@@ -108,6 +244,7 @@ const ComparisonChart = ({ data, metricName, metricUnit }) => {
               activeDot={{ r: 6, strokeWidth: 1, stroke: '#fff' }}
               connectNulls={false}
             />
+            
             <Line 
               name="NWP Model" 
               dataKey="nwp" 
