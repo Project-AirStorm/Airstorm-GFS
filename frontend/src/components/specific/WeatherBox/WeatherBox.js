@@ -31,6 +31,7 @@ const WeatherBox = ({
   { 
   const[forecastData, setForecastData] = React.useState(null);
   const [error, setError] = React.useState(null);
+  const [openStates, setOpenStates] = useState([]);
   
   
   React.useEffect(() => {
@@ -119,6 +120,7 @@ const WeatherBox = ({
 
           
             setForecastData(dailyData);
+            setOpenStates(new Array(dailyData.length).fill(false));
 
           } catch (err) {
             setError('Failed to fetch weather data');
@@ -128,20 +130,12 @@ const WeatherBox = ({
         fetchWeatherData();
       }, [latitude, longitude]); // Dependencies array includes latitude and longitude
 
-      const WeatherExtend = () => {
-        const [isOpen, setOpen] = useState(false);
-
-        const handleClick = () => {
-          setOpen(!isOpen);
-      };
-
-      const hiddenComponent = () =>{
-        return (      
-          <div className="bg-white border border-gray-200 rounded-lg shadow-lg p-6 w-full max-w-md">
-            <h3 className="text-lg font-semibold text-gray-800 mb-3">Hidden Content</h3>
-          </div>
-        )
-
+      const handleClick = (index) => {
+        setOpenStates(prevStates => {
+          const newStates = [...prevStates];
+          newStates[index] = !newStates[index];
+          return newStates;
+        });
       };
 
       return (
@@ -163,23 +157,19 @@ const WeatherBox = ({
               <div className='maxTemp' units='°'>{day.temperature_max}°</div>
             </div>
             }
-            <div className='openButton'>
-              <button onClick={handleClick} aria-expanded={isOpen}>
-                {isOpen ? (<FaChevronUp className="transition-transform duration-300" size={50}/>):(<FaChevronDown className="transition-transform duration-300" size={50}/>)}
-              </button>
 
-              <div className={`transition-all duration-300 overflow-hidden ${isOpen ? 'max-h-screen opacity-100' : 'max-h-0 opacity-0'}`}>
-                {isOpen && <hiddenComponent/>}
+            {
+              <div className='openButton'>
+                <button onClick={()=> handleClick(index)} aria-expanded={openStates[index]}>
+                    {openStates[index] ? (<FaChevronUp className="transition-transform duration-300" size={50}/>):(<FaChevronDown className="transition-transform duration-300" size={50}/>)}
+                </button>
               </div>
-              
-              </div>
+            }
 
           </div>
           ))}
         </div>
       );
-
-    };
 
       
   }
