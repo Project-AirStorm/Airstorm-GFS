@@ -1,5 +1,5 @@
 // src/components/specific/WeatherModelComparison/ComparisonChart.js
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import PropTypes from 'prop-types';
 import {
   LineChart,
@@ -12,7 +12,7 @@ import {
   ResponsiveContainer
 } from 'recharts';
 
-// Custom tooltip component remains the same...
+// Custom tooltip component
 const CustomTooltip = ({ active, payload, unit }) => {
   if (active && payload && payload.length) {
     const item = payload[0].payload;
@@ -34,17 +34,16 @@ const CustomTooltip = ({ active, payload, unit }) => {
 };
 
 const ComparisonChart = ({ data, metricName, metricUnit }) => {
-  // Add significant state management
-  const [chartSize, setChartSize] = useState({ width: 0, height: 0 });
-  const [forceRender, setForceRender] = useState(0);
-  const chartContainerRef = useRef(null);
+  const chartRef = useRef(null);
   const chartMounted = useRef(false);
   
   // Determine chart parameters based on data
-  const maxDay = data && data.length > 0 ? Math.max(...data.map(d => d.day)) : 16;
+  const maxDay = useMemo(() => {
+    return data && data.length > 0 ? Math.max(...data.map(d => d.day)) : 16;
+  }, [data]);
   
   // Create hardcoded ticks based on forecast length
-  const getFixedTicks = () => {
+  const fixedTicks = useMemo(() => {
     if (maxDay >= 15) {
       return [1, 3, 5, 7, 9, 11, 13, 15]; // 16-day forecast
     } else if (maxDay >= 9) {
@@ -52,113 +51,75 @@ const ComparisonChart = ({ data, metricName, metricUnit }) => {
     } else {
       return [1, 3, 5, 7]; // 7-day forecast
     }
-  };
+  }, [maxDay]);
   
-  const fixedTicks = getFixedTicks();
-  
-  // Function to directly manipulate DOM to hide unwanted ticks
-  const enforceTickVisibility = () => {
-    if (!chartContainerRef.current) return;
-    
-    const tickElements = chartContainerRef.current.querySelectorAll('.recharts-xAxis .recharts-cartesian-axis-tick');
-    if (!tickElements || tickElements.length === 0) return;
-    
-    // Loop through all tick elements
-    tickElements.forEach(tick => {
-      const tickText = tick.querySelector('text');
-      if (!tickText) return;
-      
-      const dayText = tickText.textContent.trim();
-      const dayNumber = parseInt(dayText.replace('Day ', ''), 10);
-      
-      // Check if this tick should be visible
-      if (isNaN(dayNumber) || !fixedTicks.includes(dayNumber)) {
-        tick.style.display = 'none';
-      } else {
-        tick.style.display = '';
-      }
-    });
-  };
-  
-  // Initial setup and cleanup
+  // Apply styling after the chart is fully rendered
   useEffect(() => {
-    // Create a style element to add CSS directly to the document
-    const styleEl = document.createElement('style');
-    styleEl.type = 'text/css';
-    styleEl.innerHTML = `
-      /* Override Recharts styling for this component only */
-      .comparison-chart-wrapper .recharts-cartesian-axis-tick:nth-child(even) {
-        display: none !important;
-      }
-      
-      /* Make sure tick lines align with grid lines */
-      .comparison-chart-wrapper .recharts-cartesian-grid-vertical line {
-        stroke-opacity: 1;
-      }
-    `;
-    document.head.appendChild(styleEl);
+    if (!chartRef.current) return;
     
     chartMounted.current = true;
     
-    return () => {
-      document.head.removeChild(styleEl);
-      chartMounted.current = false;
-    };
-  }, []);
-  
-  // Handle chart size changes and trigger renders
-  useEffect(() => {
-    if (!chartContainerRef.current) return;
-    
-    // Create a sequence of delayed renders to ensure proper layout
-    const renderSequence = [50, 150, 300, 600];
-    
-    // Set up render timers
-    const timers = renderSequence.map((delay, index) => 
-      setTimeout(() => {
-        if (chartMounted.current) {
-          setForceRender(prev => prev + 1);
-          if (delay >= 300) {
-            // After the chart has had time to render, fix ticks
-            enforceTickVisibility();
-          }
+    // One-time fix for tick visibility after the initial render
+    const timeoutId = setTimeout(() => {
+      const tickElements = chartRef.current.querySelectorAll('.recharts-xAxis .recharts-cartesian-axis-tick');
+      if (!tickElements || tickElements.length === 0) return;
+      
+      tickElements.forEach(tick => {
+        const tickText = tick.querySelector('text');
+        if (!tickText) return;
+        
+        const dayText = tickText.textContent.trim();
+        const dayNumber = parseInt(dayText.replace('Day ', ''), 10);
+        
+        // Check if this tick should be visible
+        if (isNaN(dayNumber) || !fixedTicks.includes(dayNumber)) {
+          tick.style.display = 'none';
+        } else {
+          tick.style.display = '';
         }
-      }, delay)
-    );
-    
-    // Create a ResizeObserver to detect size changes
-    const resizeObserver = new ResizeObserver(entries => {
-      if (entries[0]) {
-        const { width, height } = entries[0].contentRect;
-        setChartSize({ width, height });
-        // Delayed enforcement of tick visibility after resize
-        setTimeout(enforceTickVisibility, 100);
-      }
+      });
+    }, 300); // A single delayed execution
+
+    // Setup resize handler
+    const resizeObserver = new ResizeObserver(() => {
+      // Only apply the tick visibility fix once the chart is resized
+      setTimeout(() => {
+        if (chartRef.current) {
+          const tickElements = chartRef.current.querySelectorAll('.recharts-xAxis .recharts-cartesian-axis-tick');
+          if (!tickElements || tickElements.length === 0) return;
+          
+          tickElements.forEach(tick => {
+            const tickText = tick.querySelector('text');
+            if (!tickText) return;
+            
+            const dayText = tickText.textContent.trim();
+            const dayNumber = parseInt(dayText.replace('Day ', ''), 10);
+            
+            if (isNaN(dayNumber) || !fixedTicks.includes(dayNumber)) {
+              tick.style.display = 'none';
+            } else {
+              tick.style.display = '';
+            }
+          });
+        }
+      }, 100);
     });
     
-    // Start observing the chart container
-    resizeObserver.observe(chartContainerRef.current);
-    
-    // Clean up timers and observer
-    return () => {
-      timers.forEach(timer => clearTimeout(timer));
-      resizeObserver.disconnect();
-    };
-  }, [data, maxDay]); // Re-run when data or max day changes
-  
-  // Re-run enforceTickVisibility when forced render happens
-  useEffect(() => {
-    if (forceRender > 0) {
-      enforceTickVisibility();
+    if (chartRef.current) {
+      resizeObserver.observe(chartRef.current);
     }
-  }, [forceRender]);
+    
+    return () => {
+      clearTimeout(timeoutId);
+      resizeObserver.disconnect();
+      chartMounted.current = false;
+    };
+  }, [fixedTicks, data]); // Only re-run when data or ticks change
 
   return (
     <div 
       className="analysis-chart comparison-chart-wrapper" 
-      ref={chartContainerRef}
-      // Add a unique key to force complete re-renders when necessary
-      key={`chart-${maxDay}-${forceRender}`}
+      ref={chartRef}
     >
       <h3 className="chart-title">
         {metricName} Forecast Comparison
@@ -172,7 +133,6 @@ const ComparisonChart = ({ data, metricName, metricUnit }) => {
           >
             <CartesianGrid 
               strokeDasharray="3 3" 
-              // Ensure vertical grid lines align with ticks
               vertical={true}
               verticalCoordinatesGenerator={
                 (props) => {
@@ -211,34 +171,34 @@ const ComparisonChart = ({ data, metricName, metricUnit }) => {
             />
             
             <Tooltip content={<CustomTooltip unit={metricUnit} />} />
-          
-            // Update in ComparisonChart.js
-<Legend 
-  verticalAlign="top" 
-  align="center"
-  height={60}
-  iconSize={16}
-  iconType="line"
-  formatter={(value, entry, index) => {
-    // Custom class names for different legend items
-    let customClassName = "";
-    if (value.includes("Historical")) {
-      customClassName = "recharts-legend-item-historical";
-    } else if (value.includes("GraphCast")) {
-      customClassName = "recharts-legend-item-graphcast";
-    } else if (value.includes("NWP")) {
-      customClassName = "recharts-legend-item-nwp";
-    }
-    
-    // Return the legend item with custom class
-    return <span className={customClassName}>{value}</span>;
-  }}
-  wrapperStyle={{
-    position: "relative",
-    top: -20
-  }}
-  onClick={null} // Disable click handler
-/>
+            
+            <Legend 
+              verticalAlign="top" 
+              align="center"
+              height={60}
+              iconSize={16}
+              iconType="line"
+              formatter={(value, entry, index) => {
+                // Custom class names for different legend items
+                let customClassName = "";
+                if (value.includes("Historical")) {
+                  customClassName = "recharts-legend-item-historical";
+                } else if (value.includes("GraphCast")) {
+                  customClassName = "recharts-legend-item-graphcast";
+                } else if (value.includes("NWP")) {
+                  customClassName = "recharts-legend-item-nwp";
+                }
+                
+                // Return the legend item with custom class
+                return <span className={customClassName}>{value}</span>;
+              }}
+              wrapperStyle={{
+                position: "relative",
+                top: -20
+              }}
+              onClick={null} // Disable click handler
+            />
+            
             <Line 
               name="Historical Data (Ground Truth)" 
               dataKey="historical" 
@@ -255,7 +215,6 @@ const ComparisonChart = ({ data, metricName, metricUnit }) => {
               dataKey="graphcast" 
               stroke="#82ca9d" 
               strokeWidth={2}
-              strokeDasharray="5 5"
               type="monotone"
               dot={{ r: 4, strokeWidth: 1 }}
               activeDot={{ r: 6, strokeWidth: 1, stroke: '#fff' }}
@@ -267,7 +226,6 @@ const ComparisonChart = ({ data, metricName, metricUnit }) => {
               dataKey="nwp" 
               stroke="#ff7300" 
               strokeWidth={2}
-              strokeDasharray="3 3"
               type="monotone"
               dot={{ r: 4, strokeWidth: 1 }}
               activeDot={{ r: 6, strokeWidth: 1, stroke: '#fff' }}

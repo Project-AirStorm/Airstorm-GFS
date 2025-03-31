@@ -1,13 +1,15 @@
 // src/components/specific/WeatherModelComparison/WeatherModelComparison.js
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import axios from 'axios';
 import { 
   Thermometer, 
   Droplets, 
   Wind, 
-  Cloud,
   Clock,
-  Calendar
+  Calendar,
+  ChevronDown,
+  Plus,
+  MapPin
 } from 'lucide-react';
 
 // Import helper components
@@ -15,7 +17,9 @@ import ErrorState from './ErrorState';
 import LoadingState from './LoadingState';
 import LocationDetection from './LocationDetection';
 import ErrorMetrics from './ErrorMetrics';
-import ComparisonChart from './ComparisonChart';  // Import the ComparisonChart component
+import ComparisonChart from './ComparisonChart';
+import AddLocationPopup from '../../specific/AddLocationPopup/AddLocationPopup';
+import { UserSession } from '../../../utils/UserSession';
 
 // Import data utilities
 import { fetchHistoricalData, processWeatherData } from './dataUtils';
@@ -36,7 +40,6 @@ const METRICS = [
   { id: 'temperature', apiId: 'temperature_2m', label: 'Temperature', icon: <Thermometer className="w-4 h-4" />, unit: '°C' },
   { id: 'precipitation', apiId: 'precipitation', label: 'Precipitation', icon: <Droplets className="w-4 h-4" />, unit: 'mm' },
   { id: 'wind', apiId: 'wind_speed_10m', label: 'Wind Speed', icon: <Wind className="w-4 h-4" />, unit: 'km/h' },
-  { id: 'cloudCover', apiId: 'cloud_cover', label: 'Cloud Cover', icon: <Cloud className="w-4 h-4" />, unit: '%' }
 ];
 
 // Default location (fallback if geolocation fails)
@@ -47,13 +50,87 @@ const DEFAULT_LOCATION = {
 };
 
 /**
+ * Enhanced Location Selector Component
+ */
+const LocationSelector = ({ locations, onSelectLocation, onAddLocation, selectedLocation }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const dropdownRef = useRef(null);
+
+  const toggleDropdown = () => {
+    setIsOpen(!isOpen);
+  };
+
+  // Handle click outside to close dropdown
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
+  return (
+    <div className="location-selector-wrapper" ref={dropdownRef}>
+      <button className="location-selector-button" onClick={toggleDropdown}>
+        <MapPin size={16} />
+        <span>{selectedLocation ? selectedLocation.name : 'Select Location'}</span>
+        <ChevronDown className="dropdown-icon" size={16} />
+      </button>
+
+      {isOpen && (
+        <div className="location-selector-menu">
+          {locations && locations.length > 0 ? (
+            <>
+              {locations.map((loc) => (
+                <button
+                  key={`${loc.latitude}-${loc.longitude}`}
+                  className={`location-option ${selectedLocation && selectedLocation.lat === loc.latitude && selectedLocation.lon === loc.longitude ? 'selected' : ''}`}
+                  onClick={() => {
+                    onSelectLocation(loc);
+                    setIsOpen(false);
+                  }}
+                >
+                  <div className="location-option-content">
+                    <span className="location-name">{loc.name}</span>
+                    <span className="location-coords">
+                      {loc.latitude.toFixed(4)}, {loc.longitude.toFixed(4)}
+                    </span>
+                  </div>
+                  {loc.isFavorite && <span className="location-favorite">★</span>}
+                </button>
+              ))}
+              <div className="location-divider"></div>
+            </>
+          ) : (
+            <div className="no-locations-message">No saved locations</div>
+          )}
+          <button className="add-location-option" onClick={onAddLocation}>
+            <Plus size={16} />
+            <span>Add New Location</span>
+          </button>
+        </div>
+      )}
+    </div>
+  );
+};
+
+/**
  * Weather Model Comparison component that compares GraphCast and NWP models
  */
 const WeatherModelComparison = () => {
+  const { user } = UserSession();
+  
   // UI state
-  const [activeView, setActiveView] = useState('overview');
   const [selectedMetric, setSelectedMetric] = useState('temperature');
   const [timeframe, setTimeframe] = useState('16'); // Default to 16 days
+  
+  // Saved locations state
+  const [savedLocations, setSavedLocations] = useState([]);
   
   // Data state
   const [rawData, setRawData] = useState(null);
@@ -61,113 +138,116 @@ const WeatherModelComparison = () => {
     temperature: [],
     precipitation: [],
     wind: [],
-    cloudCover: []
   });
   const [errorMetrics, setErrorMetrics] = useState({
     temperature: { graphcast: {}, nwp: {} },
     precipitation: { graphcast: {}, nwp: {} },
     wind: { graphcast: {}, nwp: {} },
-    cloudCover: { graphcast: {}, nwp: {} }
   });
+  
+  // Location and popup state
+  const [showLocationPopup, setShowLocationPopup] = useState(false);
+  const [locationSelected, setLocationSelected] = useState(false);
   
   // Status state
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   
   // Location state
-  const [location, setLocation] = useState(DEFAULT_LOCATION);
+  const [location, setLocation] = useState(null);
   const [locationStatus, setLocationStatus] = useState({
-    detecting: true,
+    detecting: false,
     error: null
   });
 
- // Get current date and properly offset date ranges
-const getCurrentDateRange = useCallback(() => {
-  // Start with current date
-  const currentDate = new Date();
-  
-  // End date should be 5 days before current date
-  const endDate = new Date(currentDate);
-  endDate.setDate(endDate.getDate() - 5);
-  
-  // Start date should be (timeframe) days before the end date
-  const startDate = new Date(endDate);
-  startDate.setDate(startDate.getDate() - parseInt(timeframe, 10));
-  
-  return {
-    startDate: startDate.toISOString().split('T')[0],
-    endDate: endDate.toISOString().split('T')[0]
-  };
-}, [timeframe]);
-  
-  // Detect user's location on component mount
-  useEffect(() => {
-    const detectLocation = () => {
-      setLocationStatus({ detecting: true, error: null });
-      
-      if ('geolocation' in navigator) {
-        navigator.geolocation.getCurrentPosition(
-          async (position) => {
-            try {
-              const { latitude, longitude } = position.coords;
-              
-              // Get location name from coordinates using geocoding API
-              const response = await axios.get(`${REACT_APP_API_URL}/api/geocode`, {
-                params: { lat: latitude, lon: longitude }
-              });
-              
-              // Extract location components
-              const locationData = response.data;
-              const locationName = locationData.components 
-                ? `${locationData.components.city || ''}, ${locationData.components.state_code || ''}`
-                : `${latitude.toFixed(2)}°, ${longitude.toFixed(2)}°`;
-              
-              // Update location state
-              setLocation({
-                lat: latitude,
-                lon: longitude,
-                name: locationName.trim() || `${latitude.toFixed(2)}°, ${longitude.toFixed(2)}°`
-              });
-              
-              setLocationStatus({ detecting: false, error: null });
-            } catch (error) {
-              console.error('Error getting location name:', error);
-              
-              // Still set coordinates but use generic name
-              setLocation({
-                lat: position.coords.latitude,
-                lon: position.coords.longitude,
-                name: `${position.coords.latitude.toFixed(2)}°, ${position.coords.longitude.toFixed(2)}°`
-              });
-              
-              setLocationStatus({ detecting: false, error: null });
-            }
-          },
-          (error) => {
-            console.error('Geolocation error:', error);
-            setLocationStatus({ 
-              detecting: false, 
-              error: `Could not detect location: ${error.message}` 
-            });
-          },
-          { timeout: 10000, enableHighAccuracy: false }
-        );
-      } else {
-        setLocationStatus({ 
-          detecting: false, 
-          error: 'Geolocation is not supported by your browser' 
-        });
-      }
-    };
+  // Get current date and properly offset date ranges
+  const getCurrentDateRange = useCallback(() => {
+    // Start with current date
+    const currentDate = new Date();
     
-    detectLocation();
-  }, []);
+    // End date should be 5 days before current date
+    const endDate = new Date(currentDate);
+    endDate.setDate(endDate.getDate() - 5);
+    
+    // Start date should be (timeframe) days before the end date
+    const startDate = new Date(endDate);
+    startDate.setDate(startDate.getDate() - parseInt(timeframe, 10));
+    
+    return {
+      startDate: startDate.toISOString().split('T')[0],
+      endDate: endDate.toISOString().split('T')[0]
+    };
+  }, [timeframe]);
+
+  // Fetch saved locations from the dashboard
+  const fetchSavedLocations = useCallback(async () => {
+    if (!user?.id) return;
+    
+    try {
+      const response = await axios.get(`${REACT_APP_API_URL}/api/locations`, {
+        params: { userId: user.id }
+      });
+      
+      setSavedLocations(response.data);
+      
+      // If we have locations and none is selected yet, select the first one
+      if (response.data.length > 0 && !location) {
+        const firstLocation = response.data[0];
+        handleLocationSelected(firstLocation);
+      }
+    } catch (err) {
+      console.error('Error fetching saved locations:', err);
+    }
+  }, [user?.id, location]);
+  
+  // Fetch saved locations when component mounts
+  useEffect(() => {
+    fetchSavedLocations();
+  }, [fetchSavedLocations]);
+  
+  // Handle timeframe toggle
+  const toggleTimeframe = () => {
+    setTimeframe(timeframe === '16' ? '7' : '16');
+  };
+
+  // Handle location popup
+  const handleShowAddLocation = () => {
+    setShowLocationPopup(true);
+  };
+
+  // Handle location selection
+  const handleLocationSelected = (newLocation) => {
+    setLocation({
+      lat: newLocation.latitude,
+      lon: newLocation.longitude,
+      name: newLocation.name
+    });
+    setLocationSelected(true);
+    setShowLocationPopup(false);
+  };
+
+  // Handle location added via popup
+  const handleLocationAdded = (newLocation) => {
+    fetchSavedLocations();
+    handleLocationSelected(newLocation);
+  };
+
+  // Get the current metric data
+  const getCurrentMetricData = () => {
+    return processedData[selectedMetric] || [];
+  };
+
+  // Get unit for the selected metric
+  const getMetricUnit = () => {
+    const metric = METRICS.find(m => m.id === selectedMetric);
+    return metric ? metric.unit : '';
+  };
   
   // Fetch and process weather data when location or timeframe changes
   useEffect(() => {
     const fetchAndProcessData = async () => {
-      // Skip if still detecting location
-      if (locationStatus.detecting) return;
+      // Skip if no location selected
+      if (!location) return;
       
       try {
         setLoading(true);
@@ -211,7 +291,7 @@ const getCurrentDateRange = useCallback(() => {
     };
     
     fetchAndProcessData();
-  }, [location, timeframe, locationStatus.detecting, getCurrentDateRange]);
+  }, [location, timeframe, getCurrentDateRange]);
   
   // Calculate error metrics for model comparison
   const calculateErrorMetrics = (data) => {
@@ -288,62 +368,6 @@ const getCurrentDateRange = useCallback(() => {
     return { rmse, mae, acc };
   };
   
-  // Handle metric button click
-  const handleMetricClick = (metricId) => {
-    setSelectedMetric(metricId);
-  };
-  
-  // Handle timeframe change
-  const handleTimeframeChange = () => {
-    // Toggle between 16 days and 7 days
-    setTimeframe(timeframe === '16' ? '7' : '16');
-  };
-  
-  // Get the current metric data
-  const getCurrentMetricData = () => {
-    return processedData[selectedMetric] || [];
-  };
-  
-  // Get unit for the selected metric
-  const getMetricUnit = () => {
-    const metric = METRICS.find(m => m.id === selectedMetric);
-    return metric ? metric.unit : '';
-  };
-  
-  // Retry location detection
-  const handleRetryLocation = () => {
-    setLocationStatus({ detecting: true, error: null });
-    // Reset to default location and trigger the useEffect again
-    setLocation(DEFAULT_LOCATION);
-  };
-  
-  // Return loading state if detecting location
-  if (locationStatus.detecting) {
-    return <LocationDetection type="loading" />;
-  }
-  
-  // Return location error if detection failed
-  if (locationStatus.error) {
-    return (
-      <LocationDetection
-        type="error"
-        error={locationStatus.error}
-        location={`${location.name} (${location.lat.toFixed(2)}, ${location.lon.toFixed(2)})`}
-        onRetry={handleRetryLocation}
-      />
-    );
-  }
-  
-  // Return loading state while fetching data
-  if (loading) {
-    return <LoadingState location={location.name} />;
-  }
-  
-  // Return error state if something went wrong
-  if (error) {
-    return <ErrorState error={error} rawData={rawData} />;
-  }
-  
   // Determine if we have valid data to display
   const hasData = getCurrentMetricData().length > 0;
   
@@ -359,55 +383,91 @@ const getCurrentDateRange = useCallback(() => {
             </p>
           </div>
           
-          {/* Metrics selector */}
-          <div className="metrics-selector">
-            {METRICS.map((metric) => (
-              <div key={metric.id} className="metric-button-container">
+          {/* Controls section */}
+          <div className="analysis-controls">
+            {/* Metrics selector */}
+            <div className="metrics-section">
+              {METRICS.map((metric) => (
                 <button
+                  key={metric.id}
                   className={`metric-button ${selectedMetric === metric.id ? 'active' : ''}`}
-                  onClick={() => handleMetricClick(metric.id)}
+                  onClick={() => setSelectedMetric(metric.id)}
                 >
                   {metric.icon}
-                  <span className="ml-2">{metric.label}</span>
+                  <span className="metric-label">{metric.label}</span>
                 </button>
-              </div>
-            ))}
-            
-            <div className="timeframe-toggle">
-              <button
-                className="metric-button"
-                onClick={handleTimeframeChange}
-              >
-                {timeframe === '16' ? <Calendar className="w-4 h-4" /> : <Clock className="w-4 h-4" />}
-                <span className="ml-2">{timeframe === '16' ? '16 Days' : '7 Days'}</span>
-              </button>
+              ))}
             </div>
-          </div>
-          
-          <div className="analysis-content">
-            {/* Use the ComparisonChart component instead of directly using LineChart */}
-            {hasData ? (
-              <ComparisonChart
-                data={getCurrentMetricData()}
-                metricName={METRICS.find(m => m.id === selectedMetric)?.label || ''}
-                metricUnit={getMetricUnit()}
-              />
-            ) : (
-              <div className="chart-placeholder">
-                <p>No data available for this metric.</p>
-              </div>
-            )}
             
-            {/* Error metrics panel */}
-            <ErrorMetrics
-              selectedMetric={selectedMetric}
-              errorMetrics={errorMetrics}
-              metricLabel={METRICS.find(m => m.id === selectedMetric)?.label || ''}
-              location={location}
+            {/* Timeframe selector */}
+            <button
+              className="timeframe-button"
+              onClick={toggleTimeframe}
+            >
+              {timeframe === '16' ? <Calendar size={16} /> : <Clock size={16} />}
+              <span>{timeframe === '16' ? '16 Days' : '7 Days'}</span>
+            </button>
+            
+            {/* Location selector */}
+            <LocationSelector 
+              locations={savedLocations}
+              onSelectLocation={handleLocationSelected}
+              onAddLocation={handleShowAddLocation}
+              selectedLocation={location}
             />
           </div>
+          
+          {!location ? (
+            <div className="no-location-message">
+              <p>Please select a location to view weather model comparison data.</p>
+              <LocationSelector
+                locations={savedLocations}
+                onSelectLocation={handleLocationSelected}
+                onAddLocation={handleShowAddLocation}
+                selectedLocation={location}
+              />
+              {savedLocations.length === 0 && (
+                <p className="no-saved-locations">No saved locations found. Please add a new location.</p>
+              )}
+            </div>
+          ) : loading ? (
+            <LoadingState location={location.name} />
+          ) : error ? (
+            <ErrorState error={error} rawData={rawData} />
+          ) : (
+            <div className="analysis-content">
+              {/* Use the ComparisonChart component */}
+              {hasData ? (
+                <ComparisonChart
+                  data={getCurrentMetricData()}
+                  metricName={METRICS.find(m => m.id === selectedMetric)?.label || ''}
+                  metricUnit={getMetricUnit()}
+                />
+              ) : (
+                <div className="chart-placeholder">
+                  <p>No data available for this metric.</p>
+                </div>
+              )}
+              
+              {/* Error metrics panel */}
+              <ErrorMetrics
+                selectedMetric={selectedMetric}
+                errorMetrics={errorMetrics}
+                metricLabel={METRICS.find(m => m.id === selectedMetric)?.label || ''}
+                location={location}
+              />
+            </div>
+          )}
         </div>
       </div>
+      
+      {showLocationPopup && (
+        <AddLocationPopup
+          isOpen={showLocationPopup}
+          onClose={() => setShowLocationPopup(false)}
+          onLocationAdded={handleLocationAdded}
+        />
+      )}
     </div>
   );
 };
