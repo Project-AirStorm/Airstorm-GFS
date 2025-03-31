@@ -21,6 +21,7 @@ import { RiHailLine } from "react-icons/ri";
 import { FaChevronUp } from "react-icons/fa";
 import { FaChevronDown } from "react-icons/fa";
 import './WeatherBox.css';
+import './WeatherBoxExtended.js'
 
 const REACT_APP_API_URL = process.env.REACT_APP_API_URL;
 
@@ -162,6 +163,7 @@ const WeatherBox = ({
               <div className='openButton'>
                 <button onClick={()=> handleClick(index)} aria-expanded={openStates[index]}>
                     {openStates[index] ? (<FaChevronUp className="transition-transform duration-300" size={50}/>):(<FaChevronDown className="transition-transform duration-300" size={50}/>)}
+                    {openStates[index] && (<div className="expanded-content"> O.O New component </div>)}
                 </button>
               </div>
             }

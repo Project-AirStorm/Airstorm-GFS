@@ -1,0 +1,8 @@
+.WeatherBoxExtended{
+    border-radius: 0.75rem;
+    background-color: rgb(204, 204, 204);
+    width:100%;
+    margin: 2rem 0; /* Add some vertical spacing */
+    color: rgb(0, 0, 0);
+
+}
