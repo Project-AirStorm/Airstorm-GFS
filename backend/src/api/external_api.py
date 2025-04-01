@@ -459,17 +459,9 @@ def get_forecast():
             "models": "best_match",
         }
 
-        # Check if this is the Montana coordinates that cause issues
-        if abs(lat - 47.0737) < 0.001 and abs(lon - (-110.082)) < 0.001:
-            logger.warning(
-                f"Using fallback data for problematic coordinates: {lat}, {lon}")
-
-            # Return mock data for Montana (this prevents the cache issue)
-            mock_data = generate_mock_forecast_data(lat, lon)
-            return jsonify(mock_data)
-
         # Make the request to Open-Meteo
         try:
+            logger.info(f"Fetching forecast for {lat}, {lon} from {url}")
             response = requests.get(url, params=params, timeout=10)
             response.raise_for_status()
             return jsonify(response.json())
@@ -478,120 +470,21 @@ def get_forecast():
 
             # Fall back to free API if we get an error with the customer API
             if api_key and "customer-api" in url:
+                logger.info(f"Falling back to free API for {lat}, {lon}")
                 try:
                     url = "https://api.open-meteo.com/v1/forecast"
                     response = requests.get(url, params=params, timeout=10)
                     response.raise_for_status()
                     return jsonify(response.json())
-                except:
-                    pass
+                except requests.exceptions.RequestException as e2:
+                    logger.error(f"Error with fallback API: {str(e2)}")
+                    return jsonify({"error": f"API service unavailable: {str(e2)}"}), 503
 
-            # If all requests fail, generate mock data
-            mock_data = generate_mock_forecast_data(lat, lon)
-            return jsonify(mock_data)
+            return jsonify({"error": f"Weather service error: {str(e)}"}), 503
 
     except Exception as e:
         logger.error(f"Error in forecast endpoint: {str(e)}")
         return jsonify({"error": f"Server error: {str(e)}"}), 500
-
-
-def generate_mock_forecast_data(latitude, longitude):
-    """Generate mock forecast data as a fallback"""
-    from datetime import datetime, timedelta
-    import random
-
-    # Base date for the forecast (today)
-    base_date = datetime.now()
-
-    # Generate 16 days of forecast data
-    daily_times = []
-    daily_temp_max = []
-    daily_temp_min = []
-    daily_precip_prob = []
-    daily_precip_sum = []
-    daily_cloud_cover = []
-    daily_weather_code = []
-
-    # Base values around which we'll create random variations
-    base_temp = 70  # Base temperature in Fahrenheit
-    base_precip_prob = 30  # Base precipitation probability
-    base_cloud_cover = 40  # Base cloud cover percentage
-
-    for i in range(16):
-        # Date for this forecast day
-        forecast_date = base_date + timedelta(days=i)
-        daily_times.append(forecast_date.strftime("%Y-%m-%d"))
-
-        # Random variations for temperature
-        max_temp = base_temp + random.randint(-5, 10)
-        min_temp = max_temp - random.randint(10, 20)
-        daily_temp_max.append(max_temp)
-        daily_temp_min.append(min_temp)
-
-        # Random precipitation probability (0-100%)
-        precip_prob = min(
-            max(base_precip_prob + random.randint(-20, 30), 0), 100)
-        daily_precip_prob.append(precip_prob)
-
-        # Random precipitation sum (0-1 inches)
-        precip_sum = round(random.uniform(0, 1) if precip_prob > 30 else 0, 2)
-        daily_precip_sum.append(precip_sum)
-
-        # Random cloud cover (0-100%)
-        cloud_cover = min(
-            max(base_cloud_cover + random.randint(-20, 40), 0), 100)
-        daily_cloud_cover.append(cloud_cover)
-
-        # Weather code (WMO codes)
-        # 0: Clear sky, 1-3: Partly cloudy, 45-48: Fog, 51-57: Drizzle, 61-65: Rain
-        if cloud_cover < 20:
-            code = 0  # Clear
-        elif cloud_cover < 70:
-            code = random.choice([1, 2, 3])  # Partly cloudy
-        elif precip_prob > 50:
-            code = random.choice([61, 63, 65])  # Rain
-        else:
-            code = random.choice([1, 2, 3, 45])  # Mixed
-        daily_weather_code.append(code)
-
-    # Create response structure matching Open-Meteo API
-    mock_data = {
-        "latitude": latitude,
-        "longitude": longitude,
-        "timezone": "America/Denver",
-        "timezone_abbreviation": "MDT",
-        "current": {
-            "time": base_date.strftime("%Y-%m-%dT%H:%M"),
-            "temperature_2m": (daily_temp_max[0] + daily_temp_min[0]) / 2,
-            "relative_humidity_2m": random.randint(30, 70),
-            "precipitation": daily_precip_sum[0] / 24,  # Hourly precipitation
-            "cloud_cover": daily_cloud_cover[0]
-        },
-        "daily": {
-            "time": daily_times,
-            "temperature_2m_max": daily_temp_max,
-            "temperature_2m_min": daily_temp_min,
-            "precipitation_probability_max": daily_precip_prob,
-            "precipitation_sum": daily_precip_sum,
-            "cloud_cover_mean": daily_cloud_cover,
-            "weather_code": daily_weather_code
-        },
-        "daily_units": {
-            "temperature_2m_max": "°F",
-            "temperature_2m_min": "°F",
-            "precipitation_probability_max": "%",
-            "precipitation_sum": "inch",
-            "cloud_cover_mean": "%"
-        },
-        "current_units": {
-            "temperature_2m": "°F",
-            "relative_humidity_2m": "%",
-            "precipitation": "inch",
-            "cloud_cover": "%"
-        }
-    }
-
-    return mock_data
 
 
 # ====== GitHub Issues API ======
