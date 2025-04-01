@@ -1,5 +1,13 @@
 /* Dashboard.css */
 
+/* Controls Container */
+.controls-container {
+  display: flex;
+  justify-content: flex-end;
+  padding: 0.5rem 0;
+  margin-bottom: 1rem;
+}
+
 /* Weather Grid Layout */
 .weather-grid {
   display: flex;
@@ -37,6 +45,30 @@
   min-width: calc((100% - 3rem) / 3);
   max-width: calc((100% - 3rem) / 3);
   flex: 0 0 auto;
+  position: relative;
+  transition: transform 0.2s ease-in-out;
+}
+
+.weather-grid > *:hover {
+  transform: translateY(-5px);
+}
+
+/* Selected weather card indicator */
+.weather-card-wrapper {
+  position: relative;
+}
+
+.weather-card-wrapper.selected::after {
+  content: '';
+  position: absolute;
+  bottom: -10px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  border-style: solid;
+  border-width: 10px 10px 0 10px;
+  border-color: #4f46e5 transparent transparent transparent;
 }
 
 /* Chart Section Styles */

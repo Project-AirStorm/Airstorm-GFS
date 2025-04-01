@@ -22,12 +22,14 @@ const ActionButtons = ({ onTimeframeChange, onAddBase, timeframe = 'Week', onLoc
   return (
     <>
       <div className="action-buttons-container">
+        {/* Timeframe button commented out but preserved for future use
         <button 
           className="timeframe-button"
           onClick={onTimeframeChange}
         >
           {timeframe}
         </button>
+        */}
         <button 
           className="add-base-button"
           onClick={handleAddBase}

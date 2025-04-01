@@ -45,8 +45,10 @@ const CustomChannelPreview = ({
               : '')
         : memberNames[0];
     }
-    return otherMembers[0]?.user?.name || 'Unknown User';
-  }, [channel, otherMembers]);
+    // For direct messages (1-on-1), combine current user's name with other user's name
+    const currentUserName = currentUser ? `${currentUser.firstName} ${currentUser.lastName}` : 'Me';
+    return `${currentUserName} & ${otherMembers[0]?.user?.name || 'Unknown User'}`;
+  }, [channel, otherMembers, currentUser]);
 
   const handleNameChange = async () => {
     try {
