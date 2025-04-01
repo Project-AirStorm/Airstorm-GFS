@@ -29,6 +29,7 @@ const GraphCastForecast = ({ customLatitude, customLongitude }) => {
   const [error, setError] = useState(null);
   const [userLocation, setUserLocation] = useState(null);
   const [locationName, setLocationName] = useState('');
+  const [retryCount, setRetryCount] = useState(0);
 
   const fetchLocationName = async (latitude, longitude) => {
     try {
@@ -52,10 +53,10 @@ const GraphCastForecast = ({ customLatitude, customLongitude }) => {
     setError(null);
 
     try {
-      // Fetch location name first
-      await fetchLocationName(latitude, longitude);
+      // Fetch location name first (but don't wait for it to complete)
+      fetchLocationName(latitude, longitude);
 
-      // IMPORTANT CHANGE: Use our backend API instead of calling Open-Meteo directly
+      // Use our backend API instead of calling Open-Meteo directly
       const response = await axios.get(`${REACT_APP_API_URL}/api/forecast`, {
         params: {
           latitude,
@@ -68,6 +69,15 @@ const GraphCastForecast = ({ customLatitude, customLongitude }) => {
         throw new Error(
           response.data?.error || 'Failed to fetch forecast data'
         );
+      }
+
+      // Ensure we have the required data structure
+      if (
+        !response.data.daily ||
+        !response.data.daily.time ||
+        !response.data.current
+      ) {
+        throw new Error('Invalid data format returned from weather service');
       }
 
       const dailyData = response.data.daily.time.map((time, index) => ({
@@ -94,13 +104,22 @@ const GraphCastForecast = ({ customLatitude, customLongitude }) => {
       setLoading(false);
     } catch (err) {
       console.error('Error fetching forecast data:', err);
-      setError('Failed to fetch weather data');
+
+      // If we haven't retried too many times, try again
+      if (retryCount < 2) {
+        console.log(`Retry attempt ${retryCount + 1}...`);
+        setRetryCount((prev) => prev + 1);
+        setError(null);
+        return; // Return early to allow effect to retry
+      }
+
+      setError(err.message || 'Failed to fetch weather data');
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    // If custom coordinates are provided, use them
+    // Reset loading state when coordinates change
     if (customLatitude !== undefined && customLongitude !== undefined) {
       setUserLocation({ latitude: customLatitude, longitude: customLongitude });
       fetchForecastData(customLatitude, customLongitude);
@@ -113,8 +132,8 @@ const GraphCastForecast = ({ customLatitude, customLongitude }) => {
           setUserLocation({ latitude, longitude });
           fetchForecastData(latitude, longitude);
         },
-        () => {
-          setError('Unable to access location');
+        (geoError) => {
+          setError(`Unable to access location: ${geoError.message}`);
           setLoading(false);
         }
       );
@@ -122,7 +141,7 @@ const GraphCastForecast = ({ customLatitude, customLongitude }) => {
       setError('Geolocation is not supported by your browser');
       setLoading(false);
     }
-  }, [customLatitude, customLongitude]);
+  }, [customLatitude, customLongitude, retryCount]);
 
   if (loading) {
     return (
@@ -136,6 +155,21 @@ const GraphCastForecast = ({ customLatitude, customLongitude }) => {
     return (
       <div className="error-state">
         <div>{error}</div>
+        <button
+          className="retry-button"
+          onClick={() => setRetryCount(0)}
+          style={{
+            marginTop: '1rem',
+            padding: '0.5rem 1rem',
+            backgroundColor: '#3b82f6',
+            color: 'white',
+            border: 'none',
+            borderRadius: '0.25rem',
+            cursor: 'pointer',
+          }}
+        >
+          Retry
+        </button>
       </div>
     );
   }
