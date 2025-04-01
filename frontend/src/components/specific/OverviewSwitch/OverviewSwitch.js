@@ -13,6 +13,7 @@ const OverviewSwitch = ({ activeView, onViewChange }) => {
   return (
     <div className="overview-switch-section">
       <div className="overview-switch-buttons">
+        {/* Buttons commented out but preserved for future use
         <button 
           className={`overview-switch-button ${activeView === 'overview' ? 'active' : ''}`}
           onClick={() => onViewChange('overview')}
@@ -25,6 +26,7 @@ const OverviewSwitch = ({ activeView, onViewChange }) => {
         >
           Detailed
         </button>
+        */}
       </div>
     </div>
   );

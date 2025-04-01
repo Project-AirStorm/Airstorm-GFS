@@ -1,5 +1,13 @@
 /* Dashboard.css */
 
+/* Controls Container */
+.controls-container {
+  display: flex;
+  justify-content: flex-end;
+  padding: 0.5rem 0;
+  margin-bottom: 1rem;
+}
+
 /* Weather Grid Layout */
 .weather-grid {
   display: flex;
