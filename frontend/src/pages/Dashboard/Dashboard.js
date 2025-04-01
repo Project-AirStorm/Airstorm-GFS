@@ -18,6 +18,8 @@ const Dashboard = ({ setCurrentPage }) => {
   const [locations, setLocations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [selectedLocation, setSelectedLocation] = useState(null);
+  
   // Define the handlers
   const handleTimeframeChange = () => {
     console.log('Timeframe changed');
@@ -66,6 +68,14 @@ const Dashboard = ({ setCurrentPage }) => {
           longitude,
         },
       });
+      
+      // If the deleted location was selected, reset to local forecast
+      if (selectedLocation && 
+          selectedLocation.latitude === latitude && 
+          selectedLocation.longitude === longitude) {
+        setSelectedLocation(null);
+      }
+      
       // Refresh locations after deletion
       fetchLocations();
     } catch (err) {
@@ -85,6 +95,10 @@ const Dashboard = ({ setCurrentPage }) => {
     } catch (err) {
       console.error('Error toggling favorite:', err);
     }
+  };
+  
+  const handleWeatherCardClick = (location) => {
+    setSelectedLocation(location);
   };
 
   // Calculate monitored locations (favorites)
@@ -118,27 +132,46 @@ const Dashboard = ({ setCurrentPage }) => {
 
         <div className="weather-grid">
           {locations.map((location) => (
-            <WeatherCard
+            <div 
+              className={`weather-card-wrapper ${
+                selectedLocation?.latitude === location.latitude && 
+                selectedLocation?.longitude === location.longitude ? 'selected' : ''
+              }`}
               key={`${location.name}-${location.latitude}-${location.longitude}`}
-              city={location.name}
-              state="" // You might want to add state to your location data
-              latitude={location.latitude}
-              longitude={location.longitude}
-              backgroundColor={location.backgroundColor}
-              onDelete={() =>
-                handleDeleteLocation(location.latitude, location.longitude)
-              }
-              onToggleFavorite={() =>
-                handleToggleFavorite(location.latitude, location.longitude)
-              }
-              isFavorite={location.isFavorite}
-            />
+              onClick={() => handleWeatherCardClick(location)}
+              style={{ cursor: 'pointer' }}
+              title="Click to view detailed forecast"
+            >
+              <WeatherCard
+                city={location.name}
+                state="" // You might want to add state to your location data
+                latitude={location.latitude}
+                longitude={location.longitude}
+                backgroundColor={location.backgroundColor}
+                onDelete={(e) => {
+                  e.stopPropagation(); // Prevent triggering the card click
+                  handleDeleteLocation(location.latitude, location.longitude);
+                }}
+                onToggleFavorite={(e) => {
+                  e.stopPropagation(); // Prevent triggering the card click
+                  handleToggleFavorite(location.latitude, location.longitude);
+                }}
+                isFavorite={location.isFavorite}
+              />
+            </div>
           ))}
         </div>
 
         <div className="chart-section">
-          <h3 className="chart-title">Local Weather Forecast (16 Days)</h3>
-          <GraphCastForecast />
+          <h3 className="chart-title">
+            {selectedLocation 
+              ? `${selectedLocation.name} Weather Forecast (16 Days)` 
+              : 'Local Weather Forecast (16 Days)'}
+          </h3>
+          <GraphCastForecast 
+            customLatitude={selectedLocation?.latitude}
+            customLongitude={selectedLocation?.longitude}
+          />
         </div>
 
         <div className="bottom-grid">
