@@ -19,7 +19,9 @@ import {
 } from 'react-icons/io5';
 import './GraphCastForecast.css';
 
-const REACT_APP_API_URL = process.env.REACT_APP_API_URL;
+// Use environment variable for API URL
+const REACT_APP_API_URL =
+  process.env.REACT_APP_API_URL || 'http://localhost:5001';
 
 const GraphCastForecast = ({ customLatitude, customLongitude }) => {
   const [forecast, setForecast] = useState(null);
@@ -37,7 +39,9 @@ const GraphCastForecast = ({ customLatitude, customLongitude }) => {
         }
       );
       // Extract the formatted_address from the response
-      setLocationName(locationResponse.data.formatted_address);
+      if (locationResponse.data && locationResponse.data.formatted_address) {
+        setLocationName(locationResponse.data.formatted_address);
+      }
     } catch (err) {
       console.error('Error fetching location name:', err);
     }
@@ -46,39 +50,25 @@ const GraphCastForecast = ({ customLatitude, customLongitude }) => {
   const fetchForecastData = async (latitude, longitude) => {
     setLoading(true);
     setError(null);
-    
+
     try {
       // Fetch location name first
       await fetchLocationName(latitude, longitude);
-      
-      const response = await axios.get(
-        `https://customer-api.open-meteo.com/v1/forecast?apikey=${process.env.REACT_APP_OPENMETEO_API_KEY}`,
-        {
-          params: {
-            latitude,
-            longitude,
-            current: [
-              'temperature_2m',
-              'relative_humidity_2m',
-              'precipitation',
-              'cloud_cover',
-            ],
-            daily: [
-              'temperature_2m_max',
-              'temperature_2m_min',
-              'precipitation_sum',
-              'precipitation_probability_max',
-              'cloud_cover_mean',
-              'weather_code',
-            ],
-            temperature_unit: 'fahrenheit',
-            precipitation_unit: 'inch',
-            forecast_days: 16,
-            timezone: 'auto',
-            models: 'best_match',
-          },
-        }
-      );
+
+      // IMPORTANT CHANGE: Use our backend API instead of calling Open-Meteo directly
+      const response = await axios.get(`${REACT_APP_API_URL}/api/forecast`, {
+        params: {
+          latitude,
+          longitude,
+        },
+        timeout: 10000, // 10 second timeout
+      });
+
+      if (!response.data || response.data.error) {
+        throw new Error(
+          response.data?.error || 'Failed to fetch forecast data'
+        );
+      }
 
       const dailyData = response.data.daily.time.map((time, index) => ({
         time: new Date(time).toLocaleDateString('en-US', {
@@ -91,10 +81,10 @@ const GraphCastForecast = ({ customLatitude, customLongitude }) => {
             2
         ),
         precipitationProb:
-          response.data.daily.precipitation_probability_max[index],
-        precipitationSum: response.data.daily.precipitation_sum[index],
-        cloudCover: response.data.daily.cloud_cover_mean[index],
-        weatherCode: response.data.daily.weather_code[index],
+          response.data.daily.precipitation_probability_max[index] || 0,
+        precipitationSum: response.data.daily.precipitation_sum[index] || 0,
+        cloudCover: response.data.daily.cloud_cover_mean[index] || 0,
+        weatherCode: response.data.daily.weather_code[index] || 0,
       }));
 
       setForecast({
@@ -114,7 +104,7 @@ const GraphCastForecast = ({ customLatitude, customLongitude }) => {
     if (customLatitude !== undefined && customLongitude !== undefined) {
       setUserLocation({ latitude: customLatitude, longitude: customLongitude });
       fetchForecastData(customLatitude, customLongitude);
-    } 
+    }
     // Otherwise use geolocation for the user's current location
     else if ('geolocation' in navigator) {
       navigator.geolocation.getCurrentPosition(
@@ -193,7 +183,7 @@ const GraphCastForecast = ({ customLatitude, customLongitude }) => {
           <div className="temperature-display">
             <IoThermometerOutline className="mr-1 text-blue-600" />
             <span className="text-xl">
-              {forecast.current.temperature_2m.toFixed(1)}°F
+              {forecast.current.temperature_2m?.toFixed(1)}°F
             </span>
           </div>
           <div className="weather-stats">
