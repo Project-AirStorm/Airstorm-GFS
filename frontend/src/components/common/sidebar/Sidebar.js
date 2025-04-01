@@ -16,6 +16,7 @@ import {
   FileSearch2,
   AreaChart,
   Aperture,
+  Info,
 } from 'lucide-react';
 import afgscLogo from '../../../assets/afgsc-logo.png';
 import './Sidebar.css';
@@ -235,9 +236,15 @@ const Sidebar = () => {
         </div>
       </nav>
 
-      {/* Logout Section */}
+      {/* About and Logout Section */}
       <div className="mt-auto border-t border-gray-200 py-4 px-4">
         <div className="space-y-2">
+          <NavItem
+            icon={<Info className="w-4 h-4" />}
+            label="About"
+            isActive={location.pathname === '/about'}
+            onClick={() => navigate('/about')}
+          />
           <NavItem
             icon={<LogOut className="w-4 h-4" />}
             label="Logout"

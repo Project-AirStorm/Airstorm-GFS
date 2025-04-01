@@ -13,6 +13,7 @@ import ChatComponent from '../pages/Chat/Chat';
 import Resources from '../pages/Resources/Resources';
 import Charts from '../pages/Charts/Charts';
 import ChartViewer from '../pages/Charts/ChartViewer';
+import About from '../pages/About/About';
 // Unused imports for now
 // import Maps from '../pages/Maps/Maps';
 // import MeteogramPbp from '../components/specific/MeteogramPbp/MeteogramPbp';
@@ -93,6 +94,11 @@ export const ROUTES = {
     path: '/resources',
     title: 'Resources',
     element: Resources,
+  },
+  about: {
+    path: '/about',
+    title: 'About',
+    element: About,
   },
   notfound: {
     path: '/notfound',
