@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import PropTypes from 'prop-types';
 import axios from 'axios';
 import {
   LineChart,
@@ -18,14 +19,17 @@ import {
 } from 'react-icons/io5';
 import './GraphCastForecast.css';
 
-const REACT_APP_API_URL = process.env.REACT_APP_API_URL;
+// Use environment variable for API URL
+const REACT_APP_API_URL =
+  process.env.REACT_APP_API_URL || 'http://localhost:5001';
 
-const GraphCastForecast = () => {
+const GraphCastForecast = ({ customLatitude, customLongitude }) => {
   const [forecast, setForecast] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [userLocation, setUserLocation] = useState(null);
   const [locationName, setLocationName] = useState('');
+  const [retryCount, setRetryCount] = useState(0);
 
   const fetchLocationName = async (latitude, longitude) => {
     try {
@@ -36,81 +40,100 @@ const GraphCastForecast = () => {
         }
       );
       // Extract the formatted_address from the response
-      setLocationName(locationResponse.data.formatted_address);
+      if (locationResponse.data && locationResponse.data.formatted_address) {
+        setLocationName(locationResponse.data.formatted_address);
+      }
     } catch (err) {
       console.error('Error fetching location name:', err);
     }
   };
 
+  const fetchForecastData = async (latitude, longitude) => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      // Fetch location name first (but don't wait for it to complete)
+      fetchLocationName(latitude, longitude);
+
+      // Use our backend API instead of calling Open-Meteo directly
+      const response = await axios.get(`${REACT_APP_API_URL}/api/forecast`, {
+        params: {
+          latitude,
+          longitude,
+        },
+        timeout: 10000, // 10 second timeout
+      });
+
+      if (!response.data || response.data.error) {
+        throw new Error(
+          response.data?.error || 'Failed to fetch forecast data'
+        );
+      }
+
+      // Ensure we have the required data structure
+      if (
+        !response.data.daily ||
+        !response.data.daily.time ||
+        !response.data.current
+      ) {
+        throw new Error('Invalid data format returned from weather service');
+      }
+
+      const dailyData = response.data.daily.time.map((time, index) => ({
+        time: new Date(time).toLocaleDateString('en-US', {
+          month: 'short',
+          day: 'numeric',
+        }),
+        temperature: Math.round(
+          (response.data.daily.temperature_2m_max[index] +
+            response.data.daily.temperature_2m_min[index]) /
+            2
+        ),
+        precipitationProb:
+          response.data.daily.precipitation_probability_max[index] || 0,
+        precipitationSum: response.data.daily.precipitation_sum[index] || 0,
+        cloudCover: response.data.daily.cloud_cover_mean[index] || 0,
+        weatherCode: response.data.daily.weather_code[index] || 0,
+      }));
+
+      setForecast({
+        current: response.data.current,
+        daily: dailyData,
+      });
+      setLoading(false);
+    } catch (err) {
+      console.error('Error fetching forecast data:', err);
+
+      // If we haven't retried too many times, try again
+      if (retryCount < 2) {
+        console.log(`Retry attempt ${retryCount + 1}...`);
+        setRetryCount((prev) => prev + 1);
+        setError(null);
+        return; // Return early to allow effect to retry
+      }
+
+      setError(err.message || 'Failed to fetch weather data');
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    if ('geolocation' in navigator) {
+    // Reset loading state when coordinates change
+    if (customLatitude !== undefined && customLongitude !== undefined) {
+      setUserLocation({ latitude: customLatitude, longitude: customLongitude });
+      fetchForecastData(customLatitude, customLongitude);
+    }
+    // Otherwise use geolocation for the user's current location
+    else if ('geolocation' in navigator) {
       navigator.geolocation.getCurrentPosition(
         async (position) => {
           const { latitude, longitude } = position.coords;
           setUserLocation({ latitude, longitude });
-
-          // Fetch location name
-          await fetchLocationName(latitude, longitude);
-
-          try {
-            const response = await axios.get(
-              `https://customer-api.open-meteo.com/v1/forecast?apikey=${process.env.REACT_APP_OPENMETEO_API_KEY}`,
-              {
-                params: {
-                  latitude,
-                  longitude,
-                  current: [
-                    'temperature_2m',
-                    'relative_humidity_2m',
-                    'precipitation',
-                    'cloud_cover',
-                  ],
-                  daily: [
-                    'temperature_2m_max',
-                    'temperature_2m_min',
-                    'precipitation_sum',
-                    'precipitation_probability_max',
-                    'cloud_cover_mean',
-                    'weather_code',
-                  ],
-                  temperature_unit: 'fahrenheit',
-                  precipitation_unit: 'inch',
-                  forecast_days: 16,
-                  timezone: 'auto',
-                  models: 'best_match',
-                },
-              }
-            );
-
-            const dailyData = response.data.daily.time.map((time, index) => ({
-              time: new Date(time).toLocaleDateString('en-US', {
-                month: 'short',
-                day: 'numeric',
-              }),
-              temperature: Math.round(
-                (response.data.daily.temperature_2m_max[index] +
-                  response.data.daily.temperature_2m_min[index]) /
-                  2
-              ),
-              precipitationProb:
-                response.data.daily.precipitation_probability_max[index],
-              precipitationSum: response.data.daily.precipitation_sum[index],
-              cloudCover: response.data.daily.cloud_cover_mean[index],
-              weatherCode: response.data.daily.weather_code[index],
-            }));
-
-            setForecast({
-              current: response.data.current,
-              daily: dailyData,
-            });
-            setLoading(false);
-          } catch (err) {
-            setError('Failed to fetch weather data');
-            setLoading(false);
-          }
+          fetchForecastData(latitude, longitude);
         },
-        () => {
-          setError('Unable to access location');
+        (geoError) => {
+          setError(`Unable to access location: ${geoError.message}`);
           setLoading(false);
         }
       );
@@ -118,7 +141,7 @@ const GraphCastForecast = () => {
       setError('Geolocation is not supported by your browser');
       setLoading(false);
     }
-  }, []);
+  }, [customLatitude, customLongitude, retryCount]);
 
   if (loading) {
     return (
@@ -132,6 +155,21 @@ const GraphCastForecast = () => {
     return (
       <div className="error-state">
         <div>{error}</div>
+        <button
+          className="retry-button"
+          onClick={() => setRetryCount(0)}
+          style={{
+            marginTop: '1rem',
+            padding: '0.5rem 1rem',
+            backgroundColor: '#3b82f6',
+            color: 'white',
+            border: 'none',
+            borderRadius: '0.25rem',
+            cursor: 'pointer',
+          }}
+        >
+          Retry
+        </button>
       </div>
     );
   }
@@ -179,7 +217,7 @@ const GraphCastForecast = () => {
           <div className="temperature-display">
             <IoThermometerOutline className="mr-1 text-blue-600" />
             <span className="text-xl">
-              {forecast.current.temperature_2m.toFixed(1)}°F
+              {forecast.current.temperature_2m?.toFixed(1)}°F
             </span>
           </div>
           <div className="weather-stats">
@@ -282,6 +320,16 @@ const GraphCastForecast = () => {
       </div>
     </div>
   );
+};
+
+GraphCastForecast.propTypes = {
+  customLatitude: PropTypes.number,
+  customLongitude: PropTypes.number,
+};
+
+GraphCastForecast.defaultProps = {
+  customLatitude: undefined,
+  customLongitude: undefined,
 };
 
 export default GraphCastForecast;
