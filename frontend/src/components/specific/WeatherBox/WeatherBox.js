@@ -172,7 +172,7 @@ const WeatherBox = ({
           ))}
         </div>
       );
-
+    
       
   }
 
