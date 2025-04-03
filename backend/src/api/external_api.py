@@ -400,6 +400,107 @@ def get_weather():
             "longitude": lon
         }), 500
 
+@external_api_bp.route("/api/generate-meteogram", methods=["POST"])
+@protect_api_keys
+def generate_meteogram():
+    """
+    POST /api/generate-meteogram
+    Fetches MSLP data (hourly=pressure_msl) from Open-Meteo.
+    If BACKEND_OPENMETEO_API_KEY is present, use the customer API endpoint;
+    otherwise, use the free endpoint.
+    Inserts the fetched forecast into UserJsonCharts with forecast_type='mslp'.
+
+    Expects JSON in the request body:
+    {
+      "user_id": "...",
+      "lat": <float>,
+      "lon": <float>,
+      "forecast_days": <int> (default: 1)
+    }
+
+    Returns JSON on success:
+    {
+      "forecast_id": <int>,
+      "user_id": "...",
+      "lat": <float>,
+      "lon": <float>,
+      "forecast_days": <int>,
+      "forecast_type": "mslp",
+      "forecast_data": { ...raw Open-Meteo JSON... }
+    }
+    """
+
+    data = request.get_json() or {}
+    user_id = data.get("user_id")
+    lat = data.get("lat")
+    lon = data.get("lon")
+    forecast_days = data.get("forecast_days", 1)
+
+    # Validate required fields
+    if not user_id or lat is None or lon is None:
+        return jsonify({"error": "Missing required fields (user_id, lat, lon)."}), 400
+
+    # Decide which URL to use based on presence of API key
+    api_key = os.getenv("BACKEND_OPENMETEO_API_KEY")
+    if api_key:
+        base_url = "https://customer-api.open-meteo.com/v1/forecast"
+    else:
+        base_url = "https://api.open-meteo.com/v1/forecast"
+
+    # Build the query parameters
+    params = {
+        "latitude": lat,
+        "longitude": lon,
+        "hourly": "pressure_msl",
+        "forecast_days": forecast_days,
+        "models": "gfs_graphcast025",
+        "timezone": "auto",
+    }
+    if api_key:
+        params["apikey"] = api_key
+
+    try:
+        # Make the request to Open-Meteo (no fallback logic included)
+        logger.info(f"Requesting MSLP from {base_url} with params: {params}")
+        response = requests.get(base_url, params=params, timeout=10)
+        response.raise_for_status()
+        forecast_data = response.json()
+
+    except requests.exceptions.RequestException as e:
+        logger.error(f"Open-Meteo error: {e}")
+        return jsonify({"error": f"Open-Meteo request failed: {str(e)}"}), 503
+    except Exception as e:
+        logger.error(f"Unexpected error fetching MSLP: {e}")
+        return jsonify({"error": f"Server error: {str(e)}"}), 500
+
+    # Save to database
+    try:
+        db = DatabaseManager()
+        forecast_id = db.save_json_chart(
+            user_id=user_id,
+            lat=lat,
+            lon=lon,
+            forecast_days=forecast_days,
+            forecast_type="mslp",
+            forecast_json=forecast_data
+        )
+        if not forecast_id:
+            return jsonify({"error": "Failed to save chart data in DB."}), 500
+    except Exception as e:
+        logger.error(f"Database error saving MSLP chart: {e}")
+        return jsonify({"error": f"Database error: {str(e)}"}), 500
+
+    # Return the newly inserted record
+    return jsonify({
+        "forecast_id": forecast_id,
+        "user_id": user_id,
+        "lat": lat,
+        "lon": lon,
+        "forecast_days": forecast_days,
+        "forecast_type": "mslp",
+        "forecast_data": forecast_data
+    }), 200
+
 
 def calculate_wind_direction(current):
     degree_speed = current
