@@ -366,7 +366,7 @@ def delete_kml_file(file_id):
 
 
 @internal_api_bp.route('/api/charts/save', methods=['POST'])
-def save_chart_run():
+def save_s3_chart_run():
     data = request.json
     user_id = data["user_id"]
     lat = data["lat"]
@@ -375,7 +375,7 @@ def save_chart_run():
     chart_folder = data["chart_folder"]
     s3_files = data["s3_files"]
 
-    success = chart_run_manager.save_chart_run(
+    success = chart_run_manager.save_s3_chart_run(
         user_id, lat, lon, forecast_days, chart_folder, s3_files
     )
     if not success:
@@ -384,10 +384,104 @@ def save_chart_run():
 
 
 @internal_api_bp.route('/api/charts', methods=['GET'])
-def get_charts_for_user():
+def get_s3_charts_for_user():
     user_id = request.args.get("user_id")
     if not user_id:
         return jsonify({"error": "user_id required"}), 400
 
-    chart_runs = chart_run_manager.get_chart_runs_for_user(user_id)
+    chart_runs = chart_run_manager.get_s3_chart_runs_for_user(user_id)
     return jsonify(chart_runs)
+
+# Saves the MSLP, Temp/Dewpoint Meteograms JSON record
+@internal_api_bp.route("/api/json-charts/save", methods=["POST"])
+def save_json_chart():
+    """
+    Inserts a new JSON chart record in UserJsonCharts
+    and returns the newly created record to the frontend.
+    """
+    data = request.get_json()
+    user_id = data.get('user_id')
+    lat = data.get('lat')
+    lon = data.get('lon')
+    forecast_days = data.get('forecast_days', 1)
+    forecast_type = data.get('forecast_type')  # e.g. 'mslp', 'temp_dewpoint', etc.
+    forecast_data = data.get('forecast_data')  # The actual JSON arrays from Open-Meteo, etc.
+
+    if not user_id or lat is None or lon is None or not forecast_type or not forecast_data:
+        return jsonify({"error": "Missing required fields"}), 400
+
+    try:
+        db = DatabaseManager()
+        forecast_id = db.save_json_chart(
+            user_id=user_id,
+            lat=lat,
+            lon=lon,
+            forecast_days=forecast_days,
+            forecast_type=forecast_type,
+            forecast_json=forecast_data
+        )
+        if not forecast_id:
+            return jsonify({"error": "Failed to save chart"}), 500
+
+        # Return the newly inserted record
+        return jsonify({
+            "forecast_id": forecast_id,
+            "user_id": user_id,
+            "lat": lat,
+            "lon": lon,
+            "forecast_days": forecast_days,
+            "forecast_type": forecast_type,
+            "forecast_data": forecast_data
+        }), 200
+
+    except Exception as e:
+        logging.error(f"Error inserting JSON chart: {str(e)}")
+        return jsonify({"error": str(e)}), 500
+
+# Retrieves the meteogram by user_id
+@internal_api_bp.route("/api/json-charts", methods=["GET"])
+def get_json_charts():
+    """
+    GET /api/json-charts?user_id=XYZ&forecast_type=mslp
+    Returns an array of matching UserJsonCharts rows
+    """
+    user_id = request.args.get('user_id')
+    forecast_type = request.args.get('forecast_type', None)
+
+    if not user_id:
+        return jsonify({"error": "Missing user_id"}), 400
+
+    try:
+        db = DatabaseManager()
+
+        # If forecast_type is provided, filter by it.
+        if forecast_type:
+            charts = db.get_json_charts_by_type(user_id, forecast_type)
+        else:
+            # Maybe you have a separate method "get_all_json_charts(user_id)"
+            # or simply pass forecast_type = None if your method handles that gracefully.
+            charts = []  # Or db.get_all_json_charts(user_id)
+
+        return jsonify(charts), 200
+
+    except Exception as e:
+        logging.error(f"Error fetching JSON charts: {str(e)}")
+        return jsonify({"error": str(e)}), 500
+
+# Deletes the meteogram by forecast_id
+@internal_api_bp.route("/api/json-charts/<int:forecast_id>", methods=["DELETE"])
+def delete_json_chart(forecast_id):
+    """
+    DELETE /api/json-charts/123
+    Removes a single JSON chart row.
+    """
+    try:
+        db = DatabaseManager()
+        success = db.delete_json_chart(forecast_id)
+        if not success:
+            return jsonify({"error": "No chart deleted (invalid forecast_id?)."}), 404
+        return jsonify({"message": "Chart deleted.", "forecast_id": forecast_id}), 200
+
+    except Exception as e:
+        logging.error(f"Error deleting JSON chart {forecast_id}: {str(e)}")
+        return jsonify({"error": str(e)}), 500

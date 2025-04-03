@@ -33,8 +33,6 @@ openmeteo = openmeteo_requests.Client(session=retry_session)
 
 
 # ====== Meteosource Tile API ======
-
-
 @external_api_bp.route('/api/meteosource/tile')
 @protect_api_keys
 def meteosource_tile():
@@ -145,8 +143,6 @@ def meteosource_tile():
 
 
 # ====== Google Maps Geocoding API ======
-
-
 @external_api_bp.route("/api/geocode", methods=["GET"])
 @protect_api_keys
 def get_location_info():
@@ -489,8 +485,6 @@ def get_forecast():
 
 # ====== GitHub Issues API ======
 github_service = GitHubService()
-
-
 @external_api_bp.route('/api/feedback', methods=['POST'])
 def submit_feedback():
     """

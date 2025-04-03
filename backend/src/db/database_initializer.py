@@ -47,8 +47,9 @@ class DatabaseInitializer:
                             last_name VARCHAR(255) NOT NULL
                         ) ENGINE=InnoDB;
                     """)
+                    # Stores AWS user charts as arrays of S3 buckets 
                     cursor.execute("""
-                        CREATE TABLE IF NOT EXISTS UserCharts (
+                        CREATE TABLE IF NOT EXISTS UserCharts (d
                             chart_id INT AUTO_INCREMENT PRIMARY KEY,
                             user_id VARCHAR(255) NOT NULL,
                             lat DOUBLE NOT NULL,
@@ -60,6 +61,21 @@ class DatabaseInitializer:
                             FOREIGN KEY (user_id) REFERENCES Users(user_id)
                         ) ENGINE=InnoDB;
                     """)
+
+                    # Used for the /charts page, but does not deal with AWS, instead stores JSON arrays
+                    cursor.execute("""
+                        CREATE TABLE IF NOT EXISTS UserJsonCharts (
+                            forecast_id INT AUTO_INCREMENT PRIMARY KEY,
+                            user_id VARCHAR(255) NOT NULL,
+                            lat DOUBLE NOT NULL,
+                            lon DOUBLE NOT NULL,
+                            forecast_days INT NOT NULL,
+                            forecast_type VARCHAR(50) NOT NULL,  -- e.g. 'mslp', 'temp_dewpoint', etc.
+                            forecast_data JSON NOT NULL,         -- The raw JSON for that forecast
+                            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                            FOREIGN KEY (user_id) REFERENCES Users(user_id)
+                        ) ENGINE=InnoDB;
+                     """)
 
                     # Create Locations table
                     cursor.execute("""

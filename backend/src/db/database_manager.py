@@ -317,7 +317,7 @@ class DatabaseManager:
             logging.error(f"Error deleting KML file: {e}")
             return deleted
 
-    def save_chart_run(self, user_id, lat, lon, forecast_days, chart_folder, s3_files):
+    def save_s3_chart_run(self, user_id, lat, lon, forecast_days, chart_folder, s3_files):
         """
         Inserts a row into UserCharts, returns the newly inserted chart_id.
         """
@@ -343,7 +343,7 @@ class DatabaseManager:
             logging.error(f"Error saving chart run: {e}")
             return None
 
-    def get_chart_runs_for_user(self, user_id):
+    def get_s3_chart_runs_for_user(self, user_id):
         chart_runs = []
         try:
             with get_mysql_connection() as conn:
@@ -379,7 +379,7 @@ class DatabaseManager:
             logging.error(f"Error fetching chart runs for user {user_id}: {e}")
         return chart_runs
 
-    def get_chart_run_by_id(self, chart_id):
+    def get_s3_chart_run_by_id(self, chart_id):
         """
         Returns the single chart run matching this chart_id.
         """
@@ -416,8 +416,9 @@ class DatabaseManager:
         except Exception as e:
             logging.error(f"Error in get_chart_run_by_id: {e}")
             return None
-
-    def delete_chart(self, chart_id):
+    
+    # Deletes the AWS S3 url for the S3 Bucket
+    def delete_s3_chart(self, chart_id):
         """
         Deletes a row from UserCharts by chart_id.
         Returns True if a row was deleted, False otherwise.
@@ -431,3 +432,74 @@ class DatabaseManager:
         except Exception as e:
             logging.error(f"Error deleting chart run {chart_id}: {e}")
             return False
+    
+    # Saves the JSON array chart data 
+    def save_json_chart(self, user_id, lat, lon, forecast_days, forecast_type, forecast_json):
+        """
+        Insert a forecast row into UserJsonCharts.
+        Returns the new forecast_id on success, or None on failure.
+        """
+        try:
+            with get_mysql_connection() as conn:
+                with conn.cursor() as cursor:
+                    insert_sql = """
+                    INSERT INTO UserJsonCharts
+                    (user_id, lat, lon, forecast_days, forecast_type, forecast_data)
+                    VALUES (%s, %s, %s, %s, %s, %s)
+                    """
+                    cursor.execute(
+                        insert_sql,
+                        (
+                            user_id,
+                            lat,
+                            lon,
+                            forecast_days,
+                            forecast_type,
+                            json.dumps(forecast_json)
+                        )
+                    )
+                    forecast_id = cursor.lastrowid
+                    conn.commit()
+                    return forecast_id
+        except Exception as e:
+            logging.error(f"Error saving forecast: {e}")
+            return None
+    
+    # Gets the MSLP or temp/dewpoint meteogram JSON arrays chart data 
+    def get_json_charts_by_type(self, user_id, forecast_type):
+        """
+        Return a list of forecast rows for a user, filtered by forecast_type.
+        """
+        try:
+            with get_mysql_connection() as conn:
+                with conn.cursor() as cursor:
+                    select_sql = """
+                    SELECT forecast_id, user_id, lat, lon, forecast_days,
+                        forecast_type, forecast_data, created_at
+                    FROM UserJsonCharts
+                    WHERE user_id = %s AND forecast_type = %s
+                    ORDER BY created_at DESC
+                    """
+                    cursor.execute(select_sql, (user_id, forecast_type))
+                    ...
+                    return results
+        except Exception as e:
+            ...
+            return []
+        
+    def delete_json_chart(self, forecast_id):
+        """
+        Delete a forecast by forecast_id. Returns True if a row was deleted.
+        """
+        try:
+            with get_mysql_connection() as conn:
+                with conn.cursor() as cursor:
+                    sql = "DELETE FROM UserJsonCharts WHERE forecast_id = %s"
+                    cursor.execute(sql, (forecast_id,))
+                    conn.commit()
+                    return cursor.rowcount > 0
+        except Exception as e:
+            logging.error(f"Error deleting forecast {forecast_id}: {e}")
+            return False
+
+
