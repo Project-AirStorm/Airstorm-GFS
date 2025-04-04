@@ -65,7 +65,7 @@ def generate_charts():
 
         # 3) Retrieve the newly inserted row from the DB so that
         #    we return the EXACT shape your React code expects.
-        new_chart_run = database_manager.get_chart_run_by_id(new_chart_id)
+        new_chart_run = database_manager.get_s3_chart_run_by_id(new_chart_id)
         if not new_chart_run:
             return (
                 jsonify({"error": "Inserted but could not retrieve new chart run"}),
@@ -91,7 +91,7 @@ def get_user_charts():
     if not user_id:
         return jsonify({"error": "Missing user_id"}), 400
 
-    chart_runs = database_manager.get_chart_runs_for_user(user_id)
+    chart_runs = database_manager.get_s3_chart_runs_for_user(user_id)
     return jsonify(chart_runs), 200
 
 @charts_api_bp.route("/api/charts/delete", methods=["DELETE"])
@@ -105,7 +105,7 @@ def delete_user_chart():
         return jsonify({"error": "Missing chart_id"}), 400
 
     # Attempt to delete the chart
-    success = database_manager.delete_chart(chart_id)
+    success = database_manager.delete_s3_chart(chart_id)
     if success:
         return jsonify({"message": f"Chart {chart_id} deleted"}), 200
     else:
