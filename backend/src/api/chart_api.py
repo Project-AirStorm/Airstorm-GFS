@@ -50,7 +50,7 @@ def generate_charts():
 
         # 2) Save to DB (we have lat, lon, forecast_days from the original request)
         #    and we know s3_files + chart_folder from the result
-        new_chart_id = database_manager.save_chart_run(
+        new_chart_id = database_manager.save_s3_chart_run(
             user_id=user_id,
             lat=lat,
             lon=lon,
