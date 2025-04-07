@@ -118,7 +118,10 @@ const HourCard = ({
 
   if(error){
     return <div>Error:{error}</div>
-  };
+  }
+  if (!hourlyForecastData) {
+    return <div>Loading hourly forecast...</div>;
+  }
 
   return(
     <div className='hourCardHolder'>
@@ -129,6 +132,6 @@ const HourCard = ({
             </div>
         ))};
     </div>
-  )
+  );
 }
 export default HourCard;

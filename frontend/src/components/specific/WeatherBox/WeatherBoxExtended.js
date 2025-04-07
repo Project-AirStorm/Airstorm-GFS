@@ -56,7 +56,8 @@ const WeatherBoxExtended = ({day}) =>{
         <div className='WeatherBoxExtended'>
             <h3>Detailed forecast for {day.dayOfWeek}, {day.date}</h3>
             {/* You can add HourCard components here when they're ready */}
-            {userLocation && (<HourCard 
+            {userLocation && (
+                <HourCard 
                 key={`${userLocation.latitude}-${userLocation.longitude}-${day.date}`}
                 latitude={userLocation.latitude}
                 longitude={userLocation.longitude}
@@ -65,7 +66,5 @@ const WeatherBoxExtended = ({day}) =>{
             )}
         </div>
     );
-
-
 };
 export default WeatherBoxExtended;
