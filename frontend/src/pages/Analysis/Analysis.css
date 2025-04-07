@@ -1,77 +1,55 @@
-/* Analysis.css */
-.analysis-body {
-    background-color: white;
-    padding: 1.5rem;
-    border-radius: 0.5rem;
-    border: 1px solid rgb(229 231 235);
-    margin-bottom: 1.5rem;
-    width: 100%;
-  }
-  
-  .analysis-header {
-    margin-bottom: 2rem;
-  }
-  
-  .metrics-selector {
-    display: flex;
-    gap: 1rem;
-    margin-bottom: 2rem;
-    overflow-x: auto;
 
-    padding-bottom: 0.5rem;
-  }
-  
-  .metric-button {
-    padding: 0.5rem 1rem;
-    border: 1px solid rgb(229 231 235);
-    border-radius: 0.375rem;
-    background-color: white;
-    color: rgb(75 85 99);
-    font-size: 0.875rem;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    white-space: nowrap;
-  }
-  
-  .metric-button:hover {
-    background-color: rgb(249 250 251);
-  }
-  
-  .metric-button.active {
-    background-color: rgb(37 99 235);
-    color: white;
-    border-color: rgb(37 99 235);
-  }
-  
+/* These styles are unique to Analysis.css and needed for general page layout */
+.dashboard-container {
+  width: 100%;
+  padding: 20px;
+}
+
+.main-content {
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+  margin-bottom: 20px;
+  overflow: hidden;
+}
+
+/* Comparison tags styling - unique to Analysis.css */
+.metric-comparison-tag {
+  font-size: 0.75rem;
+  padding: 3px 8px;
+  border-radius: 4px;
+  margin-top: 6px;
+  text-align: center;
+  font-weight: 500;
+  color: white;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.graphcast-better {
+  background-color: #82ca9d;
+}
+
+.nwp-better {
+  background-color: #ff7300;
+}
+
+.similar {
+  background-color: #6c757d;
+}
+
+/* Make the error metric charts taller */
+.error-metric-chart {
+  margin-bottom: 16px;
+}
+
+/* Ensure proper padding in the error metrics container */
+.error-metrics-container {
+  padding: 8px 0;
+}
+
+/* Responsive adjustments - modified for Analysis page specifically */
+@media (min-width: 992px) {
   .analysis-content {
-    display: grid;
-    grid-template-columns: 2fr 1fr;
-    gap: 1.5rem;
+    grid-template-columns: 3fr 2fr;
   }
-  
-  .analysis-chart {
-    background-color: rgb(249 250 251);
-    border-radius: 0.5rem;
-    padding: 1rem;
-  }
-  
-  .chart-placeholder {
-    height: 400px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: rgb(107 114 128);
-    text-align: center;
-  }
-  
-  .analysis-details {
-    background-color: rgb(249 250 251);
-    border-radius: 0.5rem;
-    padding: 1rem;
-  }
-  
-  .details-title {
-    font-size: 1rem;
-    font-weight: 600;
-    color: rgb(31 41 55);
-  }
+}
