@@ -1,7 +1,25 @@
 import React from 'react';
 import { useState } from 'react';
+import axios from 'axios';
+import {
+  IoLocationOutline,
+  IoTrashOutline,
+  IoStarOutline,
+  IoStarSharp,
+} from 'react-icons/io5';
+import {
+  TiWeatherDownpour,
+  TiWeatherPartlySunny,
+  TiWeatherSnow,
+  TiWeatherStormy,
+  TiWeatherSunny,
+} from 'react-icons/ti';
+import { LuCloudFog } from "react-icons/lu";
+import { RiDrizzleLine } from "react-icons/ri";
+import { RiHailLine } from "react-icons/ri";
+import './HourCard.css';
 
-const WeatherBox = ({
+const HourCard = ({
     latitude,
     longitude,
     date
@@ -92,9 +110,9 @@ const WeatherBox = ({
               }))
     
               
-                setForecastData(houlyData);
+                setHourlyForecastData(houlyData);
         }
-        catch{(err)
+        catch(err){
             setError('Failed to fetch weather data');
         }
     };
@@ -113,3 +131,4 @@ const WeatherBox = ({
     </div>
   )
 }
+export default HourCard;

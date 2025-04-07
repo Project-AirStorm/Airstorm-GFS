@@ -1,3 +1,10 @@
+.weather-boxes-container{
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+
+}
+
 .weather-box {
     border-radius: 0.75rem;
     padding: 1.5rem;
@@ -47,6 +54,13 @@
   flex-direction: row;
 }
 
+.openButton button{
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 10px;
+}
+
   .minTemp{
     color: blue;
     display: inline;
@@ -62,5 +76,17 @@
 
   .expanded-content{
     color: black;
-
+    width: 100%;
+    /* Animation for smooth expansion */
+    animation: expandDown 0.3s ease-out forwards;
+  }
+  @keyframes expandDown {
+    from {
+      max-height: 0;
+      opacity: 0;
+    }
+    to {
+      max-height: 1000px; /* Arbitrary large value */
+      opacity: 1;
+    }
   }

@@ -21,7 +21,7 @@ import { RiHailLine } from "react-icons/ri";
 import { FaChevronUp } from "react-icons/fa";
 import { FaChevronDown } from "react-icons/fa";
 import './WeatherBox.css';
-import './WeatherBoxExtended.js'
+import WeatherBoxExtended from'./WeatherBoxExtended.js'
 
 const REACT_APP_API_URL = process.env.REACT_APP_API_URL;
 
@@ -142,12 +142,13 @@ const WeatherBox = ({
       return (
         <div className="weather-boxes-container">
           {forecastData && forecastData.map((day, index) => (
-            <div className='weather-box' key={index} role="region">
-                {
-                  <div className='dayOfWeek'>{day.dayOfWeek}
-                    <div className= 'date'>{day.date}</div>             
-                  </div>           
-                }
+            <div key={index}>
+              <div className='weather-box' role="region">
+                  {
+                    <div className='dayOfWeek'>{day.dayOfWeek}
+                      <div className= 'date'>{day.date}</div>             
+                    </div>           
+                  }
 
             <div className='weatherIcon'>{day.weatherCode}</div>
 
@@ -159,19 +160,26 @@ const WeatherBox = ({
             </div>
             }
 
-            {
+            
               <div className='openButton'>
                 <button onClick={()=> handleClick(index)} aria-expanded={openStates[index]}>
-                    {openStates[index] ? (<FaChevronUp className="transition-transform duration-300" size={50}/>):(<FaChevronDown className="transition-transform duration-300" size={50}/>)}
-                    {openStates[index] && (<div className="expanded-content"> O.O New component </div>)}
+                    {openStates[index] ? 
+                    (<FaChevronUp className="transition-transform duration-300" size={50}/>):
+                    (<FaChevronDown className="transition-transform duration-300" size={50}/>)
+                    }
                 </button>
               </div>
-            }
-
+            </div>
+            
+            {openStates[index] && (
+              <div className="expanded-content">
+                <WeatherBoxExtended latitude={latitude} longitude={longitude} day={day}/>
+              </div>
+            )}
           </div>
-          ))}
-        </div>
-      );
+        ))}
+      </div>
+    );
     
       
   }
