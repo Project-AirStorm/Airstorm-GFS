@@ -2,12 +2,6 @@ import React from 'react';
 import { useState } from 'react';
 import axios from 'axios';
 import {
-  IoLocationOutline,
-  IoTrashOutline,
-  IoStarOutline,
-  IoStarSharp,
-} from 'react-icons/io5';
-import {
   TiWeatherDownpour,
   TiWeatherPartlySunny,
   TiWeatherSnow,
@@ -38,9 +32,9 @@ const HourCard = ({
                         longitude,
                         date,
                     hourly: [
-                        'temperture',
+                        'temperature',
                         'relative_humidity',
-                        'precipatition_probability',
+                        'precipitation_probability',
                         'weather_code',
                         'surface_pressure',
                         'visibility'
@@ -97,7 +91,7 @@ const HourCard = ({
             
             }
 
-            const houlyData = response.data.daily.time.map((time, index) => ({
+            const houlyData = response.data.hourly.time.map((time, index) => ({
                 time: new Date(time).toLocaleDateString('en-US', {
                   hour: 'numeric'
                 }),
@@ -116,16 +110,22 @@ const HourCard = ({
             setError('Failed to fetch weather data');
         }
     };
-    fetchWeatherData();
+    if(latitude && longitude && date){
+        fetchWeatherData();
 
+    }
   }, [latitude, longitude]);
+
+  if(error){
+    return <div>Error:{error}</div>
+  };
 
   return(
     <div className='hourCardHolder'>
-        {hourlyForecastData && hourlyForecastData.map((time, index) => (
+        {hourlyForecastData && hourlyForecastData.map((hourdata, index) => (
             <div className='hour-card' key={index} role="region">
-                <div className='hour-icon'>{time.weatherCode}</div>
-                <div className='hour'>{time.time}</div>
+                <div className='hour'>{hourdata.time}</div>
+                <div className='hour-icon'>{hourdata.weatherCode}</div>
             </div>
         ))};
     </div>
