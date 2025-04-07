@@ -1,0 +1,522 @@
+/* src/components/specific/WeatherModelComparison/WeatherModelComparison.css */
+
+.analysis-body {
+  background-color: white;
+  padding: 1.5rem;
+  border-radius: 0.5rem;
+  border: 1px solid rgb(229 231 235);
+  margin-bottom: 1.5rem;
+  width: 100%;
+}
+
+.analysis-header {
+  margin-bottom: 1.5rem;
+}
+
+.content-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: rgb(31 41 55);
+  margin-bottom: 0.5rem;
+}
+
+.content-description {
+  font-size: 0.875rem;
+  color: rgb(75 85 99);
+}
+
+.timeframe-info {
+  font-style: italic;
+}
+
+/* Controls section - unified design */
+.analysis-controls {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  border-bottom: 1px solid rgb(229 231 235);
+  padding-bottom: 1rem;
+}
+
+/* Metrics selector styling */
+.metrics-section {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.metric-button {
+  display: flex;
+  align-items: center;
+  padding: 0.5rem 1rem;
+  border: 1px solid rgb(229 231 235);
+  border-radius: 0.375rem;
+  background-color: white;
+  color: rgb(75 85 99);
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.metric-button:hover {
+  background-color: rgb(249 250 251);
+}
+
+.metric-button.active {
+  background-color: rgb(37 99 235);
+  color: white;
+  border-color: rgb(37 99 235);
+}
+
+.metric-label {
+  margin-left: 0.5rem;
+}
+
+/* Timeframe button styling */
+.timeframe-button {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  border: 1px solid rgb(229 231 235);
+  border-radius: 0.375rem;
+  background-color: white;
+  color: rgb(75 85 99);
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-left: auto;
+}
+
+.timeframe-button:hover {
+  background-color: rgb(249 250 251);
+}
+
+/* Location selector styling */
+.location-selector-wrapper {
+  position: relative;
+}
+
+.location-selector-button {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  border: 1px solid rgb(229 231 235);
+  border-radius: 0.375rem;
+  background-color: white;
+  color: rgb(75 85 99);
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.location-selector-button:hover {
+  background-color: rgb(249 250 251);
+}
+
+.dropdown-icon {
+  transition: transform 0.2s ease;
+}
+
+.location-selector-menu {
+  position: absolute;
+  top: calc(100% + 0.5rem);
+  right: 0;
+  width: 300px;
+  max-height: 350px;
+  overflow-y: auto;
+  background-color: white;
+  border-radius: 0.375rem;
+  border: 1px solid rgb(229 231 235);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  z-index: 50;
+}
+
+.location-option {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  padding: 0.75rem 1rem;
+  text-align: left;
+  border: none;
+  background-color: transparent;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  border-bottom: 1px solid rgb(243 244 246);
+}
+
+.location-option:last-of-type {
+  border-bottom: none;
+}
+
+.location-option:hover {
+  background-color: rgb(249 250 251);
+}
+
+.location-option.selected {
+  background-color: rgb(243 244 246);
+}
+
+.location-option-content {
+  display: flex;
+  flex-direction: column;
+}
+
+.location-name {
+  font-weight: 500;
+  color: rgb(31 41 55);
+}
+
+.location-coords {
+  font-size: 0.75rem;
+  color: rgb(107 114 128);
+}
+
+.location-favorite {
+  color: rgb(250 204 21);
+  font-size: 1.25rem;
+}
+
+.location-divider {
+  height: 1px;
+  background-color: rgb(229 231 235);
+  margin: 0.5rem 0;
+}
+
+.add-location-option {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 0.75rem 1rem;
+  text-align: left;
+  border: none;
+  background-color: transparent;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  font-weight: 500;
+  color: rgb(37 99 235);
+}
+
+.add-location-option:hover {
+  background-color: rgb(243 244 246);
+}
+
+.no-locations-message {
+  padding: 0.75rem 1rem;
+  color: rgb(107 114 128);
+  font-style: italic;
+  text-align: center;
+}
+
+/* No location message styling */
+.no-location-message {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  background-color: rgb(249 250 251);
+  border-radius: 0.5rem;
+  padding: 2.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.no-location-message p {
+  margin-bottom: 1.5rem;
+  color: rgb(75 85 99);
+  font-size: 1rem;
+}
+
+.no-saved-locations {
+  font-style: italic;
+  color: rgb(156 163 175);
+  margin-top: 1rem;
+}
+
+/* Content areas */
+.analysis-content {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 1.5rem;
+}
+
+/* Chart container */
+.analysis-chart {
+  background-color: rgb(249 250 251);
+  border-radius: 0.5rem;
+  padding: 1rem;
+  position: relative;
+  overflow: visible;
+}
+
+.chart-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: rgb(31 41 55);
+  margin-bottom: 1rem;
+}
+
+.chart-unit {
+  font-size: 0.875rem;
+  color: rgb(107 114 128);
+  margin-left: 0.5rem;
+  font-weight: normal;
+}
+
+.chart-placeholder {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: rgb(249 250 251);
+  border-radius: 0.5rem;
+  padding: 3rem;
+  height: 400px;
+  color: rgb(156 163 175);
+  font-style: italic;
+}
+
+.analysis-details {
+  background-color: rgb(249 250 251);
+  border-radius: 0.5rem;
+  padding: 1rem;
+}
+
+.details-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: rgb(31 41 55);
+  margin-bottom: 0.5rem;
+}
+
+/* Error metrics styling */
+.error-metrics-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.error-metric-chart {
+  position: relative;
+}
+
+.error-metric-title {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: rgb(75 85 99);
+  margin-bottom: 0.5rem;
+}
+
+.metric-comparison-tag {
+  margin-top: 0.25rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.25rem;
+  font-size: 0.75rem;
+  display: inline-block;
+}
+
+.metric-comparison-tag.graphcast-better {
+  background-color: rgb(220 252 231);
+  color: rgb(22 163 74);
+}
+
+.metric-comparison-tag.nwp-better {
+  background-color: rgb(254 226 226);
+  color: rgb(255 115 0);
+}
+
+.metric-comparison-tag.similar {
+  background-color: rgb(224 231 255);
+  color: rgb(79 70 229);
+}
+
+/* Summary section */
+.metric-summary {
+  padding-top: 1rem;
+  border-top: 1px solid rgb(229 231 235);
+}
+
+.summary-title {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: rgb(31 41 55);
+  margin-bottom: 0.5rem;
+}
+
+.summary-text {
+  font-size: 0.875rem;
+  color: rgb(75 85 99);
+  margin-bottom: 0.5rem;
+}
+
+.data-note {
+  font-size: 0.75rem;
+  color: rgb(107 114 128);
+  font-style: italic;
+}
+
+/* Custom tooltip styling */
+.custom-tooltip {
+  background-color: white;
+  border-radius: 0.375rem;
+  padding: 0.75rem;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgb(229 231 235);
+}
+
+.tooltip-label {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: rgb(31 41 55);
+  margin-bottom: 0.5rem;
+}
+
+.tooltip-value {
+  font-size: 0.75rem;
+  color: rgb(75 85 99);
+}
+
+/* Loading state styling */
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem;
+}
+
+.loading-spinner {
+  width: 2.5rem;
+  height: 2.5rem;
+  border: 0.25rem solid rgb(229 231 235);
+  border-top: 0.25rem solid rgb(37 99 235);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 1rem;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Error state styling */
+.error-message-container {
+  padding: 1.5rem;
+  text-align: center;
+}
+
+.error-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: rgb(239 68 68);
+  margin-bottom: 1rem;
+}
+
+.error-message {
+  font-size: 1rem;
+  color: rgb(75 85 99);
+  margin-bottom: 1.5rem;
+}
+
+.error-checklist {
+  text-align: left;
+  margin: 1.5rem auto;
+  max-width: 28rem;
+  padding-left: 1.5rem;
+}
+
+.error-checklist li {
+  margin-bottom: 0.5rem;
+  color: rgb(75 85 99);
+  font-size: 0.875rem;
+}
+
+.error-details {
+  margin: 1.5rem 0;
+  text-align: left;
+}
+
+.error-json {
+  background-color: rgb(249 250 251);
+  padding: 1rem;
+  border-radius: 0.375rem;
+  font-size: 0.75rem;
+  overflow: auto;
+  max-height: 15rem;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.retry-button {
+  padding: 0.5rem 1rem;
+  background-color: rgb(37 99 235);
+  color: white;
+  border: none;
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.retry-button:hover {
+  background-color: rgb(29 78 216);
+}
+
+/* Media queries for responsive design */
+@media screen and (max-width: A1024px) {
+  .analysis-content {
+    grid-template-columns: 1fr;
+  }
+  
+  .analysis-controls {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .metrics-section {
+    width: 100%;
+    justify-content: space-between;
+  }
+  
+  .timeframe-button {
+    margin-left: 0;
+    justify-content: center;
+    width: 100%;
+  }
+  
+  .location-selector-button {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+@media screen and (max-width: 640px) {
+  .analysis-body {
+    padding: 1rem;
+  }
+  
+  .metrics-section {
+    flex-wrap: wrap;
+  }
+  
+  .metric-button {
+    flex: 1;
+    justify-content: center;
+    padding: 0.375rem 0.5rem;
+    font-size: 0.75rem;
+  }
+  
+  .metric-label {
+    margin-left: 0.25rem;
+  }
+}

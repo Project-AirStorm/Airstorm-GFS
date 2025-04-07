@@ -51,15 +51,6 @@ const Resources = ({ setCurrentPage }) => {
       category: 'Satellite Imagery',
     },
     {
-      id: 'weather-gov-pf-map',
-      title: 'Weather.gov Prognostic Forecast Maps',
-      description:
-        'Official Weather.gov prognostic forecast maps providing detailed satellite imagery and weather predictions.',
-      url: 'https://www.weather.gov/zkc/pf_map',
-      source: 'National Weather Service',
-      category: 'Satellite Imagery',
-    },
-    {
       id: 'atmos-washington-data',
       title: 'UW Atmospheric Sciences - Data Archive',
       description:

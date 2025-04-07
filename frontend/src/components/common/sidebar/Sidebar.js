@@ -143,11 +143,11 @@ const Sidebar = () => {
       page: '/alerts',
       badge: alertCount,
     },
-    // {
-    //   icon: <AreaChart className="w-4 h-4" />,
-    //   label: 'Analysis',
-    //   page: '/analysis',
-    // },
+    {
+      icon: <AreaChart className="w-4 h-4" />,
+      label: 'Analysis',
+      page: '/analysis',
+    },
     {
       icon: <Aperture className="w-4 h-4" />,
       label: 'Charts',
