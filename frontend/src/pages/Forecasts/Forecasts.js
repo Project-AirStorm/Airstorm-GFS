@@ -28,150 +28,77 @@ const Forecasts = ({ setCurrentPage }) => {
   const defaultLocation = {
     latitude: 32.385219,
     longitude: -93.762035
-    };
+  };
 
-    React.useEffect(() => {
-      if ('geolocation' in navigator) {
-        const options = {
-          timeout: 10000, // 10 seconds timeout
-        };
-        navigator.geolocation.getCurrentPosition(
-          async (position) => {
-            const { latitude, longitude } = position.coords;
-            setUserLocation({ latitude, longitude });
-            setLoading(false);
-          },
-          
-          (error) => {
-            setError('Unable to retrieve your location');
-            console.error('Error retrieving location:', error);
-            setLoading(false);
-            setUserLocation(defaultLocation);
-          },
-          options // Pass the timeout options
-        );
-          }
-          else{
-            console.error('Geolocation is not supported by your browser');
-            setError('Geolocation is not supported by your browser');
-            setLoading(false);
-
-        }
-
-      }
-    )
-
-    if (loading) {
-      return <div>Loading...</div>;
+  useEffect(() => {
+    if ('geolocation' in navigator) {
+      const options = {
+        timeout: 10000, // 10 seconds timeout
+        maximumAge: 0,   // Don't use cached position
+        enableHighAccuracy: false // Don't need high accuracy for weather
+      };
+      
+      navigator.geolocation.getCurrentPosition(
+        // Success callback
+        (position) => {
+          const { latitude, longitude } = position.coords;
+          setUserLocation({ latitude, longitude });
+          setLoading(false);
+        },
+        
+        // Error callback
+        (error) => {
+          console.error('Error retrieving location:', error);
+          // Use default location when geolocation fails
+          setUserLocation(defaultLocation);
+          setError('Using default location. Could not access your location: ' + error.message);
+          setLoading(false);
+        },
+        options // Pass the options
+      );
+    } else {
+      console.error('Geolocation is not supported by your browser');
+      setUserLocation(defaultLocation);
+      setError('Geolocation is not supported by your browser. Using default location.');
+      setLoading(false);
     }
-  
-    if (error) {
-      return <div>{error}</div>;
-    } 
-  
-  
-  /*
-    const fetchLocations = useCallback(async () => {
-      try {
-        const response = await axios.get(`${REACT_APP_API_URL}/api/locations`, {
-          params: { userId: user.id },
-        });
-  
-        // Add background colors to locations
-        const backgroundColors = ['#DDDDDD', '#B0B0B0'];
-        const locationsWithStyles = response.data.map((loc, index) => ({
-          ...loc,
-          backgroundColor: backgroundColors[index % 2],
-        }));
-  
-        setLocations(locationsWithStyles);
-        setLoading(false);
-      } catch (err) {
-        console.error('Error fetching locations:', err);
-        setError('Failed to fetch locations');
-        setLoading(false);
-      }
-    }, [user.id]);
+  }, []); // Empty dependency array to run once on mount
 
-    useEffect(() => {
-        fetchLocations();
-      }, [fetchLocations]);
-
-      const handleDeleteLocation = async (latitude, longitude) => {
-          try {
-            await axios.delete(`${REACT_APP_API_URL}/api/locations`, {
-              data: {
-                userId: user.id,
-                latitude,
-                longitude,
-              },
-            });
-            // Refresh locations after deletion
-            fetchLocations();
-          } catch (err) {
-            console.error('Error deleting location:', err);
-          }
-        };
-  */
+  if (loading) {
+    return <div>Loading...</div>;
+  }
+  
   return (
-
     <div className="forecast-container">
       <div className="main-content2">
         
-        {/* View Toggle and Action Buttons */}
-        {
-          /*
-          <div className="controls-container">
-          <OverviewSwitch
-            activeView={activeView}
-            onViewChange={setActiveView}
-          />
-
-          <ActionButtons
-            onTimeframeChange={() => console.log('Timeframe changed')}
-            onAddBase={() => console.log('Add base clicked')}
-            timeframe="Week"
-          />
-        </div>
-        */
-        }
+        {error && (
+          <div className="alert" style={{ color: 'orange', margin: '10px 0' }}>
+            {error}
+          </div>
+        )}
 
         <div className='locationLabel'>
-              Location: Latitude: {userLocation.latitude} Longitude: {userLocation.longitude}
-            </div>
+          Location: Latitude: {userLocation?.latitude} Longitude: {userLocation?.longitude}
         </div>
-        
-        {/* Vertical scrolling weather grid */}
+      </div>
+      
+      {/* Vertical scrolling weather grid */}
       <div className="weather-grid-vertical">    
+        {userLocation && (
           <WeatherBox
             key={`${userLocation.latitude}-${userLocation.longitude}`}
             latitude={userLocation.latitude}
             longitude={userLocation.longitude}
           />
+        )}
       </div>
-
-          
-         {        
-          /*
-          <div className="forecasts-body">
-          <div className="forecasts-content">
-            <h2 className="content-title">Weather Forecasts</h2>
-            <p className="content-description">
-              Comprehensive weather forecasts and predictions for monitored
-              locations.
-            </p>
-            <GraphCastForecast />
-          </div>
-        </div>*/
-        } 
-
-      </div>
+    </div>
   );
 };
 
-// Forecasts.propTypes = {
-//   setCurrentPage: PropTypes.func.isRequired
-// };
+Forecasts.propTypes = {
+  setCurrentPage: PropTypes.func
+};
 
 export default Forecasts;
-
