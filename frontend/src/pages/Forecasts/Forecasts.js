@@ -8,6 +8,7 @@ import axios from 'axios';
 import React, { useState, useEffect, useCallback } from 'react';
 import { UserSession } from '../../utils/UserSession';
 import WeatherBox from '../../components/specific/WeatherBox/WeatherBox';
+import { ChevronDown, ChevronUp } from 'lucide-react';
 
 /**
  * Forecasts page component that displays weather forecasts and predictions
@@ -24,10 +25,15 @@ const Forecasts = ({ setCurrentPage }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [userLocation, setUserLocation] = useState(null);
+  const [isOpen, setIsOpen] = useState(false);
 
   const defaultLocation = {
     latitude: 32.385219,
     longitude: -93.762035
+  };
+
+  const handleClick2 = () => {
+    setIsOpen(!isOpen);
   };
 
   useEffect(() => {
@@ -67,6 +73,10 @@ const Forecasts = ({ setCurrentPage }) => {
   if (loading) {
     return <div>Loading...</div>;
   }
+
+
+
+  
   
   return (
     <div className="forecast-container">
@@ -80,6 +90,17 @@ const Forecasts = ({ setCurrentPage }) => {
 
         <div className='locationLabel'>
           Location: Latitude: {userLocation?.latitude} Longitude: {userLocation?.longitude}
+        </div>
+
+        <div className='changeLocationButton'>
+          <button onClick={()=> handleClick2} aria-expanded={isOpen}>
+            <span className="font-medium">Show Content</span>
+              {isOpen ? (
+              <ChevronUp className="transition-transform duration-300" />
+              ) : (
+              <ChevronDown className="transition-transform duration-300" />
+            )}
+          </button>
         </div>
       </div>
       

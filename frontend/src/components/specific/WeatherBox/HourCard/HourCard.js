@@ -157,7 +157,7 @@ const HourCard = ({
             <div className='hour-card' key={index} role="region">
                 <div className='hour'>{hourData.time}</div>
                 <div className='hour-icon'>{hourData.weatherCode}</div>
-                <div className='hour-temp'>{hourData.temperature}Â°</div>
+                <div className='hour-temp'>{hourData.temperature}°</div>
             </div>
         ))}
     </div>

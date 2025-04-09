@@ -97,6 +97,13 @@
   margin-top: 0.5rem;
 }
 
+.changeLocationButton{
+  flex: center;
+  gap: 2 px-4 py-2;
+  background-color:-blue-500;
+  border-radius: 0.75rem; 
+}
+
 /* Responsive Design */
 @media screen and (max-width: 768px) {
   .forecasts-body {

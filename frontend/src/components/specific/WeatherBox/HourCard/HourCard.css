@@ -15,13 +15,15 @@
     display: flex;
     flex-direction: column;
     margin: 0.5rem 0;
-    width: 50px;
+    width: 100px;
     align-items: center;
 }
 
 .hour{
     align-self: center;
     font-weight: 500;
+    white-space: nowrap;
+    text-align: center;
 }
 
 .hour-icon {

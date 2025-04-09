@@ -131,6 +131,8 @@ const WeatherBox = ({
         fetchWeatherData();
       }, [latitude, longitude]); // Dependencies array includes latitude and longitude
 
+      
+
       const handleClick = (index) => {
         setOpenStates(prevStates => {
           const newStates = [...prevStates];
