@@ -10,6 +10,7 @@ import { UserSession } from '../../utils/UserSession';
 import WeatherBox from '../../components/specific/WeatherBox/WeatherBox';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 
+
 /**
  * Forecasts page component that displays weather forecasts and predictions
  * @component
@@ -26,15 +27,51 @@ const Forecasts = ({ setCurrentPage }) => {
   const [error, setError] = useState(null);
   const [userLocation, setUserLocation] = useState(null);
   const [isOpen, setIsOpen] = useState(false);
+  const [savedLocations, setSavedLocations] = useState([]);
+  const [selectedLocation, setSelectedLocation] = useState(null);
 
   const defaultLocation = {
     latitude: 32.385219,
-    longitude: -93.762035
+    longitude: -93.762035,
+    city: "Shreveport",
+    state: "LA"
+
   };
 
   const handleClick2 = () => {
     setIsOpen(!isOpen);
   };
+
+  const selectLocation = (location) => {
+    setSelectedLocation(location);
+    setUserLocation({ 
+      latitude: location.latitude, 
+      longitude: location.longitude 
+    });
+    setIsOpen(false);
+  };
+
+  useEffect(() => {
+    const fetchSavedLocations = () => {
+      try {
+        const storedLocations = localStorage.getItem('savedLocations');
+        if (storedLocations) {
+          const parsedLocations = JSON.parse(storedLocations);
+          setSavedLocations(parsedLocations);
+        } else {
+          // Initialize with a default location if none are saved
+          const initialLocations = [defaultLocation];
+          localStorage.setItem('savedLocations', JSON.stringify(initialLocations));
+          setSavedLocations(initialLocations);
+        }
+      } catch (error) {
+        console.error('Error fetching saved locations:', error);
+        setSavedLocations([defaultLocation]);
+      }
+    };
+
+    fetchSavedLocations();
+  }, []);
 
   useEffect(() => {
     if ('geolocation' in navigator) {
@@ -89,8 +126,49 @@ const Forecasts = ({ setCurrentPage }) => {
         )}
 
         <div className='locationLabel'>
-          Location: Latitude: {userLocation?.latitude} Longitude: {userLocation?.longitude}
+          {selectedLocation ? 
+            `Location: ${selectedLocation.city}, ${selectedLocation.state}` : 
+            `Location: Latitude: ${userLocation?.latitude.toFixed(6)} Longitude: ${userLocation?.longitude.toFixed(6)}`}
         </div>
+
+        <div className="saved-locations-dropdown">
+          <button 
+            onClick={handleClick} 
+            className="dropdown-button"
+            aria-expanded={isOpen}
+            aria-haspopup="true"
+          >
+            <span className="font-medium">Select Saved Location</span>
+            {isOpen ? (
+              <ChevronUp className="transition-transform duration-300" />
+            ) : (
+              <ChevronDown className="transition-transform duration-300" />
+            )}
+          </button>
+          
+          {isOpen && (
+            <div className="dropdown-menu">
+              {savedLocations.length > 0 ? (
+                savedLocations.map((location, index) => (
+                  <button
+                    key={index}
+                    className="dropdown-item"
+                    onClick={() => selectLocation(location)}
+                  >
+                    <MapPin size={16} />
+                    <span>{location.city}, {location.state || 'Unknown'}</span>
+                    <span className="location-coordinates">
+                      ({location.latitude.toFixed(4)}, {location.longitude.toFixed(4)})
+                    </span>
+                  </button>
+                ))
+              ) : (
+                <div className="dropdown-empty">No saved locations</div>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
 
         <div className='changeLocationButton'>
           <button onClick={()=> handleClick2} aria-expanded={isOpen}>
