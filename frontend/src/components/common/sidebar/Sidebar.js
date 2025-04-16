@@ -67,6 +67,7 @@ const Sidebar = () => {
   const { signOut } = useClerk(); // Add this line to get signOut function
   const { user } = UserSession();
   const [alertCount, setAlertCount] = useState('0');
+  const [userRole, setUserRole] = useState('Flight Chief'); // Default to Flight Chief
 
   // Set up event listener for alert count updates
   useEffect(() => {
@@ -113,6 +114,15 @@ const Sidebar = () => {
       window.removeEventListener('alertCountUpdated', handleAlertCountUpdate);
     };
   }, [user.id]);
+
+  // Set user role from metadata
+  useEffect(() => {
+    if (user && user.publicMetadata && user.publicMetadata.role) {
+      setUserRole(user.publicMetadata.role);
+    } else {
+      setUserRole('Flight Chief'); // Default to Flight Chief as requested
+    }
+  }, [user]);
 
   // Update the logout handler
   const handleLogout = async () => {
@@ -164,11 +174,11 @@ const Sidebar = () => {
       label: 'Resources',
       page: '/resources',
     },
-    // {
-    //   icon: <Settings className="w-4 h-4" />,
-    //   label: 'Settings',
-    //   page: '/settings',
-    // },
+    {
+      icon: <Settings className="w-4 h-4" />,
+      label: 'Settings', 
+      page: '/settings',
+    },
     // { icon: <FileText className="w-4 h-4" />, label: 'Logs', page: '/logs' },
     {
       icon: <Sticker className="w-4 h-4" />,
@@ -206,7 +216,7 @@ const Sidebar = () => {
           <div>
             <p className="text-sm font-semibold text-gray-800">
               {
-                // Uppercases the first letter of the each name
+                // Uppercases the first letter of each name
                 user.firstName.charAt(0).toUpperCase() +
                   user.firstName.slice(1) +
                   ' ' +
@@ -214,7 +224,7 @@ const Sidebar = () => {
                   user.lastName.slice(1)
               }
             </p>
-            <p className="text-xs text-gray-500">User</p>
+            <p className="text-xs text-gray-500">{userRole}</p>
           </div>
         </div>
       </div>

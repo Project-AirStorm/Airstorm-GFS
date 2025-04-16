@@ -12,6 +12,7 @@ RUN npm cache clean --force && \
     npm install && \
     npm install -g react-scripts && \
     npm install --save \
+    react-image-crop \
     lucide-react@0.263.1 \
     react-icons@4.x.x \
     @maptiler/sdk \
