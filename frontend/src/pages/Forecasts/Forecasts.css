@@ -97,11 +97,91 @@
   margin-top: 0.5rem;
 }
 
-.changeLocationButton{
-  flex: center;
-  gap: 2 px-4 py-2;
-  background-color:-blue-500;
-  border-radius: 0.75rem; 
+/* Dropdown container */
+.saved-locations-dropdown {
+  position: relative;
+  margin: 1rem 0;
+  width: 100%;
+  max-width: 400px;
+}
+
+/* Dropdown button styling */
+.dropdown-button {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 0.75rem 1rem;
+  background-color: white;
+  border: 1px solid rgb(209 213 219);
+  border-radius: 0.5rem;
+  color: rgb(31 41 55);
+  font-size: 0.9rem;
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.dropdown-button:hover {
+  background-color: rgb(243 244 246);
+}
+
+.dropdown-button:focus {
+  outline: none;
+  border-color: rgb(59 130 246);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25);
+}
+
+/* Dropdown menu */
+.dropdown-menu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  z-index: 10;
+  width: 100%;
+  max-height: 250px;
+  overflow-y: auto;
+  margin-top: 0.25rem;
+  padding: 0.5rem 0;
+  background-color: white;
+  border: 1px solid rgb(209 213 219);
+  border-radius: 0.5rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+/* Individual dropdown items */
+.dropdown-item {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  padding: 0.75rem 1rem;
+  color: rgb(31 41 55);
+  font-size: 0.9rem;
+  text-align: left;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.dropdown-item:hover {
+  background-color: rgb(243 244 246);
+}
+
+.dropdown-item span {
+  margin-left: 0.5rem;
+}
+
+.location-coordinates {
+  margin-left: auto;
+  color: rgb(107 114 128);
+  font-size: 0.8rem;
+}
+
+/* Empty state */
+.dropdown-empty {
+  padding: 0.75rem 1rem;
+  color: rgb(107 114 128);
+  text-align: center;
 }
 
 /* Responsive Design */

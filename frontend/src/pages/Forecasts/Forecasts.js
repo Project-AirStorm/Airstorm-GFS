@@ -8,7 +8,7 @@ import axios from 'axios';
 import React, { useState, useEffect, useCallback } from 'react';
 import { UserSession } from '../../utils/UserSession';
 import WeatherBox from '../../components/specific/WeatherBox/WeatherBox';
-import { ChevronDown, ChevronUp } from 'lucide-react';
+import { ChevronDown, ChevronUp, MapPin } from 'lucide-react';
 
 
 /**
@@ -38,7 +38,7 @@ const Forecasts = ({ setCurrentPage }) => {
 
   };
 
-  const handleClick2 = () => {
+  const handleClick = () => {
     setIsOpen(!isOpen);
   };
 
@@ -167,18 +167,6 @@ const Forecasts = ({ setCurrentPage }) => {
               )}
             </div>
           )}
-        </div>
-      </div>
-
-        <div className='changeLocationButton'>
-          <button onClick={()=> handleClick2} aria-expanded={isOpen}>
-            <span className="font-medium">Show Content</span>
-              {isOpen ? (
-              <ChevronUp className="transition-transform duration-300" />
-              ) : (
-              <ChevronDown className="transition-transform duration-300" />
-            )}
-          </button>
         </div>
       </div>
       
