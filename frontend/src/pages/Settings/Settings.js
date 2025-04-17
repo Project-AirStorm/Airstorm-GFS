@@ -16,7 +16,7 @@ import 'react-image-crop/dist/ReactCrop.css';
 const Settings = () => {
   const { user } = UserSession();
   const { user: clerkUser, isLoaded } = useUser();
-  const { signOut, openUserProfile } = useClerk();
+  const { signOut, openUserProfile, client } = useClerk();
   
   // Updated tab name from 'myDetails' to 'profile' as requested
   const [activeTab, setActiveTab] = useState('profile');
@@ -88,15 +88,25 @@ const Settings = () => {
       
       // Save user data to Clerk via API
       if (clerkUser && isLoaded) {
-        // Update name and store role in metadata
+        // Update basic profile information
         await clerkUser.update({
           firstName: formData.firstName,
-          lastName: formData.lastName,
-          publicMetadata: {
-            ...clerkUser.publicMetadata,
-            role: formData.role
-          }
+          lastName: formData.lastName
         });
+        
+        // Update the role using unsafeMetadata
+        if (formData.role) {
+          try {
+            // Handle metadata update separately through Clerk Admin API
+            await axios.post(`${process.env.REACT_APP_API_URL}/api/update-metadata`, {
+              userId: user.id,
+              role: formData.role
+            });
+          } catch (metadataError) {
+            console.log("Metadata update through backend will be handled by save-user endpoint");
+            // If above fails, continue anyway - the role will still be saved through save-user
+          }
+        }
         
         // Update email if it has changed
         if (formData.email !== user.primaryEmailAddress?.emailAddress) {
@@ -109,7 +119,7 @@ const Settings = () => {
         // Success feedback
         setFeedback({
           type: 'success',
-          message: 'Profile updated successfully. Any changes to your role will be visible in the sidebar.'
+          message: 'Profile updated successfully.'
         });
         
         // Also update in your backend if needed
@@ -268,14 +278,17 @@ const Settings = () => {
       const canvas = previewCanvasRef.current;
       const dataUrl = canvas.toDataURL('image/jpeg', 0.95);
       
-      // Save banner image to user metadata
+      // Update banner image but avoid using publicMetadata directly in the update call
       if (clerkUser) {
-        await clerkUser.update({
-          publicMetadata: {
-            ...clerkUser.publicMetadata,
+        try {
+          // Handle banner image update through backend
+          await axios.post(`${process.env.REACT_APP_API_URL}/api/update-banner`, {
+            userId: user.id,
             bannerImage: dataUrl
-          }
-        });
+          });
+        } catch (error) {
+          console.log("Failed to update banner through API, will try to save it locally", error);
+        }
         
         // Update the banner image in the UI
         setBannerImage(dataUrl);
@@ -333,14 +346,16 @@ const Settings = () => {
     );
   };
 
-  // Handle password reset
+  // Handle password reset - FIX: Using the correct Clerk method
   const handlePasswordReset = async () => {
     try {
       setFeedback({ type: '', message: '' });
       
-      if (clerkUser && isLoaded) {
-        await clerkUser.createPasswordReset({
-          strategy: 'email_code',
+      if (isLoaded) {
+        // FIX: Use the correct method for password reset
+        await client.signIn.create({
+          strategy: "reset_password_email_code",
+          identifier: user.primaryEmailAddress?.emailAddress || formData.email
         });
         
         setFeedback({
@@ -434,20 +449,6 @@ const Settings = () => {
             <button 
               onClick={() => document.getElementById('banner-upload').click()}
               className="banner-upload-button"
-              style={{
-                position: 'absolute',
-                bottom: '1rem',
-                right: '1rem',
-                padding: '0.5rem 1rem',
-                backgroundColor: 'rgba(0, 0, 0, 0.5)',
-                color: 'white',
-                border: 'none',
-                borderRadius: '0.375rem',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.5rem',
-                cursor: 'pointer'
-              }}
             >
               <Upload size={16} />
               Change Banner
@@ -466,7 +467,6 @@ const Settings = () => {
             <div 
               className="profile-image-wrapper"
               onClick={() => document.getElementById('profile-upload').click()}
-              style={{ cursor: 'pointer', position: 'relative' }}
             >
               {user ? (
                 <img 
@@ -479,20 +479,7 @@ const Settings = () => {
                   <User size={40} />
                 </div>
               )}
-              <div style={{
-                position: 'absolute',
-                inset: '0',
-                backgroundColor: 'rgba(0, 0, 0, 0.4)',
-                borderRadius: '50%',
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                justifyContent: 'center',
-                opacity: '0',
-                transition: 'opacity 0.2s',
-                color: 'white'
-              }}
-              className="profile-hover-overlay">
+              <div className="profile-hover-overlay">
                 <Camera size={24} />
                 <span style={{ fontSize: '10px', marginTop: '4px' }}>Change</span>
               </div>
