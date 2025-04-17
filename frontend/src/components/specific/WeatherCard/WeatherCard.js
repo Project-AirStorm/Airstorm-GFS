@@ -51,6 +51,9 @@ const WeatherCard = ({
         setLocationInfo(locationResponse.data);
 
         setLoading(false);
+
+        
+
       } catch (err) {
         console.error('Error fetching data:', {
           city,
@@ -67,6 +70,52 @@ const WeatherCard = ({
 
     fetchData();
   }, [latitude, longitude, city]);
+
+    // Function to handle toggling favorite status and save to localStorage
+    const handleToggleFavorite = () => {
+      // Get the current location details
+      const currentLocation = {
+        city: city || (locationInfo?.components?.city || 'Unknown City'),
+        state: state || (locationInfo?.components?.state_code || 'Unknown'),
+        latitude,
+        longitude,
+        isFavorite: !isFavorite,
+      };
+      
+      try {
+        // Get existing saved locations from localStorage
+        const savedLocationsStr = localStorage.getItem('savedLocations') || '[]';
+        const savedLocations = JSON.parse(savedLocationsStr);
+        
+        // Check if this location already exists
+        const existingLocationIndex = savedLocations.findIndex(
+          loc => loc.latitude === latitude && loc.longitude === longitude
+        );
+        
+        if (!isFavorite) {
+          // Add to saved locations if it's being favorited
+          if (existingLocationIndex === -1) {
+            savedLocations.push(currentLocation);
+          } else {
+            // Update the existing location
+            savedLocations[existingLocationIndex] = currentLocation;
+          }
+        } else {
+          // Remove from saved locations if it's being unfavorited
+          if (existingLocationIndex !== -1) {
+            savedLocations.splice(existingLocationIndex, 1);
+          }
+        }
+        
+        // Save back to localStorage
+        localStorage.setItem('savedLocations', JSON.stringify(savedLocations));
+      } catch (error) {
+        console.error('Error saving location to localStorage:', error);
+      }
+      
+      // Call the original onToggleFavorite prop
+      onToggleFavorite();
+    };
 
   // Loading state with animation
   if (loading) {
@@ -136,7 +185,7 @@ const WeatherCard = ({
         </div>
         <div className="weather-card-actions">
           <button
-            onClick={onToggleFavorite}
+            onClick={handleToggleFavorite}
             className="action-button"
             title={
               isFavorite

@@ -1,0 +1,31 @@
+.hourCardHolder {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    gap: 0.5rem;
+    padding: 0.5rem 0;
+}
+
+.hour-card{
+    border-radius: 0.75rem;
+    padding: 1.5rem;
+    color: rgb(0, 0, 0);
+    background-color: white;
+    display: flex;
+    flex-direction: column;
+    margin: 0.5rem 0;
+    width: 100px;
+    align-items: center;
+}
+
+.hour{
+    align-self: center;
+    font-weight: 500;
+    white-space: nowrap;
+    text-align: center;
+}
+
+.hour-icon {
+    margin: 0.5rem 0;
+}
