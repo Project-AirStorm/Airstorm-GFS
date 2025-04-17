@@ -29,6 +29,7 @@ const Forecasts = ({ setCurrentPage }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [savedLocations, setSavedLocations] = useState([]);
   const [selectedLocation, setSelectedLocation] = useState(null);
+  const [fetchingLocations, setFetchingLocations] = useState(false);
 
   const defaultLocation = {
     latitude: 32.385219,
@@ -52,26 +53,29 @@ const Forecasts = ({ setCurrentPage }) => {
   };
 
   useEffect(() => {
-    const fetchSavedLocations = () => {
+    const fetchFavoriteLocations = async () => {
+    if(!user || !user.id){
+      console.log("No user ID avalible no locations");
+    }
+    setFetchingLocations(true);
       try {
-        const storedLocations = localStorage.getItem('savedLocations');
-        if (storedLocations) {
-          const parsedLocations = JSON.parse(storedLocations);
-          setSavedLocations(parsedLocations);
-        } else {
-          // Initialize with a default location if none are saved
-          const initialLocations = [defaultLocation];
-          localStorage.setItem('savedLocations', JSON.stringify(initialLocations));
-          setSavedLocations(initialLocations);
-        }
-      } catch (error) {
-        console.error('Error fetching saved locations:', error);
-        setSavedLocations([defaultLocation]);
-      }
-    };
+      const response = await axios.get(
+        `${REACT_APP_API_URL}/api/locations?userId=${user.id}`
+      );
+      const favorites = response.data.filter(location => location.isFavorite);
+      console.log("Fetched favorite locations", favorites);
+      setSavedLocations(favorites);
 
-    fetchSavedLocations();
-  }, []);
+    } catch (err) {
+        console.error('Error fetching favorite locations:', err);
+        setError('`Could not fetch your saved locations: ${err.message}`');
+    }finally{
+      setFetchingLocations(false);
+      }
+      };
+
+    fetchFavoriteLocations();
+  }, [user]);
 
   useEffect(() => {
     if ('geolocation' in navigator) {
@@ -110,10 +114,6 @@ const Forecasts = ({ setCurrentPage }) => {
   if (loading) {
     return <div>Loading...</div>;
   }
-
-
-
-  
   
   return (
     <div className="forecast-container">
@@ -138,7 +138,9 @@ const Forecasts = ({ setCurrentPage }) => {
             aria-expanded={isOpen}
             aria-haspopup="true"
           >
-            <span className="font-medium">Select Saved Location</span>
+            <span className="font-medium">
+              {fetchingLocations? 'Loading locations...':'Select Saved Location'}
+            </span>
             {isOpen ? (
               <ChevronUp className="transition-transform duration-300" />
             ) : (
@@ -148,8 +150,9 @@ const Forecasts = ({ setCurrentPage }) => {
           
           {isOpen && (
             <div className="dropdown-menu">
-              {savedLocations.length > 0 ? (
-                savedLocations.map((location, index) => (
+              {fetchingLocations ? (
+                <div className="dropdown-empty">Loading Locations...</div>
+              ) :savedLocations.length > 0 ?(savedLocations.map((location, index) => (
                   <button
                     key={index}
                     className="dropdown-item"
