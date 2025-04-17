@@ -89,7 +89,11 @@ const Chat = () => {
     <div className="dashboard-container">
       <div className="main-content">
         <div className="chat-container">
-          <StreamChatComponent client={chatClient} theme="messaging light">
+          <StreamChatComponent
+            client={chatClient}
+            theme="messaging light"
+            messageMarkdownParser={() => ({})}
+          >
             <div className="chat-wrapper">
               {/* Channels Sidebar */}
               <div className="chat-channels">
