@@ -64,10 +64,10 @@ NavItem.propTypes = {
 const Sidebar = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { signOut } = useClerk(); // Add this line to get signOut function
+  const { signOut } = useClerk(); 
   const { user } = UserSession();
   const [alertCount, setAlertCount] = useState('0');
-  const [userRole, setUserRole] = useState('Flight Chief'); // Default to Flight Chief
+  const [userRole, setUserRole] = useState('User'); // Default to User
 
   // Set up event listener for alert count updates
   useEffect(() => {
@@ -120,7 +120,7 @@ const Sidebar = () => {
     if (user && user.publicMetadata && user.publicMetadata.role) {
       setUserRole(user.publicMetadata.role);
     } else {
-      setUserRole('Flight Chief'); // Default to Flight Chief as requested
+      setUserRole('User'); 
     }
   }, [user]);
 
