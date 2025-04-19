@@ -7,6 +7,7 @@ import base64
 import zipfile
 from datetime import datetime
 from utils.log_sanitizer import sanitize_log_message
+from db.mysql_connection import get_mysql_connection
 
 internal_api_bp = Blueprint("internal_api", __name__)
 database_service = DatabaseManager()
@@ -26,21 +27,57 @@ def user_session():
     if not all(field in data for field in required_fields):
         return jsonify({"error": "Missing required user fields"}), 400
 
-    clerk_user_id = data["userId"]  # This is the Clerk user ID string
+    clerk_user_id = data["userId"]
     username = data["username"]
     first_name = data["firstName"]
     last_name = data["lastName"]
     email = data["email"]
+    role = data.get("role")  # Get role if available, otherwise None
 
     # Save user data in the MySQL database
     success = database_service.save_user(
-        clerk_user_id, username, first_name, last_name, email
+        clerk_user_id, username, first_name, last_name, email, role
     )
 
     if not success:
         return jsonify({"error": "Failed to save user data"}), 500
 
     return jsonify({"message": "User data saved successfully"}), 200
+
+@internal_api_bp.route("/api/user-profile", methods=["GET"])
+def get_user_profile():
+    """
+    Retrieve user profile data including role from the database
+    """
+    user_id = request.args.get("userId")
+    if not user_id:
+        return jsonify({"error": "User ID is required"}), 400
+        
+    try:
+        with get_mysql_connection() as conn:
+            with conn.cursor() as cursor:
+                sql = """
+                SELECT username, first_name, last_name, email, role
+                FROM Users 
+                WHERE user_id = %s
+                """
+                cursor.execute(sql, (user_id,))
+                user = cursor.fetchone()
+                
+                if user:
+                    return jsonify({
+                        "username": user["username"],
+                        "firstName": user["first_name"],
+                        "lastName": user["last_name"],
+                        "email": user["email"],
+                        "role": user["role"],
+                    })
+                else:
+                    return jsonify({"error": "User not found"}), 404
+                    
+    except Exception as e:
+        logging.error(f"Error fetching user profile: {e}")
+        return jsonify({"error": "Failed to fetch user profile"}), 500
 
 
 @internal_api_bp.route("/api/locations", methods=["GET"])

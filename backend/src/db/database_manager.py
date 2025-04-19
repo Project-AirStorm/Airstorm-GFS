@@ -7,7 +7,8 @@ class DatabaseManager:
     def __init__(self):
         pass
 
-    def save_user(self, clerk_user_id, username, first_name, last_name, email):
+    # Sets User role to none to avoid "paramater not included" error if a function which doesn't include role calls the method
+    def save_user(self, clerk_user_id, username, first_name, last_name, email, role=None): 
         try:
             with get_mysql_connection() as conn:
                 with conn.cursor() as cursor:
@@ -16,27 +17,31 @@ class DatabaseManager:
                     cursor.execute(check_sql, (clerk_user_id,))
                     user = cursor.fetchone()
 
+                     # Set default role if not provided
+                    if role is None:
+                        role = 'User'
+
                     if user:
                         # Update existing user
                         update_sql = """
                         UPDATE Users 
-                        SET username = %s, first_name = %s, last_name = %s, email = %s 
+                        SET username = %s, first_name = %s, last_name = %s, email = %s,  role = %s 
                         WHERE user_id = %s
                         """
                         cursor.execute(
                             update_sql,
-                            (username, first_name, last_name, email, clerk_user_id)
+                            (username, first_name, last_name, email, role, clerk_user_id)
                         )
                     else:
                         # Insert new user
                         insert_sql = """
                         INSERT INTO Users 
-                        (user_id, username, first_name, last_name, email) 
-                        VALUES (%s, %s, %s, %s, %s)
+                        (user_id, username, first_name, last_name, email, role) 
+                        VALUES (%s, %s, %s, %s, %s, %s)
                         """
                         cursor.execute(
                             insert_sql,
-                            (clerk_user_id, username, first_name, last_name, email)
+                            (clerk_user_id, username, first_name, last_name, email, role)
                         )
 
                     conn.commit()

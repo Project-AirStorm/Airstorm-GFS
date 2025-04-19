@@ -7,6 +7,8 @@ import settingsBanner from '../../assets/settings-banner.jpg';
 import axios from 'axios';
 import ReactCrop from 'react-image-crop';
 import 'react-image-crop/dist/ReactCrop.css';
+import { notifyRoleChanged } from '../../utils/roleEvents';
+
 
 /**
  * Settings page component for user profile and app configuration
@@ -55,21 +57,37 @@ const Settings = () => {
 
   // Update form data when user data is available
   useEffect(() => {
-    if (user && clerkUser) {
+    if (user && isLoaded) {
+      // First set basic user data from Clerk
       setFormData({
         firstName: user.firstName || '',
         lastName: user.lastName || '',
         email: user.primaryEmailAddress?.emailAddress || '',
         username: user.username || '',
-        role: user.publicMetadata?.role || 'Flight Chief' // Get role from metadata or use default
+        role: 'User' 
       });
       
-      // If user has a bannerImage in metadata, use it
-      if (user.publicMetadata?.bannerImage) {
-        setBannerImage(user.publicMetadata.bannerImage);
-      }
+      // Then fetch additional data including role from your database
+      const fetchUserProfile = async () => {
+        try {
+          const response = await axios.get(`${process.env.REACT_APP_API_URL}/api/user-profile`, {
+            params: { userId: user.id }
+          });
+          
+          if (response.data && response.data.role) {
+            setFormData(prev => ({
+              ...prev,
+              role: response.data.role
+            }));
+          }
+        } catch (err) {
+          console.error('Error fetching user profile:', err);
+        }
+      };
+      
+      fetchUserProfile();
     }
-  }, [user, clerkUser]);
+  }, [user, isLoaded]);
 
   // Handle input changes
   const handleInputChange = (e) => {
@@ -86,56 +104,39 @@ const Settings = () => {
       setIsSaving(true);
       setFeedback({ type: '', message: '' });
       
-      // Save user data to Clerk via API
+      // Save name and email to Clerk 
       if (clerkUser && isLoaded) {
-        // Update basic profile information
         await clerkUser.update({
           firstName: formData.firstName,
           lastName: formData.lastName
         });
-        
-        // Update the role using unsafeMetadata
-        if (formData.role) {
-          try {
-            // Handle metadata update separately through Clerk Admin API
-            await axios.post(`${process.env.REACT_APP_API_URL}/api/update-metadata`, {
-              userId: user.id,
-              role: formData.role
-            });
-          } catch (metadataError) {
-            console.log("Metadata update through backend will be handled by save-user endpoint");
-            // If above fails, continue anyway - the role will still be saved through save-user
-          }
-        }
         
         // Update email if it has changed
         if (formData.email !== user.primaryEmailAddress?.emailAddress) {
           await clerkUser.createEmailAddress({
             email: formData.email,
           });
-          // Note: This will send a verification email to the user
         }
         
-        // Success feedback
+        // Save ALL data including role to your database
+        await axios.post(`${process.env.REACT_APP_API_URL}/api/save-user`, {
+          userId: user.id,
+          username: user.username,
+          firstName: formData.firstName,
+          lastName: formData.lastName,
+          email: user.primaryEmailAddress?.emailAddress,
+          role: formData.role 
+        });
+        
+        // Notify other components of the role change
+        notifyRoleChanged(formData.role);
+        
         setFeedback({
           type: 'success',
           message: 'Profile updated successfully.'
         });
-        
-        // Also update in your backend if needed
-        if (process.env.REACT_APP_API_URL) {
-          await axios.post(`${process.env.REACT_APP_API_URL}/api/save-user`, {
-            userId: user.id,
-            username: user.username,
-            firstName: formData.firstName,
-            lastName: formData.lastName,
-            email: user.primaryEmailAddress?.emailAddress,
-            role: formData.role,
-          });
-        }
       }
     } catch (error) {
-      // Error feedback
       setFeedback({
         type: 'error',
         message: error.message || 'Failed to update profile. Please try again.'

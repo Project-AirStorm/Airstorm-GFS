@@ -22,38 +22,49 @@ export function UserSession() {
     // Only attempt syncing if user data is loaded and available,
     // and we haven't synced already.
     if (isLoaded && user && !isSynced) {
-      // User application data
-      const userData = {
-        userId: user.id,
-        username: user.username,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        email: user.primaryEmailAddress?.emailAddress,
-      };
+      // First, fetch the existing user profile to get the role
+      axios.get(`${REACT_APP_API_URL}/api/user-profile`, {
+        params: { userId: user.id }
+      })
+      .then(roleResponse => {
+        // Get the current role from the database
+        const currentRole = roleResponse.data && roleResponse.data.role 
+          ? roleResponse.data.role 
+          : 'Flight Chief'; // Default if not found
 
-      // Sync user data to your backend
-      axios
-        .post(`${REACT_APP_API_URL}/api/save-user`, userData)
-        .then((response) => {
-          console.log('User session synced successfully:', response.data);
+        // User application data with role
+        const userData = {
+          userId: user.id,
+          username: user.username,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          email: user.primaryEmailAddress?.emailAddress,
+          role: currentRole // Include the current role
+        };
 
-          // Ensure the user exists in StreamChat
-          return axios.post(`${REACT_APP_API_URL}/api/chat/users/create`, {
-            user_id: user.id,
-            name: `${user.firstName} ${user.lastName}`,
-            username: user.username,
-          });
-        })
-        .then((chatResponse) => {
-          //console.log('User created in StreamChat:', chatResponse.data);
-          setIsSynced(true); // Mark sync as complete
-        })
-        .catch((error) => {
-          console.error(
-            'Error syncing user session or creating StreamChat user:',
-            error
-          );
+        // Sync user data to your backend
+        return axios.post(`${REACT_APP_API_URL}/api/save-user`, userData);
+      })
+      .then((response) => {
+        console.log('User session synced successfully:', response.data);
+
+        // Ensure the user exists in StreamChat
+        return axios.post(`${REACT_APP_API_URL}/api/chat/users/create`, {
+          user_id: user.id,
+          name: `${user.firstName} ${user.lastName}`,
+          username: user.username,
         });
+      })
+      .then((chatResponse) => {
+        //console.log('User created in StreamChat:', chatResponse.data);
+        setIsSynced(true); // Mark sync as complete
+      })
+      .catch((error) => {
+        console.error(
+          'Error syncing user session or creating StreamChat user:',
+          error
+        );
+      });
     }
   }, [isLoaded, user, isSynced, REACT_APP_API_URL]);
 

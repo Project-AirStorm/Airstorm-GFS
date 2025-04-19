@@ -23,6 +23,7 @@ import './Sidebar.css';
 import { useClerk } from '@clerk/clerk-react';
 import { UserSession } from '../../../utils/UserSession';
 import axios from 'axios';
+import { notifyRoleChanged } from '../../../utils/roleEvents';
 
 // Declare URL for Flask API
 const REACT_APP_API_URL = process.env.REACT_APP_API_URL;
@@ -117,11 +118,40 @@ const Sidebar = () => {
 
   // Set user role from metadata
   useEffect(() => {
-    if (user && user.publicMetadata && user.publicMetadata.role) {
-      setUserRole(user.publicMetadata.role);
-    } else {
-      setUserRole('User'); 
-    }
+    // Function to fetch user role from database
+    const fetchUserRole = async () => {
+      try {
+        if (user && user.id) {
+          const response = await axios.get(`${REACT_APP_API_URL}/api/user-profile`, {
+            params: { userId: user.id }
+          });
+          
+          if (response.data && response.data.role) {
+            setUserRole(response.data.role);
+          } else {
+            setUserRole('User'); // Default
+          }
+        }
+      } catch (err) {
+        console.error('Error fetching user role:', err);
+        setUserRole('User'); // Default on error
+      }
+    };
+    
+    // Fetch role initially
+    fetchUserRole();
+    
+    // Set up listener for role changes
+    const handleRoleChange = (event) => {
+      setUserRole(event.detail);
+    };
+    
+    window.addEventListener('userRoleChanged', handleRoleChange);
+    
+    // Cleanup listener on unmount
+    return () => {
+      window.removeEventListener('userRoleChanged', handleRoleChange);
+    };
   }, [user]);
 
   // Update the logout handler
