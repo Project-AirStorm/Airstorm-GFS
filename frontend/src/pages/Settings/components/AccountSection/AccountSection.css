@@ -1,0 +1,96 @@
+/* AccountSection.css */
+
+.account-section {
+    width: 100%;
+  }
+  
+  .username-container {
+    display: flex;
+    align-items: flex-end;
+    gap: 0.5rem;
+    margin-bottom: 2rem;
+  }
+  
+  .username-field {
+    flex: 1;
+  }
+  
+  .username-update-button {
+    height: 34.49px;
+    padding: 0 0.75rem;
+    font-size: 10.73px;
+    margin-bottom: 0.5rem;
+  }
+  
+  /* Connected accounts styling */
+  .connected-accounts-section {
+    margin-top: 2rem;
+  }
+  
+  .section-title {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: #232360;
+    margin-bottom: 1rem;
+  }
+  
+  .connected-account {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.5rem;
+    margin-bottom: 1rem;
+  }
+  
+  .account-icon {
+    width: 24px;
+    height: 24px;
+  }
+  
+  .account-details {
+    flex: 1;
+  }
+  
+  .account-name {
+    font-weight: 500;
+    color: #232360;
+  }
+  
+  .account-status {
+    font-size: 0.75rem;
+    color: #6A7181;
+  }
+  
+  .manage-account-button {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  
+  .manage-accounts-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.625rem 1rem;
+    background-color: #3361E0;
+    color: white;
+    border: none;
+    border-radius: 0.25rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    margin-top: 1rem;
+    width: 100%;
+  }
+  
+  .manage-accounts-button:hover {
+    background-color: #2851c7;
+  }
+  
+  .external-icon {
+    margin-left: 0.25rem;
+  }

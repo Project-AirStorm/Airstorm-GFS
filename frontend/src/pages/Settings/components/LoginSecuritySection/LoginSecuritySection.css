@@ -1,0 +1,93 @@
+/* LoginSecuritySection.css */
+
+.login-security-section {
+  width: 100%;
+}
+
+.security-section {
+  width: 100%;
+}
+
+.security-option {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.25rem;
+  background-color: #f9fafb;
+  border-radius: 0.5rem;
+  margin-bottom: 1.25rem;
+}
+
+.security-option-info {
+  flex: 1;
+}
+
+.security-option-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #232360;
+  margin-bottom: 0.25rem;
+}
+
+.security-option-description {
+  font-size: 0.875rem;
+  color: #6A7181;
+}
+
+.security-action-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem 1rem;
+  background-color: white;
+  border: 1px solid rgb(229 231 235);
+  color: rgb(75 85 99);
+  border-radius: 0.25rem;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: background-color 0.15s;
+}
+
+.security-action-button:hover {
+  background-color: rgb(249 250 251);
+}
+
+/* Danger zone styling */
+.danger-zone {
+  margin-top: 2.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid #e5e7eb;
+}
+
+.danger-zone-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: rgb(220, 38, 38);
+  margin-bottom: 1rem;
+}
+
+.danger-option {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.25rem;
+  background-color: #fff1f1;
+  border-radius: 0.5rem;
+  border: 1px solid #fecaca;
+}
+
+.danger-option-info {
+  flex: 1;
+}
+
+.danger-option-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: rgb(220, 38, 38);
+  margin-bottom: 0.25rem;
+}
+
+.danger-option-description {
+  font-size: 0.875rem;
+  color: rgb(185, 28, 28);
+}

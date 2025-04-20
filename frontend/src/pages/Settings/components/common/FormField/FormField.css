@@ -1,0 +1,71 @@
+/* FormField.css */
+.form-group {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 1rem;
+}
+
+.form-group.full-width {
+  width: 100%;
+  margin-bottom: 1.5rem;
+}
+
+.form-group label {
+  font-size: 10.73px;
+  font-family: 'Manrope', sans-serif;
+  font-weight: 500;
+  color: #232360;
+  margin-bottom: 0.5rem;
+}
+
+.form-control {
+  height: 34.49px;
+  border-radius: 6.90px;
+  border: 0.77px solid #E5E5ED;
+  padding: 0 0.75rem;
+  font-size: 10.73px;
+  font-family: 'Manrope', sans-serif;
+  color: #768396;
+  width: 100%;
+  transition: border-color 0.2s;
+}
+
+.form-control:focus {
+  outline: none;
+  border-color: #3361E0;
+  box-shadow: 0 0 0 2px rgba(51, 97, 224, 0.1);
+}
+
+.form-control.error {
+  border-color: #dc2626;
+}
+
+.input-with-icon {
+  position: relative;
+}
+
+.input-icon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #232360;
+  font-size: 12px;
+}
+
+.form-control.with-icon {
+  padding-left: 2rem;
+}
+
+.validation-error {
+  color: #dc2626;
+  font-size: 10px;
+  margin-top: 0.25rem;
+}
+
+.field-helper {
+  color: #3361E0;
+  font-size: 10px;
+  margin-top: 0.25rem;
+  font-style: italic;
+}
