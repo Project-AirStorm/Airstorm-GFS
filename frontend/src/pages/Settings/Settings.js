@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { UserSession } from '../../utils/UserSession';
+import { useUserProfile } from '../../contexts/UserContext';
 import { useUser, useClerk } from '@clerk/clerk-react';
 import { Upload, User, Save, X, Shield, Lock, Bell, AlertTriangle, Camera, ExternalLink } from 'lucide-react';
 import './Settings.css';
@@ -7,8 +7,6 @@ import settingsBanner from '../../assets/settings-banner.jpg';
 import axios from 'axios';
 import ReactCrop from 'react-image-crop';
 import 'react-image-crop/dist/ReactCrop.css';
-import { notifyRoleChanged } from '../../utils/roleEvents';
-
 
 /**
  * Settings page component for user profile and app configuration
@@ -16,9 +14,9 @@ import { notifyRoleChanged } from '../../utils/roleEvents';
  * @returns {JSX.Element} Settings component
  */
 const Settings = () => {
-  const { user } = UserSession();
-  const { user: clerkUser, isLoaded } = useUser();
-  const { signOut, openUserProfile, client } = useClerk();
+  const { userProfile, updateUserProfile, isLoading: contextLoading } = useUserProfile();
+  const { user, isLoaded } = useUser();
+  const { signOut, openUserProfile } = useClerk();
   
   // Updated tab name from 'myDetails' to 'profile' as requested
   const [activeTab, setActiveTab] = useState('profile');
@@ -28,7 +26,7 @@ const Settings = () => {
     lastName: '',
     email: '',
     username: '',
-    role: 'Flight Chief' // Default role as requested
+    role: 'Flight Chief' // Default role
   });
   
   // State for file uploads
@@ -57,37 +55,21 @@ const Settings = () => {
 
   // Update form data when user data is available
   useEffect(() => {
-    if (user && isLoaded) {
-      // First set basic user data from Clerk
+    if (isLoaded && user && userProfile) {
       setFormData({
         firstName: user.firstName || '',
         lastName: user.lastName || '',
         email: user.primaryEmailAddress?.emailAddress || '',
         username: user.username || '',
-        role: 'User' 
+        role: userProfile.role || 'Flight Chief' // Get role from context
       });
       
-      // Then fetch additional data including role from your database
-      const fetchUserProfile = async () => {
-        try {
-          const response = await axios.get(`${process.env.REACT_APP_API_URL}/api/user-profile`, {
-            params: { userId: user.id }
-          });
-          
-          if (response.data && response.data.role) {
-            setFormData(prev => ({
-              ...prev,
-              role: response.data.role
-            }));
-          }
-        } catch (err) {
-          console.error('Error fetching user profile:', err);
-        }
-      };
-      
-      fetchUserProfile();
+      // If user has a bannerImage in metadata, use it
+      if (user.publicMetadata?.bannerImage) {
+        setBannerImage(user.publicMetadata.bannerImage);
+      }
     }
-  }, [user, isLoaded]);
+  }, [isLoaded, user, userProfile]);
 
   // Handle input changes
   const handleInputChange = (e) => {
@@ -104,39 +86,43 @@ const Settings = () => {
       setIsSaving(true);
       setFeedback({ type: '', message: '' });
       
-      // Save name and email to Clerk 
-      if (clerkUser && isLoaded) {
-        await clerkUser.update({
+      // Save user data to Clerk via API
+      if (user && isLoaded) {
+        // Update name in Clerk
+        await user.update({
           firstName: formData.firstName,
-          lastName: formData.lastName
+          lastName: formData.lastName,
         });
         
         // Update email if it has changed
         if (formData.email !== user.primaryEmailAddress?.emailAddress) {
-          await clerkUser.createEmailAddress({
+          await user.createEmailAddress({
             email: formData.email,
           });
+          // Note: This will send a verification email to the user
         }
         
-        // Save ALL data including role to your database
-        await axios.post(`${process.env.REACT_APP_API_URL}/api/save-user`, {
-          userId: user.id,
-          username: user.username,
+        // Update the user profile in context (this will also save to backend)
+        const result = await updateUserProfile({
           firstName: formData.firstName,
           lastName: formData.lastName,
           email: user.primaryEmailAddress?.emailAddress,
-          role: formData.role 
+          username: user.username,
+          role: formData.role
         });
         
-        // Notify other components of the role change
-        notifyRoleChanged(formData.role);
-        
-        setFeedback({
-          type: 'success',
-          message: 'Profile updated successfully.'
-        });
+        if (result.success) {
+          // Success feedback
+          setFeedback({
+            type: 'success',
+            message: 'Profile updated successfully. Your role has been updated and will be reflected in the sidebar.'
+          });
+        } else {
+          throw new Error('Failed to update profile');
+        }
       }
     } catch (error) {
+      // Error feedback
       setFeedback({
         type: 'error',
         message: error.message || 'Failed to update profile. Please try again.'
@@ -149,13 +135,13 @@ const Settings = () => {
   // Reset form to original values
   const handleCancel = () => {
     // Reset form data to original user data
-    if (user) {
+    if (user && userProfile) {
       setFormData({
         firstName: user.firstName || '',
         lastName: user.lastName || '',
         email: user.primaryEmailAddress?.emailAddress || '',
         username: user.username || '',
-        role: user.publicMetadata?.role || 'Flight Chief'
+        role: userProfile.role || 'Flight Chief'
       });
     }
     // Clear any feedback
@@ -196,8 +182,8 @@ const Settings = () => {
         const file = new File([blob], 'profile.jpg', { type: 'image/jpeg' });
         
         // Upload to Clerk
-        if (clerkUser) {
-          await clerkUser.setProfileImage({ file });
+        if (user) {
+          await user.setProfileImage({ file });
           setShowProfileCropper(false);
           setFeedback({
             type: 'success',
@@ -279,17 +265,14 @@ const Settings = () => {
       const canvas = previewCanvasRef.current;
       const dataUrl = canvas.toDataURL('image/jpeg', 0.95);
       
-      // Update banner image but avoid using publicMetadata directly in the update call
-      if (clerkUser) {
-        try {
-          // Handle banner image update through backend
-          await axios.post(`${process.env.REACT_APP_API_URL}/api/update-banner`, {
-            userId: user.id,
+      // Save banner image to user metadata
+      if (user) {
+        await user.update({
+          publicMetadata: {
+            ...user.publicMetadata,
             bannerImage: dataUrl
-          });
-        } catch (error) {
-          console.log("Failed to update banner through API, will try to save it locally", error);
-        }
+          }
+        });
         
         // Update the banner image in the UI
         setBannerImage(dataUrl);
@@ -347,16 +330,14 @@ const Settings = () => {
     );
   };
 
-  // Handle password reset - FIX: Using the correct Clerk method
+  // Handle password reset
   const handlePasswordReset = async () => {
     try {
       setFeedback({ type: '', message: '' });
       
-      if (isLoaded) {
-        // FIX: Use the correct method for password reset
-        await client.signIn.create({
-          strategy: "reset_password_email_code",
-          identifier: user.primaryEmailAddress?.emailAddress || formData.email
+      if (user && isLoaded) {
+        await user.createPasswordReset({
+          strategy: 'email_code',
         });
         
         setFeedback({
@@ -378,8 +359,8 @@ const Settings = () => {
       try {
         setFeedback({ type: '', message: '' });
         
-        if (clerkUser && isLoaded) {
-          await clerkUser.delete();
+        if (user && isLoaded) {
+          await user.delete();
           signOut({ redirectUrl: '/login' });
         }
       } catch (error) {
@@ -407,7 +388,7 @@ const Settings = () => {
 
   // Update username with Clerk
   const handleUsernameUpdate = async () => {
-    if (!formData.username || formData.username === user.username) {
+    if (!formData.username || formData.username === user?.username) {
       return;
     }
 
@@ -415,8 +396,13 @@ const Settings = () => {
       setIsSaving(true);
       setFeedback({ type: '', message: '' });
       
-      if (clerkUser) {
-        await clerkUser.update({
+      if (user) {
+        await user.update({
+          username: formData.username
+        });
+        
+        // Also update in context
+        await updateUserProfile({
           username: formData.username
         });
         
@@ -435,6 +421,17 @@ const Settings = () => {
     }
   };
 
+  // Show loading state if context is still loading
+  if (contextLoading) {
+    return (
+      <div className="dashboard-container">
+        <div className="main-content">
+          <div className="text-center py-8">Loading user profile...</div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="dashboard-container">
       <div className="main-content">
@@ -450,6 +447,20 @@ const Settings = () => {
             <button 
               onClick={() => document.getElementById('banner-upload').click()}
               className="banner-upload-button"
+              style={{
+                position: 'absolute',
+                bottom: '1rem',
+                right: '1rem',
+                padding: '0.5rem 1rem',
+                backgroundColor: 'rgba(0, 0, 0, 0.5)',
+                color: 'white',
+                border: 'none',
+                borderRadius: '0.375rem',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem',
+                cursor: 'pointer'
+              }}
             >
               <Upload size={16} />
               Change Banner
@@ -468,6 +479,7 @@ const Settings = () => {
             <div 
               className="profile-image-wrapper"
               onClick={() => document.getElementById('profile-upload').click()}
+              style={{ cursor: 'pointer', position: 'relative' }}
             >
               {user ? (
                 <img 
@@ -480,7 +492,20 @@ const Settings = () => {
                   <User size={40} />
                 </div>
               )}
-              <div className="profile-hover-overlay">
+              <div style={{
+                position: 'absolute',
+                inset: '0',
+                backgroundColor: 'rgba(0, 0, 0, 0.4)',
+                borderRadius: '50%',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                opacity: '0',
+                transition: 'opacity 0.2s',
+                color: 'white'
+              }}
+              className="profile-hover-overlay">
                 <Camera size={24} />
                 <span style={{ fontSize: '10px', marginTop: '4px' }}>Change</span>
               </div>

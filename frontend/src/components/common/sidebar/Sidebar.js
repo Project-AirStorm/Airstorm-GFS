@@ -21,9 +21,8 @@ import {
 import afgscLogo from '../../../assets/afgsc-logo.png';
 import './Sidebar.css';
 import { useClerk } from '@clerk/clerk-react';
-import { UserSession } from '../../../utils/UserSession';
+import { useUserProfile } from '../../../contexts/UserContext';
 import axios from 'axios';
-import { notifyRoleChanged } from '../../../utils/roleEvents';
 
 // Declare URL for Flask API
 const REACT_APP_API_URL = process.env.REACT_APP_API_URL;
@@ -65,29 +64,49 @@ NavItem.propTypes = {
 const Sidebar = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { signOut } = useClerk(); 
-  const { user } = UserSession();
+  const { signOut } = useClerk();
+  const { user } = useClerk();
+  const { userProfile } = useUserProfile();
+  
+  const [userRole, setUserRole] = useState('Flight Chief'); // Default role
   const [alertCount, setAlertCount] = useState('0');
-  const [userRole, setUserRole] = useState('User'); // Default to User
 
-  // Set up event listener for alert count updates
+  // Set user role from userProfile
   useEffect(() => {
-    // Moved function inside useEffect
-    const fetchInitialAlertCount = async () => {
-      try {
-        const response = await axios.get(
-          `${REACT_APP_API_URL}/api/external/alerts?userId=${user.id}`
-        );
+    if (userProfile && userProfile.role) {
+      setUserRole(userProfile.role);
+    } else {
+      setUserRole('Flight Chief'); // Default
+    }
+  }, [userProfile]);
 
-        // First get favorite locations
+  // Fetch alert count
+  useEffect(() => {
+    const fetchAlertCount = async () => {
+      try {
+        // Only fetch if user is available
+        if (!user || !user.id) return;
+        
+        // Get favorite locations
         const locResponse = await axios.get(
           `${REACT_APP_API_URL}/api/locations?userId=${user.id}`
         );
         const favorites = locResponse.data.filter(
           (location) => location.isFavorite
         );
+        
+        // If no favorites, no need to fetch alerts
+        if (favorites.length === 0) {
+          setAlertCount('0');
+          return;
+        }
+        
+        // Get alerts for favorite locations
+        const response = await axios.get(
+          `${REACT_APP_API_URL}/api/external/alerts?userId=${user.id}`
+        );
 
-        // Filter alerts for favorite locations
+        // Count alerts for favorite locations
         const favoriteAlerts = response.data.alerts.filter((alert) =>
           favorites.some(
             (loc) =>
@@ -98,59 +117,22 @@ const Sidebar = () => {
 
         setAlertCount(favoriteAlerts.length.toString());
       } catch (error) {
-        console.error('Error fetching initial alert count:', error);
+        console.error('Error fetching alert count:', error);
         setAlertCount('0');
       }
     };
 
-    fetchInitialAlertCount();
-
+    fetchAlertCount();
+    
+    // Setup alert count listener
     const handleAlertCountUpdate = (event) => {
       setAlertCount(event.detail.toString());
     };
-
+    
     window.addEventListener('alertCountUpdated', handleAlertCountUpdate);
-
+    
     return () => {
       window.removeEventListener('alertCountUpdated', handleAlertCountUpdate);
-    };
-  }, [user.id]);
-
-  // Set user role from metadata
-  useEffect(() => {
-    // Function to fetch user role from database
-    const fetchUserRole = async () => {
-      try {
-        if (user && user.id) {
-          const response = await axios.get(`${REACT_APP_API_URL}/api/user-profile`, {
-            params: { userId: user.id }
-          });
-          
-          if (response.data && response.data.role) {
-            setUserRole(response.data.role);
-          } else {
-            setUserRole('User'); // Default
-          }
-        }
-      } catch (err) {
-        console.error('Error fetching user role:', err);
-        setUserRole('User'); // Default on error
-      }
-    };
-    
-    // Fetch role initially
-    fetchUserRole();
-    
-    // Set up listener for role changes
-    const handleRoleChange = (event) => {
-      setUserRole(event.detail);
-    };
-    
-    window.addEventListener('userRoleChanged', handleRoleChange);
-    
-    // Cleanup listener on unmount
-    return () => {
-      window.removeEventListener('userRoleChanged', handleRoleChange);
     };
   }, [user]);
 
@@ -245,7 +227,7 @@ const Sidebar = () => {
           <UserButton />
           <div>
             <p className="text-sm font-semibold text-gray-800">
-              {
+              {user && 
                 // Uppercases the first letter of each name
                 user.firstName.charAt(0).toUpperCase() +
                   user.firstName.slice(1) +
