@@ -63,12 +63,46 @@ const Forecasts = ({ setCurrentPage }) => {
         `${REACT_APP_API_URL}/api/locations?userId=${user.id}`
       );
       const favorites = response.data.filter(location => location.isFavorite);
+
+      console.log("Fetched favorite locations:", favorites);
+        favorites.forEach((location, index) => {
+          console.log(`Location #${index}:`, {
+            city: location.city, 
+            state: location.state,
+            latitude: location.latitude,
+            longitude: location.longitude,
+            keys: Object.keys(location)
+          });
+        });
+
       console.log("Fetched favorite locations", favorites);
       setSavedLocations(favorites);
 
+      // Create normalized locations if needed
+      const normalizedLocations = favorites.map(location => {
+        // Get the property names that actually exist in the API response
+        const cityProp = location.city !== undefined ? 'city' : 
+                        (location.name !== undefined ? 'name' : null);
+        const stateProp = location.state !== undefined ? 'state' : 
+                         (location.region !== undefined ? 'region' : null);
+        
+        return {
+          ...location,
+          // Ensure city and state properties exist with appropriate fallbacks
+          city: cityProp ? location[cityProp] : 'Unknown Location',
+          state: stateProp ? location[stateProp] : '',
+          // Ensure latitude and longitude are numbers
+          latitude: typeof location.latitude === 'number' ? location.latitude : parseFloat(location.latitude),
+          longitude: typeof location.longitude === 'number' ? location.longitude : parseFloat(location.longitude)
+        };
+      });
+      
+      console.log("Normalized locations:", normalizedLocations);
+      setSavedLocations(normalizedLocations);
+
     } catch (err) {
         console.error('Error fetching favorite locations:', err);
-        setError('`Could not fetch your saved locations: ${err.message}`');
+        setError(`Could not fetch your saved locations: ${err.message}`);
     }finally{
       setFetchingLocations(false);
       }
@@ -117,7 +151,7 @@ const Forecasts = ({ setCurrentPage }) => {
   
   return (
     <div className="forecast-container">
-      <div className="main-content2">
+      <div className="forecasts-body">
         
         {error && (
           <div className="alert" style={{ color: 'orange', margin: '10px 0' }}>
@@ -127,7 +161,7 @@ const Forecasts = ({ setCurrentPage }) => {
 
         <div className='locationLabel'>
           {selectedLocation ? 
-            `Location: ${selectedLocation.city}, ${selectedLocation.state}` : 
+            `Location: ${selectedLocation.city}`:
             `Location: Latitude: ${userLocation?.latitude.toFixed(6)} Longitude: ${userLocation?.longitude.toFixed(6)}`}
         </div>
 
@@ -152,19 +186,26 @@ const Forecasts = ({ setCurrentPage }) => {
             <div className="dropdown-menu">
               {fetchingLocations ? (
                 <div className="dropdown-empty">Loading Locations...</div>
-              ) :savedLocations.length > 0 ?(savedLocations.map((location, index) => (
-                  <button
+              ) :savedLocations.length > 0 ?(savedLocations.map((location, index) => {
+                  const cityDisplay = location.city || 'Unknown Location';
+                  const stateDisplay = location.state;
+                  const locationDisplay = stateDisplay ? `${cityDisplay}, ${stateDisplay}` : cityDisplay;
+                  return (
+                    <button
                     key={index}
                     className="dropdown-item"
                     onClick={() => selectLocation(location)}
                   >
                     <MapPin size={16} />
-                    <span>{location.city}, {location.state || 'Unknown'}</span>
+                    <span>{locationDisplay}</span>
                     <span className="location-coordinates">
-                      ({location.latitude.toFixed(4)}, {location.longitude.toFixed(4)})
+                      {typeof location.latitude === 'number' && typeof location.longitude ==='number'?
+                      `(${location.latitude.toFixed(4)}, ${location.longitude.toFixed(4)})`: '(Coordinates Unavalible)'}
                     </span>
                   </button>
-                ))
+                  );
+                  
+                })
               ) : (
                 <div className="dropdown-empty">No saved locations</div>
               )}
@@ -173,16 +214,19 @@ const Forecasts = ({ setCurrentPage }) => {
         </div>
       </div>
       
-      {/* Vertical scrolling weather grid */}
-      <div className="weather-grid-vertical">    
-        {userLocation && (
-          <WeatherBox
-            key={`${userLocation.latitude}-${userLocation.longitude}`}
-            latitude={userLocation.latitude}
-            longitude={userLocation.longitude}
-          />
-        )}
+      <div className= "forecasts-body2">
+        {/* Vertical scrolling weather grid */}
+        <div className="weather-grid-vertical">    
+          {userLocation && (
+            <WeatherBox
+              key={`${userLocation.latitude}-${userLocation.longitude}`}
+              latitude={userLocation.latitude}
+              longitude={userLocation.longitude}
+            />
+          )}
+        </div>
       </div>
+
     </div>
   );
 };
