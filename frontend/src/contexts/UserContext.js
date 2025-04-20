@@ -28,7 +28,7 @@ export function UserProvider({ children }) {
       setIsLoading(true);
       try {
         // First fetch the existing profile including role
-        let currentRole = 'Flight Chief'; // Default role
+        let currentRole = 'User'; // Default role
         try {
           const profileResponse = await axios.get(`${REACT_APP_API_URL}/api/user-profile`, {
             params: { userId: user.id }

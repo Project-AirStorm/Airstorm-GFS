@@ -26,7 +26,7 @@ const Settings = () => {
     lastName: '',
     email: '',
     username: '',
-    role: '' 
+    role: 'User' 
   });
   
   // State for file uploads
@@ -61,7 +61,7 @@ const Settings = () => {
         lastName: user.lastName || '',
         email: user.primaryEmailAddress?.emailAddress || '',
         username: user.username || '',
-        role: userProfile.role || '' 
+        role: userProfile.role || '' // Get role from context
       });
       
       // If user has a bannerImage in metadata, use it

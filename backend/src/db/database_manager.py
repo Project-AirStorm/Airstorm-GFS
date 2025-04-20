@@ -8,7 +8,7 @@ class DatabaseManager:
         pass
 
     # Sets User role to none to avoid "paramater not included" error if a function which doesn't include role calls the method
-    def save_user(self, clerk_user_id, username, first_name, last_name, email, role=None): 
+    def save_user(self, clerk_user_id, username, first_name, last_name, email, role): 
         try:
             with get_mysql_connection() as conn:
                 with conn.cursor() as cursor:

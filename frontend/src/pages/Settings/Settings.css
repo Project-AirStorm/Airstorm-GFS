@@ -710,23 +710,3 @@ input:checked + .toggle-slider:before {
 .manage-accounts-button:hover {
   background-color: #2851c7;
 }
-/* Add this to your Settings.css file */
-
-/* Profile image hover effect */
-.profile-image-wrapper:hover .profile-hover-overlay {
-  opacity: 1;
-}
-
-.profile-hover-overlay {
-  position: absolute;
-  inset: 0;
-  background-color: rgba(0, 0, 0, 0.4);
-  border-radius: 50%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  opacity: 0;
-  transition: opacity 0.2s;
-  color: white;
-}
