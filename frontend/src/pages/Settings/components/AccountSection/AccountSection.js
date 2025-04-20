@@ -100,7 +100,7 @@ const AccountSection = ({ user, userProfile, showFeedback }) => {
             className="username-update-button"
           >
             Update
-          </ActionButton>
+          </ActionButton> 
         </div>
         
         <div className="connected-accounts-section">

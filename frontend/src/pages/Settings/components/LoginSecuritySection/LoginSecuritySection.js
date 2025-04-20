@@ -50,7 +50,6 @@ const LoginSecuritySection = ({ user, showFeedback }) => {
     <div className="login-security-section">
       <div className="settings-form">
         <div className="security-section">
-          <h3 className="section-title">Account Security</h3>
           
           <div className="security-option">
             <div className="security-option-info">

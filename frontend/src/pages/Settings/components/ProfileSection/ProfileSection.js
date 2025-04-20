@@ -28,7 +28,7 @@ const ProfileSection = ({ user, userProfile, showFeedback }) => {
     firstName: '',
     lastName: '',
     email: '',
-    role: 'Flight Chief' // Default role
+    role: 'User' // Default role
   });
   
   // Validation setup
@@ -114,7 +114,7 @@ const ProfileSection = ({ user, userProfile, showFeedback }) => {
           });
           
           if (result.success) {
-            showFeedback('success', 'Profile updated successfully. Your role has been updated and will be reflected in the sidebar.');
+            showFeedback('success', 'Profile updated successfully.');
           } else {
             throw new Error('Failed to update profile');
           }
@@ -136,7 +136,7 @@ const ProfileSection = ({ user, userProfile, showFeedback }) => {
         lastName: user.lastName || '',
         email: user.primaryEmailAddress?.emailAddress || '',
         username: user.username || '',
-        role: userProfile.role || 'Flight Chief'
+        role: userProfile.role || 'User'
       });
     }
     // Clear any feedback and validation errors
@@ -144,9 +144,9 @@ const ProfileSection = ({ user, userProfile, showFeedback }) => {
   };
 
   return (
-    <div className="profile-section">
+    <div className="profile-section-container">
       {/* Form section */}
-      <div className="settings-form">
+        <div className="settings-form">
         <div className="form-row">
           <FormField
             id="firstName"

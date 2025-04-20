@@ -1,3 +1,4 @@
+
  /* Form styles */
   .settings-form {
     padding: 0 1.5rem 2rem;
@@ -9,11 +10,15 @@
     margin-bottom: 1.5rem;
   }
   
-  .form-actions {
+/* Action buttons */
+.form-actions {
     display: flex;
     justify-content: flex-end;
     gap: 1rem;
     margin-top: 1.5rem;
+  }
+
+.profile-section-container {
   }
   
   /* Responsive styles */
