@@ -2,7 +2,7 @@
 .form-group {
   flex: 1;
   display: flex;
-  flex-direction: column;
+  flex-direction: column
 }
 
 .form-group.full-width {
@@ -19,7 +19,7 @@
 }
 
 .form-control {
-  height: 34.49px;
+  height: 2.3rem;
   border-radius: 6.90px;
   border: 0.77px solid #E5E5ED;
   padding: 0 0.75rem;
@@ -34,6 +34,7 @@
   outline: none;
   border-color: #3361E0;
   box-shadow: 0 0 0 2px rgba(51, 97, 224, 0.1);
+  color: #000000;
 }
 
 .form-control.error {

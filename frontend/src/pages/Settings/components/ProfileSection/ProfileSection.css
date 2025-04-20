@@ -15,11 +15,9 @@
     display: flex;
     justify-content: flex-end;
     gap: 1rem;
-    margin-top: 1.5rem;
+    margin-top: 2rem;
   }
 
-.profile-section-container {
-  }
   
   /* Responsive styles */
   @media screen and (max-width: 768px) {

@@ -144,7 +144,7 @@ const ProfileSection = ({ user, userProfile, showFeedback }) => {
   };
 
   return (
-    <div className="profile-section-container">
+    <div>
       {/* Form section */}
         <div className="settings-form">
         <div className="form-row">
