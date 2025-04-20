@@ -67,16 +67,16 @@ const Sidebar = () => {
   const { signOut } = useClerk();
   const { user } = useClerk();
   const { userProfile } = useUserProfile();
-  
-  const [userRole, setUserRole] = useState('Flight Chief'); // Default role
+  const isLoadingProfile = !userProfile || !userProfile.role;
+  const [userRole, setUserRole] = useState(userProfile?.role ?? 'Loading…'); 
+
   const [alertCount, setAlertCount] = useState('0');
 
+  
   // Set user role from userProfile
   useEffect(() => {
     if (userProfile && userProfile.role) {
       setUserRole(userProfile.role);
-    } else {
-      setUserRole('Flight Chief'); // Default
     }
   }, [userProfile]);
 
@@ -199,7 +199,7 @@ const Sidebar = () => {
     },
   ];
 
-  // Modify the return statement to add the logout button at the bottom
+  // Adds the logout button at the bottom
   return (
     <div className="sidebar flex flex-col h-full">
       {/* Header */}

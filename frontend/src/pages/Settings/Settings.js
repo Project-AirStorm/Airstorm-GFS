@@ -26,7 +26,7 @@ const Settings = () => {
     lastName: '',
     email: '',
     username: '',
-    role: 'Flight Chief' // Default role
+    role: '' 
   });
   
   // State for file uploads
@@ -61,7 +61,7 @@ const Settings = () => {
         lastName: user.lastName || '',
         email: user.primaryEmailAddress?.emailAddress || '',
         username: user.username || '',
-        role: userProfile.role || 'Flight Chief' // Get role from context
+        role: userProfile.role || '' 
       });
       
       // If user has a bannerImage in metadata, use it
@@ -115,7 +115,7 @@ const Settings = () => {
           // Success feedback
           setFeedback({
             type: 'success',
-            message: 'Profile updated successfully. Your role has been updated and will be reflected in the sidebar.'
+            message: 'Profile updated successfully.'
           });
         } else {
           throw new Error('Failed to update profile');
@@ -141,7 +141,7 @@ const Settings = () => {
         lastName: user.lastName || '',
         email: user.primaryEmailAddress?.emailAddress || '',
         username: user.username || '',
-        role: userProfile.role || 'Flight Chief'
+        role: userProfile.role || 'User'
       });
     }
     // Clear any feedback
@@ -610,11 +610,12 @@ const Settings = () => {
                   onChange={handleInputChange}
                   className="form-control"
                 >
+                  <option value="User">User</option>
                   <option value="Flight Chief">Flight Chief</option>
                   <option value="Weather Officer">Weather Officer</option>
                   <option value="Operations Manager">Operations Manager</option>
-                  <option value="Analyst">Analyst</option>
-                  <option value="Forecaster">Forecaster</option>
+                  <option value="Data Analyst">Data Analyst</option>
+                  <option value="Developer">Developer</option>
                 </select>
               </div>
 

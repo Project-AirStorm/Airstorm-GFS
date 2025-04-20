@@ -30,7 +30,7 @@ export function UserSession() {
         // Get the current role from the database
         const currentRole = roleResponse.data && roleResponse.data.role 
           ? roleResponse.data.role 
-          : 'Flight Chief'; // Default if not found
+          : 'User'; // Default if not found
 
         // User application data with role
         const userData = {
