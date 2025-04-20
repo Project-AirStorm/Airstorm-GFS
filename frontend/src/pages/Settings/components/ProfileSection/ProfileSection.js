@@ -176,11 +176,13 @@ const ProfileSection = ({ user, userProfile, showFeedback }) => {
             onChange={handleInputChange}
             className="form-control"
           >
+            <option value="User">User</option>
             <option value="Flight Chief">Flight Chief</option>
             <option value="Weather Officer">Weather Officer</option>
             <option value="Operations Manager">Operations Manager</option>
-            <option value="Analyst">Analyst</option>
+            <option value="Data Analyst">Data Analyst</option>
             <option value="Forecaster">Forecaster</option>
+            <option value="Developer">Developer</option>
           </select>
         </div>
 
