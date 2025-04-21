@@ -8,6 +8,7 @@ import './FormField.css';
  * @param {string} props.name - Field name
  * @param {string} props.label - Field label
  * @param {string} props.type - Input type (default: 'text')
+ * @param {string} props.placeholder - Placeholder text for input
  * @param {string} props.value - Field value
  * @param {Function} props.onChange - Change handler
  * @param {string} props.error - Error message
@@ -22,6 +23,7 @@ const FormField = ({
   name,
   label,
   type = 'text',
+  placeholder = '',
   value,
   onChange,
   error,
@@ -31,15 +33,16 @@ const FormField = ({
   className = ''
 }) => {
   return (
-    <div className={`form-group ${className}`}>
+    <div className={`form-group ${className}`}>  
       {label && <label htmlFor={id}>{label}</label>}
       
-      <div className={`input-wrapper ${icon ? 'with-left-icon' : ''} ${rightIcon ? 'with-right-icon' : ''}`}>
+      <div className={`input-wrapper ${icon ? 'with-left-icon' : ''} ${rightIcon ? 'with-right-icon' : ''}`}>  
         {icon && <span className="input-left-icon">{icon}</span>}
         <input
           type={type}
           id={id}
           name={name}
+          placeholder={placeholder}
           value={value}
           onChange={onChange}
           className={`form-control ${icon ? 'has-left-icon' : ''} ${rightIcon ? 'has-right-icon' : ''} ${error ? 'error' : ''}`}

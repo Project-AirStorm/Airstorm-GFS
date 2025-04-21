@@ -2,7 +2,7 @@
 .form-group {
   flex: 1;
   display: flex;
-  flex-direction: column
+  flex-direction: column;
 }
 
 .form-group.full-width {
@@ -11,19 +11,19 @@
 }
 
 .form-group label {
-  font-size: 10.73px;
+  font-size: 0.67rem;       /* 10.73px → 0.67rem */
   font-family: 'Manrope', sans-serif;
   font-weight: 500;
   color: #232360;
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.5rem;   
 }
 
 .form-control {
-  height: 2.45rem;
-  border-radius: 6.90px;
-  border: 0.77px solid #E5E5ED;
-  padding: 0 0.75rem;
-  font-size: 10.73px;
+  height: 2.45rem;         
+  border-radius: 0.43rem;   /* 6.90px → 0.43rem */
+  border: 0.05rem solid #E5E5ED; /* 0.77px → 0.05rem */
+  padding: 0 0.75rem;     
+  font-size: 0.67rem;     
   font-family: 'Manrope', sans-serif;
   color: #768396;
   width: 100%;
@@ -33,7 +33,7 @@
 .form-control:focus {
   outline: none;
   border-color: #3361E0;
-  box-shadow: 0 0 0 2px rgba(51, 97, 224, 0.1);
+  box-shadow: 0 0 0 0.13rem rgba(51, 97, 224, 0.1); /* 2px → 0.13rem */
   color: #000000;
 }
 
@@ -49,28 +49,28 @@
 /* Left icon styling */
 .input-left-icon {
   position: absolute;
-  left: 12px;
+  left: 0.75rem;            /* 12px → 0.75rem */
   top: 50%;
   transform: translateY(-50%);
   color: #232360;
-  font-size: 12px;
+  font-size: 0.75rem;       /* 12px → 0.75rem */
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
 .form-control.has-left-icon {
-  padding-left: 2.25rem;
+  padding-left: 2.25rem;   
 }
 
 /* Right icon styling */
 .input-right-icon {
   position: absolute;
-  right: 12px;
+  right: 0.75rem;           /* 12px → 0.75rem */
   top: 50%;
   transform: translateY(-50%);
   color: #6A7181;
-  font-size: 12px;
+  font-size: 0.75rem;       /* 12px → 0.75rem */
   display: flex;
   align-items: center;
   justify-content: center;
@@ -78,7 +78,7 @@
 }
 
 .form-control.has-right-icon {
-  padding-right: 2.25rem;
+  padding-right: 2.25rem;  
 }
 
 .input-right-icon:hover {
@@ -87,13 +87,13 @@
 
 .validation-error {
   color: #dc2626;
-  font-size: 10px;
-  margin-top: 0.25rem;
+  font-size: 0.63rem;       /* 10px → 0.63rem */
+  margin-top: 0.25rem;     
 }
 
 .field-helper {
   color: #3361E0;
-  font-size: 10px;
-  margin-top: 0.25rem;
+  font-size: 0.70rem;      
+  margin-top: 0.25rem;    
   font-style: italic;
 }

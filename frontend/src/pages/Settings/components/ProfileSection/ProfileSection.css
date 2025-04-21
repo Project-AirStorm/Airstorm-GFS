@@ -9,6 +9,12 @@
     gap: 1.5rem;
     margin-bottom: 1.5rem;
   }
+
+  input#username.form-control.has-left-icon {
+    /* override the default 2.25rem */
+    padding-left: 2em !important;
+  }
+  
   
 /* Action buttons */
 .form-actions {
