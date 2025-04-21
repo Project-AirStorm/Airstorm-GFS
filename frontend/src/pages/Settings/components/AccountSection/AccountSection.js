@@ -58,7 +58,8 @@ const AccountSection = ({ user, userProfile, showFeedback }) => {
   /**
    * Initiate email verification process using Clerk
    */
-  const initiateEmailVerification = async () => {
+ // Updated initiateEmailVerification function in AccountSection.js
+const initiateEmailVerification = async () => {
     try {
       setIsSaving(true);
       
@@ -77,8 +78,8 @@ const AccountSection = ({ user, userProfile, showFeedback }) => {
           return;
         }
         
-        // Create a new email address in Clerk
-        await user.createEmailAddress({ 
+        // Use Clerk's createEmailAddress method to create and send verification email
+        const emailAddress = await user.createEmailAddress({
           email: email,
         });
         

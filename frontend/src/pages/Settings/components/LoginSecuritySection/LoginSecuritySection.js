@@ -36,59 +36,63 @@ const LoginSecuritySection = ({ user, showFeedback }) => {
   /**
    * Fetch active devices from user object when available
    */
-  useEffect(() => {
-    const fetchActiveDevices = async () => {
-      try {
-        setIsLoading(true);
+// Updated fetchActiveDevices function in LoginSecuritySection.js
+useEffect(() => {
+  const fetchActiveDevices = async () => {
+    try {
+      setIsLoading(true);
+      
+      if (user) {
+        // Use Clerk's session methods to get active sessions
+        const sessions = await user.getSessions();
         
-        if (user) {
-          // In a real implementation, you would use Clerk's API to get active sessions
-          // Since Clerk doesn't directly expose active devices in the client SDK, 
-          // this is a placeholder/mock implementation
+        // Transform sessions into our device format
+        const devices = sessions.map(session => {
+          const lastActiveAt = session.lastActiveAt;
+          const browser = session.latestActivity?.browser || 'Unknown';
+          const os = session.latestActivity?.operatingSystem || 'Unknown';
+          const ipAddress = session.latestActivity?.ipAddress || 'Unknown';
+          const isCurrent = session.id === user.lastActiveSessionId;
           
-          // Note: The proper way would be to have a backend endpoint that uses
-          // Clerk's Admin SDK to fetch this information
+          // Determine device type based on user agent
+          let deviceType = 'browser';
+          let deviceName = 'Desktop Browser';
           
-          // For now, let's create mock data based on available user information
-          const mockDevices = [
-            {
-              id: '1',
-              name: 'Current Browser',
-              type: 'browser',
-              browser: 'Chrome',
-              os: 'Windows',
-              ipAddress: '192.168.1.xxx',
-              lastActive: new Date().toISOString(),
-              isCurrent: true
+          if (session.latestActivity?.deviceType) {
+            if (session.latestActivity.deviceType.toLowerCase().includes('mobile')) {
+              deviceType = 'mobile';
+              deviceName = 'Mobile Device';
+            } else if (session.latestActivity.deviceType.toLowerCase().includes('tablet')) {
+              deviceType = 'tablet';
+              deviceName = 'Tablet Device';
             }
-          ];
-          
-          // Add a second mock device if user has multiple sign-ins
-          if (user.lastSignInAt) {
-            mockDevices.push({
-              id: '2',
-              name: 'Mobile Device',
-              type: 'mobile',
-              browser: 'Safari',
-              os: 'iOS',
-              ipAddress: '10.0.0.xxx',
-              lastActive: user.lastSignInAt,
-              isCurrent: false
-            });
           }
           
-          setActiveDevices(mockDevices);
-        }
-      } catch (error) {
-        console.error('Error fetching active devices:', error);
-      } finally {
-        setIsLoading(false);
+          return {
+            id: session.id,
+            name: deviceName,
+            type: deviceType,
+            browser,
+            os,
+            ipAddress,
+            lastActive: lastActiveAt,
+            isCurrent
+          };
+        });
+        
+        setActiveDevices(devices);
       }
-    };
-    
-    fetchActiveDevices();
-  }, [user]);
+    } catch (error) {
+      console.error('Error fetching active devices:', error);
+      // Fallback to empty list if there's an error
+      setActiveDevices([]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
   
+  fetchActiveDevices();
+}, [user]);
   /**
    * Get device icon based on device type
    * @param {string} type - Device type
