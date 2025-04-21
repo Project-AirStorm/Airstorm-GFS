@@ -41,21 +41,48 @@
   border-color: #dc2626;
 }
 
-.input-with-icon {
+/* Input wrapper with icons */
+.input-wrapper {
   position: relative;
 }
 
-.input-icon {
+/* Left icon styling */
+.input-left-icon {
   position: absolute;
   left: 12px;
   top: 50%;
   transform: translateY(-50%);
   color: #232360;
   font-size: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-.form-control.with-icon {
-  padding-left: 1.75rem;
+.form-control.has-left-icon {
+  padding-left: 2.25rem;
+}
+
+/* Right icon styling */
+.input-right-icon {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #6A7181;
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.form-control.has-right-icon {
+  padding-right: 2.25rem;
+}
+
+.input-right-icon:hover {
+  color: #232360;
 }
 
 .validation-error {
@@ -70,5 +97,3 @@
   margin-top: 0.25rem;
   font-style: italic;
 }
-
-

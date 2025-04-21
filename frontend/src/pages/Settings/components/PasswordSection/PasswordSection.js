@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
-import { Lock, Save, X} from 'lucide-react';
+import { Lock, Save, X, Check, AlertCircle } from 'lucide-react';
+import { PiEyeClosed } from "react-icons/pi";
+import { PiEyeBold } from "react-icons/pi";
 import ActionButton from '../common/ActionButton/ActionButton';
 import FormField from '../common/FormField/FormField';
 import './PasswordSection.css';
@@ -21,13 +23,76 @@ const PasswordSection = ({ user, showFeedback }) => {
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState('');
   
+  // Password visibility toggle states
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  
+  // Password strength states
+  const [passwordStrength, setPasswordStrength] = useState({
+    score: 0,
+    message: '',
+    checks: {
+      length: false,
+      number: false,
+      special: false,
+      uppercase: false,
+      lowercase: false
+    }
+  });
+  
   // Check if user has password authentication enabled
-  const hasPasswordAuth = user?.password_enabled === true;
+  const hasPasswordAuth = user?.passwordEnabled === true;
   
   // Check if user is connected via Google
-  const hasGoogleAuth = user?.external_accounts?.some(account => 
+  const hasGoogleAuth = user?.externalAccounts?.some(account => 
     account.provider === 'oauth_google' || account.provider === 'google'
   );
+  
+  /**
+   * Validates password strength and updates strength state
+   * @param {string} password - Password to validate
+   * @returns {number} Password strength score (0-4)
+   */
+  const validatePasswordStrength = (password) => {
+    const checks = {
+      length: password.length >= 8,
+      number: /\d/.test(password),
+      special: /[^A-Za-z0-9]/.test(password),
+      uppercase: /[A-Z]/.test(password),
+      lowercase: /[a-z]/.test(password)
+    };
+    
+    // Calculate score based on passed checks
+    const passedChecks = Object.values(checks).filter(Boolean).length;
+    
+    // Determine message based on score
+    let message = '';
+    if (passedChecks === 0) message = 'Very weak';
+    else if (passedChecks === 1) message = 'Weak';
+    else if (passedChecks === 2) message = 'Fair';
+    else if (passedChecks === 3) message = 'Good';
+    else if (passedChecks === 4) message = 'Strong';
+    else if (passedChecks === 5) message = 'Very strong';
+    
+    setPasswordStrength({
+      score: passedChecks,
+      message,
+      checks
+    });
+    
+    return passedChecks;
+  };
+  
+  /**
+   * Handle password input change and validate strength
+   * @param {Object} e - Input event
+   */
+  const handlePasswordChange = (e) => {
+    const newPassword = e.target.value;
+    setNewPassword(newPassword);
+    validatePasswordStrength(newPassword);
+  };
   
   /**
    * Handles direct password change using Clerk's client SDK
@@ -35,14 +100,16 @@ const PasswordSection = ({ user, showFeedback }) => {
   const handleChangePassword = async () => {
     setError('');
     
-    // Validate passwords
+    // Validate passwords match
     if (newPassword !== confirmPassword) {
       setError('New passwords do not match');
       return;
     }
     
-    if (newPassword.length < 8) {
-      setError('Password must be at least 8 characters long');
+    // Validate password strength
+    const strengthScore = validatePasswordStrength(newPassword);
+    if (strengthScore < 3) {
+      setError('Password is too weak. Please create a stronger password.');
       return;
     }
     
@@ -104,7 +171,7 @@ const PasswordSection = ({ user, showFeedback }) => {
           
           <div className="oauth-account-message">
             <div className="oauth-icon-container">
-              <Google size={24} />
+              <img src={Google} alt="Google Icon" width="24" height="24" />
             </div>
             <p className="oauth-message">
               Your account is connected through Google authentication. 
@@ -115,6 +182,25 @@ const PasswordSection = ({ user, showFeedback }) => {
       </div>
     );
   }
+
+  // React components for password visibility toggles
+  const currentPasswordToggle = (
+    <div onClick={() => setShowCurrentPassword(!showCurrentPassword)}>
+      {showCurrentPassword ? <PiEyeBold size={18} /> : <PiEyeClosed size={18} />}
+    </div>
+  );
+
+  const newPasswordToggle = (
+    <div onClick={() => setShowNewPassword(!showNewPassword)}>
+      {showNewPassword ? <PiEyeClosed size={18} /> : <PiEyeBold size={18} />}
+    </div>
+  );
+
+  const confirmPasswordToggle = (
+    <div onClick={() => setShowConfirmPassword(!showConfirmPassword)}>
+      {showConfirmPassword ? <PiEyeClosed size={18} /> : <PiEyeBold size={18} />}
+    </div>
+  );
 
   // Normal password change flow for users with password authentication
   return (
@@ -144,34 +230,81 @@ const PasswordSection = ({ user, showFeedback }) => {
               Enter your current password and a new password below.
             </p>
             
+            {/* Current Password Field with Show/Hide Toggle */}
             <FormField
               id="currentPassword"
               name="currentPassword"
               label="Current Password"
-              type="password"
+              type={showCurrentPassword ? "text" : "password"}
               value={currentPassword}
               onChange={(e) => setCurrentPassword(e.target.value)}
               className="full-width"
+              rightIcon={currentPasswordToggle}
             />
             
+            {/* New Password Field with Show/Hide Toggle */}
             <FormField
               id="newPassword"
               name="newPassword"
               label="New Password"
-              type="password"
+              type={showNewPassword ? "text" : "password"}
               value={newPassword}
-              onChange={(e) => setNewPassword(e.target.value)}
+              onChange={handlePasswordChange}
               className="full-width"
+              rightIcon={newPasswordToggle}
             />
             
+            {/* Password Strength Indicator */}
+            {newPassword && (
+              <div className="password-strength-container">
+                <div className="password-strength-bar">
+                  {[...Array(5)].map((_, i) => (
+                    <div 
+                      key={i} 
+                      className={`strength-segment ${i < passwordStrength.score ? `strength-level-${passwordStrength.score}` : ''}`}
+                    ></div>
+                  ))}
+                </div>
+                <div className="password-strength-text">
+                  {passwordStrength.message}
+                </div>
+                
+                {/* Password Requirements */}
+                <div className="password-requirements">
+                  <div className={`requirement ${passwordStrength.checks.length ? 'passed' : ''}`}>
+                    {passwordStrength.checks.length ? <Check size={14} /> : <AlertCircle size={14} />}
+                    <span>At least 8 characters</span>
+                  </div>
+                  <div className={`requirement ${passwordStrength.checks.number ? 'passed' : ''}`}>
+                    {passwordStrength.checks.number ? <Check size={14} /> : <AlertCircle size={14} />}
+                    <span>At least one number</span>
+                  </div>
+                  <div className={`requirement ${passwordStrength.checks.uppercase ? 'passed' : ''}`}>
+                    {passwordStrength.checks.uppercase ? <Check size={14} /> : <AlertCircle size={14} />}
+                    <span>At least one uppercase letter</span>
+                  </div>
+                  <div className={`requirement ${passwordStrength.checks.lowercase ? 'passed' : ''}`}>
+                    {passwordStrength.checks.lowercase ? <Check size={14} /> : <AlertCircle size={14} />}
+                    <span>At least one lowercase letter</span>
+                  </div>
+                  <div className={`requirement ${passwordStrength.checks.special ? 'passed' : ''}`}>
+                    {passwordStrength.checks.special ? <Check size={14} /> : <AlertCircle size={14} />}
+                    <span>At least one special character</span>
+                  </div>
+                </div>
+              </div>
+            )}
+            
+            {/* Confirm Password Field with Show/Hide Toggle */}
             <FormField
               id="confirmPassword"
               name="confirmPassword"
               label="Confirm New Password"
-              type="password"
+              type={showConfirmPassword ? "text" : "password"}
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
               className="full-width"
+              rightIcon={confirmPasswordToggle}
             />
             
             {error && <div className="password-error">{error}</div>}
@@ -189,7 +322,7 @@ const PasswordSection = ({ user, showFeedback }) => {
               <ActionButton
                 type="primary"
                 onClick={handleChangePassword}
-                disabled={isProcessing || !currentPassword || !newPassword || !confirmPassword}
+                disabled={isProcessing || !currentPassword || !newPassword || !confirmPassword || passwordStrength.score < 3}
                 icon={<Save size={16} />}
               >
                 {isProcessing ? 'Updating...' : 'Update Password'}
