@@ -13,8 +13,11 @@ import { ROUTES } from './config/Routes';
 import Layout from './components/common/Layout/Layout';
 import ChartViewer from './pages/Charts/ChartViewer';
 import { UserProvider } from './contexts/UserContext';
+import { cleanClerkUrlParams } from './utils/clerkUtils';
 
 function App() {
+  // Call the utility function
+  cleanClerkUrlParams();
 
   return (
     <UserProvider>
@@ -29,8 +32,8 @@ function App() {
           {/* Separate route for ChartViewer that is NOT wrapped in Layout */}
           <Route path="/chart-viewer" element={<ChartViewer />} />
 
-          {/* These are our public "fallback routes." If rhe user tries to 
-              Type in anything after projectairstorm.com/asdf, this 
+          {/* These are our public "fallback routes." If the user tries to 
+              type in anything after projectairstorm.com/asdf, this 
               reroutes the user to the /login page. */}
           <Route
             path="/"
@@ -55,7 +58,7 @@ function App() {
                 <SignedIn>
                   <Layout>
                     <Routes>
-                      {/* Dynamically generates all proctected application routes from 
+                      {/* Dynamically generates all protected application routes from 
                           the ROUTES array in Routes.js */}
                       {Object.values(ROUTES).map(({ path, element: Element }) => (
                         <Route key={path} path={path} element={<Element />} />

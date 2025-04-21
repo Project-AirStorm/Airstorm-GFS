@@ -1,3 +1,4 @@
+// AccountSection.js
 import React, { useState, useEffect } from 'react';
 import { ExternalLink, Save, X, Mail } from 'lucide-react';
 import { useClerk, useUser } from '@clerk/clerk-react';
@@ -31,6 +32,9 @@ const AccountSection = ({ user, userProfile, showFeedback }) => {
   const [showEmailVerification, setShowEmailVerification] = useState(false);
   const [pendingEmail, setPendingEmail] = useState('');
   
+  // State to track Google connection status
+  const [isGoogleConnected, setIsGoogleConnected] = useState(false);
+  
   // Validation setup for email
   const { validateField, errors, resetErrors } = useValidation({
     email: {
@@ -39,10 +43,19 @@ const AccountSection = ({ user, userProfile, showFeedback }) => {
     }
   });
   
-  // Initialize email when user data is available
+  // Initialize email and check Google connection status when user data is available
   useEffect(() => {
-    if (user && user.primaryEmailAddress) {
-      setEmail(user.primaryEmailAddress.emailAddress);
+    if (user) {
+      // Set email from user data
+      if (user.primaryEmailAddress) {
+        setEmail(user.primaryEmailAddress.emailAddress);
+      }
+      
+      // Check if Google account is connected
+      const hasGoogleAccount = user.externalAccounts?.some(
+        account => account.provider === 'oauth_google' || account.provider === 'google'
+      );
+      setIsGoogleConnected(hasGoogleAccount);
     }
   }, [user]);
   
@@ -58,8 +71,7 @@ const AccountSection = ({ user, userProfile, showFeedback }) => {
   /**
    * Initiate email verification process using Clerk
    */
- // Updated initiateEmailVerification function in AccountSection.js
-const initiateEmailVerification = async () => {
+  const initiateEmailVerification = async () => {
     try {
       setIsSaving(true);
       
@@ -142,20 +154,40 @@ const initiateEmailVerification = async () => {
   };
   
   /**
-   * Open Clerk's user profile management
-   * @param {string} tab - Tab to open
+   * Handle Google account connection via Clerk UI
+   * Uses a clear redirect to the dashboard after completion to avoid errors
    */
-  const openClerkUserProfile = (tab = 'account') => {
-    openUserProfile({
-      appearance: {
-        elements: {
-          navbar: { display: 'none' },
-          footer: { display: 'none' },
-          rootBox: { maxWidth: '100%' }
+  const handleGoogleConnection = () => {
+    // Get the dashboard URL to redirect to after completion
+    const dashboardUrl = '/dashboard';
+    
+    // Configure appearance settings for the Clerk UI
+    const appearance = {
+      elements: {
+        navbar: { display: 'none' },
+        footer: { display: 'none' },
+        rootBox: { maxWidth: '100%' }
+      }
+    };
+    
+    try {
+      // Open user profile with redirect to dashboard
+      openUserProfile({
+        appearance: appearance,
+        initialTab: 'security',
+        // This bypasses the error by not trying to handle the OAuth callback in Clerk UI
+        // Instead, we redirect directly to the dashboard
+        afterSignOutUrl: dashboardUrl,
+        // Don't use redirectOptions as an object - this triggers the error
+        unsafeMetadata: {
+          // Set a flag to help detect completion
+          fromOAuthConnection: true
         }
-      },
-      initialTab: tab
-    });
+      });
+    } catch (error) {
+      console.error('Error opening user profile:', error);
+      showFeedback('error', 'There was an error opening the account settings. Please try again.');
+    }
   };
   
   // Reset email to original value
@@ -183,19 +215,15 @@ const initiateEmailVerification = async () => {
             <div className="account-details">
               <div className="account-name">Google</div>
               <div className="account-status">
-                {user?.externalAccounts?.some(acc => acc.provider === 'google')
-                  ? 'Connected'
-                  : 'Not connected'}
+                {isGoogleConnected ? 'Connected' : 'Not connected'}
               </div>
             </div>
             <ActionButton 
               type="secondary"
-              onClick={() => openClerkUserProfile('security')}
+              onClick={handleGoogleConnection}
               className="manage-account-button"
             >
-              {user?.externalAccounts?.some(acc => acc.provider === 'google')
-                ? 'Manage'
-                : 'Connect'}
+              {isGoogleConnected ? 'Manage' : 'Connect'}
               <ExternalLink size={14} className="external-icon" />
             </ActionButton>
           </div>
@@ -246,7 +274,6 @@ const initiateEmailVerification = async () => {
         </div>
       </div>
       
-      
       {/* Email Verification Popup */}
       <EmailVerificationPopup
         isOpen={showEmailVerification}
@@ -255,8 +282,6 @@ const initiateEmailVerification = async () => {
         email={pendingEmail}
       />
     </div>
-
-
   );
 };
 
