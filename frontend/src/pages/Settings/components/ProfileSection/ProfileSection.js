@@ -6,10 +6,11 @@ import './ProfileSection.css';
 import FormField from '../common/FormField/FormField';
 import ActionButton from '../common/ActionButton/ActionButton';
 import { useValidation } from '../hooks/useValidation';
+import EmailVerificationPopup from './EmailVerificationPopup';
 
 /**
  * Profile settings section component
- * Handles user profile information
+ * Handles user profile information including username and email verification
  * @param {Object} props - Component props
  * @param {Object} props.user - Clerk user object
  * @param {Object} props.userProfile - User profile from context
@@ -23,11 +24,17 @@ const ProfileSection = ({ user, userProfile, showFeedback }) => {
   // State variables for operation status
   const [isSaving, setIsSaving] = useState(false);
   
+  // Email verification state
+  const [showEmailVerification, setShowEmailVerification] = useState(false);
+  const [pendingEmail, setPendingEmail] = useState('');
+  const [verificationCode, setVerificationCode] = useState('');
+  
   // Form data
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
     email: '',
+    username: '',
     role: 'User' // Default role
   });
   
@@ -44,6 +51,10 @@ const ProfileSection = ({ user, userProfile, showFeedback }) => {
     email: {
       pattern: /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/,
       message: 'Please enter a valid email address'
+    },
+    username: {
+      pattern: /^[A-Za-z0-9_-]{3,30}$/,
+      message: 'Username must be 3-30 characters using only letters, numbers, underscores, or hyphens'
     }
   });
 
@@ -54,7 +65,8 @@ const ProfileSection = ({ user, userProfile, showFeedback }) => {
         firstName: user.firstName || '',
         lastName: user.lastName || '',
         email: user.primaryEmailAddress?.emailAddress || '',
-        role: userProfile.role || 'Flight Chief'
+        username: user.username || '',
+        role: userProfile.role || 'User'
       });
     }
   }, [user, userProfile]);
@@ -75,6 +87,78 @@ const ProfileSection = ({ user, userProfile, showFeedback }) => {
   };
 
   /**
+   * Initiate email verification process
+   */
+  const initiateEmailVerification = async () => {
+    try {
+      setIsSaving(true);
+      
+      if (user && isLoaded) {
+        // Create a new email address in Clerk
+        const emailResponse = await user.createEmailAddress({ 
+          email: formData.email,
+        });
+        
+        // Store the email ID for verification
+        setPendingEmail(formData.email);
+        
+        // Show the verification popup
+        setShowEmailVerification(true);
+        
+        showFeedback('success', 'Verification code sent to your email address. Please check your inbox.', 10000);
+      }
+    } catch (error) {
+      showFeedback('error', error.message || 'Failed to send verification email. Please try again.');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+  
+  /**
+   * Verify email code and complete email change
+   * @param {string} code - 6-digit verification code
+   */
+  const verifyEmailCode = async (code) => {
+    try {
+      if (user && isLoaded) {
+        // Get the pending email verification
+        const pendingVerification = user.emailAddresses.find(
+          email => email.emailAddress === pendingEmail && !email.verification.status
+        );
+        
+        if (!pendingVerification) {
+          throw new Error('No pending email verification found');
+        }
+        
+        // Attempt to verify the email
+        await user.verifyEmailAddress({
+          code,
+          strategy: pendingVerification.verification.strategy
+        });
+        
+        // Make the email primary after verification
+        await user.setPrimaryEmailAddress({ id: pendingVerification.id });
+        
+        // Close the verification popup
+        setShowEmailVerification(false);
+        
+        // Update the user profile in context
+        await updateUserProfile({
+          firstName: formData.firstName,
+          lastName: formData.lastName,
+          email: pendingEmail,
+          username: formData.username,
+          role: formData.role
+        });
+        
+        showFeedback('success', 'Email verified and updated successfully.');
+      }
+    } catch (error) {
+      throw new Error(error.message || 'Email verification failed. Please try again.');
+    }
+  };
+
+  /**
    * Save profile data with validation
    */
   const handleSave = async () => {
@@ -89,6 +173,13 @@ const ProfileSection = ({ user, userProfile, showFeedback }) => {
       
       // Save user data to Clerk via API
       if (user && isLoaded) {
+        // Check if username has changed
+        if (formData.username !== user.username) {
+          await user.update({
+            username: formData.username
+          });
+        }
+        
         // Update name in Clerk
         await user.update({
           firstName: formData.firstName,
@@ -97,27 +188,24 @@ const ProfileSection = ({ user, userProfile, showFeedback }) => {
         
         // Email change requires verification - only initiate if email has changed
         if (formData.email !== user.primaryEmailAddress?.emailAddress) {
-          await user.createEmailAddress({ 
-            email: formData.email,
-            primary: true
-          });
-          
-          showFeedback('success', 'Profile updated successfully. A verification email has been sent to your new email address.');
+          await initiateEmailVerification();
+          setIsSaving(false);
+          return; // Stop here and wait for verification
+        }
+        
+        // Update the user profile in context (this will also save to backend)
+        const result = await updateUserProfile({
+          firstName: formData.firstName,
+          lastName: formData.lastName,
+          email: user.primaryEmailAddress?.emailAddress,
+          username: formData.username,
+          role: formData.role
+        });
+        
+        if (result.success) {
+          showFeedback('success', 'Profile updated successfully.');
         } else {
-          // Update the user profile in context (this will also save to backend)
-          const result = await updateUserProfile({
-            firstName: formData.firstName,
-            lastName: formData.lastName,
-            email: user.primaryEmailAddress?.emailAddress,
-            username: user.username,
-            role: formData.role
-          });
-          
-          if (result.success) {
-            showFeedback('success', 'Profile updated successfully.');
-          } else {
-            throw new Error('Failed to update profile');
-          }
+          throw new Error('Failed to update profile');
         }
       }
     } catch (error) {
@@ -146,7 +234,7 @@ const ProfileSection = ({ user, userProfile, showFeedback }) => {
   return (
     <div>
       {/* Form section */}
-        <div className="settings-form">
+      <div className="settings-form">
         <div className="form-row">
           <FormField
             id="firstName"
@@ -166,6 +254,18 @@ const ProfileSection = ({ user, userProfile, showFeedback }) => {
             error={errors.lastName}
           />
         </div>
+        
+        {/* Username field (moved from AccountSection) */}
+        <FormField
+          id="username"
+          name="username"
+          label="Username"
+          value={formData.username}
+          onChange={handleInputChange}
+          error={errors.username}
+          icon="@"
+          className="full-width"
+        />
 
         <div className="form-group full-width">
           <label htmlFor="role">Role</label>
@@ -197,7 +297,7 @@ const ProfileSection = ({ user, userProfile, showFeedback }) => {
           icon="✉️"
           className="full-width"
           helper={formData.email !== user?.primaryEmailAddress?.emailAddress ? 
-            "A verification email will be sent to this address" : ""}
+            "A verification code will be sent to this address" : ""}
         />
 
         {/* Action buttons */}
@@ -221,6 +321,14 @@ const ProfileSection = ({ user, userProfile, showFeedback }) => {
           </ActionButton>
         </div>
       </div>
+      
+      {/* Email Verification Popup */}
+      <EmailVerificationPopup
+        isOpen={showEmailVerification}
+        onClose={() => setShowEmailVerification(false)}
+        onVerify={verifyEmailCode}
+        email={pendingEmail}
+      />
     </div>
   );
 };

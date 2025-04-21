@@ -44,10 +44,12 @@
     margin-bottom: 1rem;
   }
   
-  .account-icon {
+  .account-icon-image {
     width: 24px;
     height: 24px;
+    object-fit: contain; 
   }
+  
   
   .account-details {
     flex: 1;
