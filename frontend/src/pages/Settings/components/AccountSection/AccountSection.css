@@ -4,35 +4,26 @@
     width: 100%;
   }
   
-  .username-container {
-    display: flex;
-    align-items: flex-end;
-    gap: 0.5rem;
-    margin-bottom: 2rem;
-  }
-  
-  .username-field {
-    flex: 1;
-  }
-  
-  .username-update-button {
-    height: 34.49px;
-    padding: 0 0.75rem;
-    font-size: 10.73px;
-    margin-bottom: 0.5rem;
-  }
-  
-  /* Connected accounts styling */
+  /* Google connected accounts styling */
   .connected-accounts-section {
-    margin-top: 2rem;
+    margin-top: 1rem;
+    border-bottom: 1px solid #e5e7eb;
+    margin-bottom: 1.5rem;
   }
   
-  .section-title {
+  .google-section-title {
     font-size: 1.125rem;
     font-weight: 600;
     color: #232360;
+    margin-bottom: 0.5rem;
+  }
+  
+  .google-section-description {
+    font-size: 0.875rem;
+    color: #6A7181;
     margin-bottom: 1rem;
   }
+
   
   .connected-account {
     display: flex;
@@ -41,7 +32,7 @@
     padding: 1rem;
     border: 1px solid #e5e7eb;
     border-radius: 0.5rem;
-    margin-bottom: 1rem;
+    margin-bottom: 1.7rem;
   }
   
   .account-icon-image {
@@ -95,4 +86,33 @@
   
   .external-icon {
     margin-left: 0.25rem;
+  }
+
+  /* Email section styling */
+  .email-section-title {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: #232360;
+    margin-bottom: 0.5rem;
+  }
+  
+  .email-section-description {
+    font-size: 0.875rem;
+    color: #6A7181;
+    margin-bottom: 1rem;
+  }
+  
+  .email-form {
+    margin-bottom: 1rem;
+  }
+
+  .email-form .form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 1rem;
+    margin-top: 1rem;
+  }
+
+  .email-form .form-control.with-icon {
+     padding-left: 2.3rem;
   }

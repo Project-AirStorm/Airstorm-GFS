@@ -31,8 +31,8 @@ const PasswordSection = ({ user, showFeedback }) => {
   return (
     <div className="password-section">
       <div className="settings-form">
-        <h3 className="section-title">Change Password</h3>
-        <p className="section-description">
+        <h3 className="password-section-title">Change Password</h3>
+        <p className="password-section-description">
           Click the button below to receive an email with instructions to reset your password.
         </p>
         <ActionButton 
