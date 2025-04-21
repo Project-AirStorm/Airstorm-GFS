@@ -4,6 +4,7 @@ import { useUser } from '@clerk/clerk-react';
 import { Upload, Camera } from 'lucide-react';
 import './Settings.css';
 import settingsBanner from '../../assets/settings-banner.jpg';
+import Loader from '../../components/common/loader';
 
 // Import section components
 import ProfileSection from './components/ProfileSection/ProfileSection';
@@ -102,15 +103,15 @@ const Settings = () => {
   }, []);
 
   // Show loading state if context is still loading
+
   if (contextLoading) {
-    return (
-      <div className="dashboard-container">
-        <div className="main-content">
-          <div className="loading-state">Loading user profile...</div>
-        </div>
-      </div>
-    );
+    // Option 1: Direct loader with no parent containers
+    return <Loader size="medium" />;
+    
+    // Option 2: Full page loader
+    // return <Loader fullPage size="medium" />;
   }
+
 
   return (
     <div className="dashboard-container">

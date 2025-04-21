@@ -13,7 +13,7 @@ const REACT_APP_API_URL = process.env.REACT_APP_API_URL;
 
 const WeatherCard = ({
   city,
-  state, // Now optional
+  state,
   latitude,
   longitude,
   backgroundColor,
@@ -29,8 +29,6 @@ const WeatherCard = ({
   React.useEffect(() => {
     const fetchData = async () => {
       try {
-        //console.log(`Fetching data for ${city} at ${latitude}, ${longitude}`);
-
         // This fetches the latitude and longitutde from the the Flask API as JSON data
         const weatherResponse = await axios.get(
           `${REACT_APP_API_URL}/api/weather`,
@@ -38,7 +36,6 @@ const WeatherCard = ({
             params: { lat: latitude, lon: longitude },
           }
         );
-        //console.log('Weather response:', weatherResponse.data);
         setWeatherData(weatherResponse.data);
 
         const locationResponse = await axios.get(
@@ -47,7 +44,6 @@ const WeatherCard = ({
             params: { lat: latitude, lon: longitude },
           }
         );
-        //console.log('Geocoding API response:', locationResponse.data);
         setLocationInfo(locationResponse.data);
 
         setLoading(false);
@@ -68,7 +64,7 @@ const WeatherCard = ({
     fetchData();
   }, [latitude, longitude, city]);
 
-  // Loading state with animation
+  // Loading state with animation - structure matches loaded state
   if (loading) {
     return (
       <div
@@ -76,9 +72,17 @@ const WeatherCard = ({
         style={{ backgroundColor }}
         aria-busy="true"
       >
-        <div className="loading-line loading-line--title"></div>
-        <div className="loading-line loading-line--subtitle"></div>
-        <div className="loading-line loading-line--text"></div>
+        <div className="card-header">
+          <div className="location-info">
+            <div className="loading-line loading-line--title"></div>
+            <div className="loading-line loading-line--subtitle"></div>
+            <div className="loading-line loading-line--text"></div>
+          </div>
+          <div className="weather-card-actions">
+            {/* Empty placeholder for buttons */}
+          </div>
+        </div>
+        
         <div className="loading-line loading-line--full"></div>
 
         <div className="weather-stats-grid">
