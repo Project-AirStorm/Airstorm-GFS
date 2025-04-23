@@ -1,10 +1,15 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { useUserProfile } from '../../contexts/UserContext';
 import { useUser } from '@clerk/clerk-react';
-import { Upload, Camera } from 'lucide-react';
+// import { Upload, Camera } from 'lucide-react'; // We'll comment out Upload
+import { Camera } from 'lucide-react';
 import './Settings.css';
 import settingsBanner from '../../assets/settings-banner.jpg';
 import Loader from '../../components/common/loader';
+
+// Import ReactCrop for image cropping
+import ReactCrop from 'react-image-crop';
+import 'react-image-crop/dist/ReactCrop.css';
 
 // Import section components
 import ProfileSection from './components/ProfileSection/ProfileSection';
@@ -29,8 +34,15 @@ const Settings = () => {
   
   // Banner image state
   const [bannerImage, setBannerImage] = useState(user?.publicMetadata?.bannerImage || settingsBanner);
-  const [showBannerUpload, setShowBannerUpload] = useState(false);
-  const [tempBannerImage, setTempBannerImage] = useState(null);
+  
+  // State for profile image cropper
+  const [showProfileCropper, setShowProfileCropper] = useState(false);
+  const [tempProfileImage, setTempProfileImage] = useState(null);
+  const [profileCrop, setProfileCrop] = useState({ unit: '%', width: 100, aspect: 1 / 1 });
+  const [completedProfileCrop, setCompletedProfileCrop] = useState(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const profileImgRef = useRef(null);
+  const profileCanvasRef = useRef(null);
 
   // Feedback message state
   const [feedback, setFeedback] = useState({ type: '', message: '' });
@@ -63,34 +75,90 @@ const Settings = () => {
     }, timeout);
   }, []);
   
-  // Handle banner image upload
-  const handleBannerUpload = (e) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = () => {
-        setTempBannerImage(reader.result);
-        setShowBannerUpload(true);
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-  
   // Handle profile image upload
   const handleProfileUpload = (e) => {
     const file = e.target.files?.[0];
     if (file) {
       const reader = new FileReader();
       reader.onload = () => {
-        // Pass to profile section
+        // Set the image and show the cropper
+        setTempProfileImage(reader.result);
+        setShowProfileCropper(true);
       };
       reader.readAsDataURL(file);
     }
   };
   
-  // Update banner image
-  const updateBannerImage = (imageUrl) => {
-    setBannerImage(imageUrl);
+  // Generate profile image crop preview
+  const updateProfilePreview = () => {
+    if (!completedProfileCrop || !profileImgRef.current || !profileCanvasRef.current) {
+      return;
+    }
+
+    const image = profileImgRef.current;
+    const canvas = profileCanvasRef.current;
+    const ctx = canvas.getContext('2d');
+    const pixelRatio = window.devicePixelRatio;
+    
+    const scaleX = image.naturalWidth / image.width;
+    const scaleY = image.naturalHeight / image.height;
+    
+    canvas.width = completedProfileCrop.width * pixelRatio;
+    canvas.height = completedProfileCrop.height * pixelRatio;
+    
+    ctx.scale(pixelRatio, pixelRatio);
+    ctx.imageSmoothingQuality = 'high';
+    
+    const cropX = completedProfileCrop.x * scaleX;
+    const cropY = completedProfileCrop.y * scaleY;
+    const cropWidth = completedProfileCrop.width * scaleX;
+    const cropHeight = completedProfileCrop.height * scaleY;
+    
+    ctx.drawImage(
+      image,
+      cropX,
+      cropY,
+      cropWidth,
+      cropHeight,
+      0,
+      0,
+      completedProfileCrop.width,
+      completedProfileCrop.height
+    );
+  };
+  
+  // Save cropped profile image
+  const saveProfileImage = async () => {
+    if (!completedProfileCrop || !profileCanvasRef.current) {
+      return;
+    }
+    
+    setIsUploading(true);
+    
+    try {
+      // Create a canvas with the cropped image
+      const canvas = profileCanvasRef.current;
+      canvas.toBlob(async (blob) => {
+        if (!blob) {
+          console.error('Failed to create blob from canvas');
+          return;
+        }
+        
+        // Convert blob to File object
+        const file = new File([blob], 'profile.jpg', { type: 'image/jpeg' });
+        
+        // Upload to Clerk
+        if (user) {
+          await user.setProfileImage({ file });
+          setShowProfileCropper(false);
+          showFeedback('success', 'Profile image updated successfully.');
+        }
+      }, 'image/jpeg', 0.95);
+    } catch (error) {
+      showFeedback('error', error.message || 'Failed to update profile image.');
+    } finally {
+      setIsUploading(false);
+    }
   };
   
   // Clear timer on unmount
@@ -103,15 +171,9 @@ const Settings = () => {
   }, []);
 
   // Show loading state if context is still loading
-
   if (contextLoading) {
-    // Option 1: Direct loader with no parent containers
     return <Loader size="medium" />;
-    
-    // Option 2: Full page loader
-    // return <Loader fullPage size="medium" />;
   }
-
 
   return (
     <div className="dashboard-container">
@@ -124,7 +186,8 @@ const Settings = () => {
               src={bannerImage} 
               alt="Profile banner" 
             />
-            <button 
+            {/* Comment out the banner upload button as requested */}
+            {/* <button 
               onClick={() => document.getElementById('banner-upload').click()}
               className="banner-upload-button"
             >
@@ -137,7 +200,7 @@ const Settings = () => {
               style={{ display: 'none' }}
               onChange={handleBannerUpload}
               accept="image/*"
-            />
+            /> */}
           </div>
           
           {/* Profile image section - always visible */}
@@ -273,6 +336,83 @@ const Settings = () => {
           )}
         </div>
       </div>
+
+      {/* Profile Image Cropper Modal */}
+      {showProfileCropper && tempProfileImage && (
+        <div className="modal-overlay" onClick={() => setShowProfileCropper(false)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3>Crop Profile Image</h3>
+              <button className="modal-close" onClick={() => setShowProfileCropper(false)}>
+                <span aria-hidden="true">&times;</span>
+              </button>
+            </div>
+            <div className="modal-body">
+              <div style={{ maxHeight: '300px', overflow: 'hidden', marginBottom: '1rem' }}>
+                <ReactCrop
+                  crop={profileCrop}
+                  onChange={c => setProfileCrop(c)}
+                  onComplete={c => setCompletedProfileCrop(c)}
+                  aspect={1 / 1}
+                  circularCrop
+                >
+                  <img 
+                    ref={profileImgRef}
+                    src={tempProfileImage} 
+                    alt="Profile preview" 
+                    style={{ width: '100%' }}
+                    onLoad={e => {
+                      profileImgRef.current = e.currentTarget;
+                    }}
+                  />
+                </ReactCrop>
+              </div>
+              
+              <div style={{ marginBottom: '1rem' }}>
+                <p style={{ fontSize: '0.875rem', marginBottom: '0.5rem' }}>Preview:</p>
+                <div style={{ 
+                  width: '100px',
+                  height: '100px',
+                  border: '1px solid #e5e7eb', 
+                  borderRadius: '50%', 
+                  overflow: 'hidden',
+                  margin: '0 auto'
+                }}>
+                  <canvas
+                    ref={profileCanvasRef}
+                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                  />
+                </div>
+              </div>
+              
+              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                <button 
+                  className="cancel-button" 
+                  onClick={() => setShowProfileCropper(false)}
+                >
+                  Cancel
+                </button>
+                <div>
+                  <button 
+                    className="save-button" 
+                    style={{ marginRight: '0.5rem' }}
+                    onClick={updateProfilePreview}
+                  >
+                    Preview
+                  </button>
+                  <button 
+                    className="save-button"
+                    onClick={saveProfileImage}
+                    disabled={isUploading || !completedProfileCrop}
+                  >
+                    {isUploading ? 'Saving...' : 'Save Profile Image'}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
