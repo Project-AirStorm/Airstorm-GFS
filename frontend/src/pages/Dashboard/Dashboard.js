@@ -7,7 +7,7 @@ import ActionButtons from '../../components/specific/ActionButtons/ActionButtons
 import OverviewSwitch from '../../components/specific/OverviewSwitch/OverviewSwitch';
 import Loader from '../../components/common/loader';
 // import SpeedLoader from '../../components/common/speedloader/speedloader';
-// import PlaneLoader from '../../components/common/planeloader/planeloader';
+
 
 import './Dashboard.css';
 
@@ -107,12 +107,10 @@ const Dashboard = ({ setCurrentPage }) => {
   // Calculate monitored locations (favorites)
   const monitoredLocations = locations.filter((loc) => loc.isFavorite);
 
-
   /* FIRST CONTENDER; Early return with just the loader while loading*/
   if (loading) {
     return <Loader size="medium" />;
   }
-
 
   /* SECOND CONTENDER; Early return with just the loader while loading
   if (loading) {
@@ -125,10 +123,6 @@ const Dashboard = ({ setCurrentPage }) => {
     return <PlaneLoader/>
   }
   */
-
-  if (error) {
-    return <div className="error-state">{error}</div>;
-  }
 
   return (
     <div className="dashboard-container">

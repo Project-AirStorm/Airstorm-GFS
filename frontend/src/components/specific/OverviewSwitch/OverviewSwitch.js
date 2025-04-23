@@ -12,7 +12,7 @@ import './OverviewSwitch.css';
 const OverviewSwitch = ({ activeView, onViewChange }) => {
   return (
     <div className="overview-switch-section">
-      <div className="overview-switch-buttons">
+      <div /* className="overview-switch-buttons"  */> 
         {/* Buttons commented out but preserved for future use
         <button 
           className={`overview-switch-button ${activeView === 'overview' ? 'active' : ''}`}

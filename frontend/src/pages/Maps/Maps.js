@@ -30,7 +30,7 @@ const Maps = () => {
   const { user } = UserSession();
   
   // State Management
-  const [selectedVariable, setSelectedVariable] = useState('none');
+  const [selectedVariable, setSelectedVariable] = useState('temperature');
   const [timeOffset, setTimeOffset] = useState('now');
   const [isLocationPanelCollapsed, setIsLocationPanelCollapsed] = useState(true);
   const [coordinates, setCoordinates] = useState({ lat: '', lng: '' });

@@ -17,6 +17,7 @@ import CustomChannelPreview from './components/CustomChannelPreview';
 import ChannelMembers from './components/ChannelMembers';
 import 'stream-chat-react/dist/css/v2/index.css';
 import './Chat.css';
+import Loader from '../../components/common/loader';
 
 const REACT_APP_STREAM_KEY = process.env.REACT_APP_STREAM_KEY;
 const REACT_APP_API_URL = process.env.REACT_APP_API_URL;
@@ -69,16 +70,7 @@ const Chat = () => {
 
   // Show loading state while initializing
   if (!clientReady) {
-    return (
-      <div className="dashboard-container">
-        <div className="main-content">
-          <div className="chat-loading">
-            <div className="chat-loading-spinner"></div>
-            <p>Loading chat...</p>
-          </div>
-        </div>
-      </div>
-    );
+    return <Loader size="medium" />;
   }
 
   // Filter to show only channels the user is a member of
