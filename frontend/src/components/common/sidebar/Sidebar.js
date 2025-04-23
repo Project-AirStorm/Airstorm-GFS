@@ -18,10 +18,10 @@ import {
   Aperture,
   Info,
 } from 'lucide-react';
-import afgscLogo from '../../../assets/afgsc-logo.png';
+import afgscLogo from '../../../assets/afgsc-logo.webp';
 import './Sidebar.css';
 import { useClerk } from '@clerk/clerk-react';
-import { UserSession } from '../../../utils/UserSession';
+import { useUserProfile } from '../../../contexts/UserContext';
 import axios from 'axios';
 
 // Declare URL for Flask API
@@ -64,28 +64,49 @@ NavItem.propTypes = {
 const Sidebar = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { signOut } = useClerk(); // Add this line to get signOut function
-  const { user } = UserSession();
+  const { signOut } = useClerk();
+  const { user } = useClerk();
+  const { userProfile } = useUserProfile();
+  const isLoadingProfile = !userProfile || !userProfile.role;
+  const [userRole, setUserRole] = useState(userProfile?.role ?? 'Loading…'); 
+
   const [alertCount, setAlertCount] = useState('0');
 
-  // Set up event listener for alert count updates
+  
+  // Set user role from userProfile
   useEffect(() => {
-    // Moved function inside useEffect
-    const fetchInitialAlertCount = async () => {
-      try {
-        const response = await axios.get(
-          `${REACT_APP_API_URL}/api/external/alerts?userId=${user.id}`
-        );
+    if (userProfile && userProfile.role) {
+      setUserRole(userProfile.role);
+    }
+  }, [userProfile]);
 
-        // First get favorite locations
+  // Fetch alert count
+  useEffect(() => {
+    const fetchAlertCount = async () => {
+      try {
+        // Only fetch if user is available
+        if (!user || !user.id) return;
+        
+        // Get favorite locations
         const locResponse = await axios.get(
           `${REACT_APP_API_URL}/api/locations?userId=${user.id}`
         );
         const favorites = locResponse.data.filter(
           (location) => location.isFavorite
         );
+        
+        // If no favorites, no need to fetch alerts
+        if (favorites.length === 0) {
+          setAlertCount('0');
+          return;
+        }
+        
+        // Get alerts for favorite locations
+        const response = await axios.get(
+          `${REACT_APP_API_URL}/api/external/alerts?userId=${user.id}`
+        );
 
-        // Filter alerts for favorite locations
+        // Count alerts for favorite locations
         const favoriteAlerts = response.data.alerts.filter((alert) =>
           favorites.some(
             (loc) =>
@@ -96,23 +117,24 @@ const Sidebar = () => {
 
         setAlertCount(favoriteAlerts.length.toString());
       } catch (error) {
-        console.error('Error fetching initial alert count:', error);
+        console.error('Error fetching alert count:', error);
         setAlertCount('0');
       }
     };
 
-    fetchInitialAlertCount();
-
+    fetchAlertCount();
+    
+    // Setup alert count listener
     const handleAlertCountUpdate = (event) => {
       setAlertCount(event.detail.toString());
     };
-
+    
     window.addEventListener('alertCountUpdated', handleAlertCountUpdate);
-
+    
     return () => {
       window.removeEventListener('alertCountUpdated', handleAlertCountUpdate);
     };
-  }, [user.id]);
+  }, [user]);
 
   // Update the logout handler
   const handleLogout = async () => {
@@ -164,11 +186,11 @@ const Sidebar = () => {
       label: 'Resources',
       page: '/resources',
     },
-    // {
-    //   icon: <Settings className="w-4 h-4" />,
-    //   label: 'Settings',
-    //   page: '/settings',
-    // },
+    {
+      icon: <Settings className="w-4 h-4" />,
+      label: 'Settings', 
+      page: '/settings',
+    },
     // { icon: <FileText className="w-4 h-4" />, label: 'Logs', page: '/logs' },
     {
       icon: <Sticker className="w-4 h-4" />,
@@ -177,7 +199,7 @@ const Sidebar = () => {
     },
   ];
 
-  // Modify the return statement to add the logout button at the bottom
+  // Adds the logout button at the bottom
   return (
     <div className="sidebar flex flex-col h-full">
       {/* Header */}
@@ -205,8 +227,8 @@ const Sidebar = () => {
           <UserButton />
           <div>
             <p className="text-sm font-semibold text-gray-800">
-              {
-                // Uppercases the first letter of the each name
+              {user && 
+                // Uppercases the first letter of each name
                 user.firstName.charAt(0).toUpperCase() +
                   user.firstName.slice(1) +
                   ' ' +
@@ -214,7 +236,7 @@ const Sidebar = () => {
                   user.lastName.slice(1)
               }
             </p>
-            <p className="text-xs text-gray-500">User</p>
+            <p className="text-xs text-gray-500">{userRole}</p>
           </div>
         </div>
       </div>

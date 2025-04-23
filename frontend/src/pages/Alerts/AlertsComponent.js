@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { UserSession } from '../../utils/UserSession';
 import OverviewSwitch from '../../components/specific/OverviewSwitch/OverviewSwitch';
 import ActionButtons from '../../components/specific/ActionButtons/ActionButtons';
+import Loader from '../../components/common/loader';
 
 import {
   ChevronDown,
@@ -206,11 +207,7 @@ ${alert.instruction ? `Instructions: ${alert.instruction}` : ''}
   };
 
   if (loading) {
-    return (
-      <div className="alerts-body">
-        <div className="text-center py-8">Loading alerts...</div>
-      </div>
-    );
+    return <Loader size="medium" />;
   }
 
   if (error) {
@@ -257,12 +254,8 @@ ${alert.instruction ? `Instructions: ${alert.instruction}` : ''}
     });
 
   if (loading) {
-    return (
-      <div className="alerts-body">
-        <div className="text-center py-8">Loading alerts...</div>
-      </div>
-    );
-  }
+    return <Loader size="medium" />;
+  } 
 
   if (error) {
     return (

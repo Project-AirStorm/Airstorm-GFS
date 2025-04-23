@@ -1,11 +1,14 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { UserSession } from '../../utils/UserSession';
-// import PropTypes from 'prop-types';
 import axios from 'axios';
 import WeatherCard from '../../components/specific/WeatherCard/WeatherCard';
 import GraphCastForecast from '../../components/specific/GraphCastForecast/GraphCastForecast';
 import ActionButtons from '../../components/specific/ActionButtons/ActionButtons';
 import OverviewSwitch from '../../components/specific/OverviewSwitch/OverviewSwitch';
+import Loader from '../../components/common/loader';
+// import SpeedLoader from '../../components/common/speedloader/speedloader';
+
+
 import './Dashboard.css';
 
 // Declare URL for Flask API
@@ -104,13 +107,22 @@ const Dashboard = ({ setCurrentPage }) => {
   // Calculate monitored locations (favorites)
   const monitoredLocations = locations.filter((loc) => loc.isFavorite);
 
+  /* FIRST CONTENDER; Early return with just the loader while loading*/
   if (loading) {
-    return <div className="loading-state">Loading locations...</div>;
+    return <Loader size="medium" />;
   }
 
-  if (error) {
-    return <div className="error-state">{error}</div>;
+  /* SECOND CONTENDER; Early return with just the loader while loading
+  if (loading) {
+    return <SpeedLoader variant="secondary" size="large" />
   }
+  */
+
+  /* THIRD CONTENDER; Early return with just the loader while loading 
+  if (loading) {
+    return <PlaneLoader/>
+  }
+  */
 
   return (
     <div className="dashboard-container">
@@ -123,10 +135,10 @@ const Dashboard = ({ setCurrentPage }) => {
           />
 
           <ActionButtons
-            onTimeframeChange={handleTimeframeChange} // Use the defined handler
-            onAddBase={handleAddBase} // Use the defined handler
+            onTimeframeChange={handleTimeframeChange}
+            onAddBase={handleAddBase}
             timeframe="Week"
-            onLocationAdded={handleLocationAdded} // Add the location refresh handler
+            onLocationAdded={handleLocationAdded}
           />
         </div>
 
@@ -203,9 +215,5 @@ const Dashboard = ({ setCurrentPage }) => {
     </div>
   );
 };
-
-// Dashboard.propTypes = {
-//   setCurrentPage: PropTypes.func.isRequired,
-// };
 
 export default Dashboard;
