@@ -298,7 +298,7 @@ const Maps = () => {
       }
       
       // Otherwise, we need to load the script
-      console.log('Fetching Google Maps API key and loading script');
+      
       const response = await axios.get(`${REACT_APP_API_URL}/api/google-maps-init`);
       
       if (!response.data || !response.data.googleMapsKey) {

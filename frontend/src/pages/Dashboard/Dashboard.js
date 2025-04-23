@@ -6,6 +6,9 @@ import GraphCastForecast from '../../components/specific/GraphCastForecast/Graph
 import ActionButtons from '../../components/specific/ActionButtons/ActionButtons';
 import OverviewSwitch from '../../components/specific/OverviewSwitch/OverviewSwitch';
 import Loader from '../../components/common/loader';
+// import SpeedLoader from '../../components/common/speedloader/speedloader';
+// import PlaneLoader from '../../components/common/planeloader/planeloader';
+
 import './Dashboard.css';
 
 // Declare URL for Flask API
@@ -104,10 +107,24 @@ const Dashboard = ({ setCurrentPage }) => {
   // Calculate monitored locations (favorites)
   const monitoredLocations = locations.filter((loc) => loc.isFavorite);
 
-  // Early return with just the loader while loading
+
+  /* FIRST CONTENDER; Early return with just the loader while loading*/
   if (loading) {
     return <Loader size="medium" />;
   }
+
+
+  /* SECOND CONTENDER; Early return with just the loader while loading
+  if (loading) {
+    return <SpeedLoader variant="secondary" size="large" />
+  }
+  */
+
+  /* THIRD CONTENDER; Early return with just the loader while loading 
+  if (loading) {
+    return <PlaneLoader/>
+  }
+  */
 
   if (error) {
     return <div className="error-state">{error}</div>;

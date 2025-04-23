@@ -3,6 +3,9 @@ import { AlertTriangle, Monitor, Smartphone, Laptop, ExternalLink } from 'lucide
 import { useClerk } from '@clerk/clerk-react';
 import ActionButton from '../common/ActionButton/ActionButton';
 import './LoginSecuritySection.css';
+import SpeedLoader from '../../../../components/common/speedloader/speedloader';
+
+
 
 /**
  * LoginSecuritySection component for security settings
@@ -231,7 +234,7 @@ const LoginSecuritySection = ({ user, showFeedback }) => {
             </p>
             
             {isLoading ? (
-              <div className="devices-loading">Loading active devices...</div>
+                <SpeedLoader variant="secondary" size="small" />
             ) : activeDevices.length === 0 ? (
               <div className="no-devices">No active devices found</div>
             ) : (

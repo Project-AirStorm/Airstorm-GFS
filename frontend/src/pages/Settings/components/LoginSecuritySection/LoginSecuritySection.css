@@ -53,6 +53,13 @@
   transition: background-color 0.2s;
 }
 
+
+.current-device-card {
+  background-color: #f0fdf4;
+  border: 1px solid #86efac;
+}
+
+
 .device-item.current-device {
   background-color: #f0fdf4; /* Light green background */
   border: 1px solid #86efac; /* Green border */

@@ -174,7 +174,7 @@
   margin-right: 0.5rem;
 }
 
-/* Modal styles */
+/* Modal styles, used for currently commented out banner image upload 
 .modal-overlay {
   position: fixed;
   top: 0;
@@ -185,7 +185,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 50;
+  z-index: 1000;
 }
 
 .modal-content {
@@ -223,6 +223,7 @@
 .modal-body {
   padding: 1.5rem;
 }
+*/
 
 /* Disabled button states */
 .save-button:disabled,

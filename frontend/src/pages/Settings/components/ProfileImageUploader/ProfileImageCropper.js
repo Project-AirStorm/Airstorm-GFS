@@ -1,8 +1,8 @@
 // src/components/specific/ProfileImageUploader/ProfileImageCropper.js
 import React, { useState, useRef, useEffect } from 'react';
 import ReactCrop from 'react-image-crop';
-import 'react-image-crop/dist/ReactCrop.css';
 import './ProfileImageCropper.css';
+import 'react-image-crop/dist/ReactCrop.css';
 
 /**
  * Component for cropping profile images with live preview

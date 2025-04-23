@@ -1,0 +1,67 @@
+/* src/components/common/PlaneLoader/PlaneLoader.css */
+
+.plane-loader {
+    /* Orbit radius: adjust to make the circle larger */
+    --orbit-radius: 2.5rem;
+    position: relative;
+    width: calc(var(--orbit-radius) * 2);
+    height: calc(var(--orbit-radius) * 2);
+    margin: 2rem auto;
+  }
+  
+  .plane-loader .rotator {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    transform-origin: center;
+    animation: rotate 2s linear infinite;
+  }
+  
+  .plane-loader .rotator .plane,
+  .plane-loader .rotator .trail {
+    position: absolute;
+    top: 0;
+    left: 0;
+    transform-origin: center;
+  }
+  
+  .plane-loader .rotator .plane {
+    /* Place plane at orbit radius to the right */
+    transform: translate(
+      calc(var(--orbit-radius) - 50%),
+      -50%
+    );
+    font-size: 1.5rem;
+    color: #bb8bc4;
+  }
+  
+  .plane-loader .rotator .trail {
+    --dot-size: 0.5rem;
+    width: var(--dot-size);
+    height: var(--dot-size);
+    background: #bb8bc4;
+    border-radius: 50%;
+    opacity: 0;
+    animation: fade 2s linear infinite both;
+  }
+  
+  .plane-loader .rotator .trail:nth-child(1)  { --dot-size: 0.5rem;    animation-delay: -0.25s; }
+  .plane-loader .rotator .trail:nth-child(2)  { --dot-size: 0.4375rem;  animation-delay: -0.5s; }
+  .plane-loader .rotator .trail:nth-child(3)  { --dot-size: 0.375rem;   animation-delay: -0.75s; }
+  .plane-loader .rotator .trail:nth-child(4)  { --dot-size: 0.3125rem;  animation-delay: -1s; }
+  .plane-loader .rotator .trail:nth-child(5)  { --dot-size: 0.25rem;    animation-delay: -1.25s; }
+  .plane-loader .rotator .trail:nth-child(6)  { --dot-size: 0.1875rem;  animation-delay: -1.5s; }
+  .plane-loader .rotator .trail:nth-child(7)  { --dot-size: 0.125rem;   animation-delay: -1.75s; }
+  .plane-loader .rotator .trail:nth-child(8)  { --dot-size: 0.0625rem;  animation-delay: -2s; }
+  
+  @keyframes rotate {
+    to { transform: rotate(360deg); }
+  }
+  
+  @keyframes fade {
+    0%, 10% { opacity: 1; }
+    100%    { opacity: 0; }
+  }
+  

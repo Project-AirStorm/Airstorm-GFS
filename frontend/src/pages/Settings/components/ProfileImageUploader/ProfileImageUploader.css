@@ -1,7 +1,6 @@
 /* src/components/specific/ProfileImageUploader/ProfileImageUploader.css */
 .profile-image-uploader-container {
     position: relative;
-    z-index: 2;
     margin-top: -52.5px;
     margin-left: 38px;
     margin-bottom: 0.5rem;

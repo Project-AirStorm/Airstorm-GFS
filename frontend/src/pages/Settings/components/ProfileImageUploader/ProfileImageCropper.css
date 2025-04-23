@@ -9,9 +9,9 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    z-index: 1000; 
+    z-index: 9999 !important;
     }
-  
+
   .profile-image-cropper-content {
     background-color: white;
     border-radius: 0.5rem;
