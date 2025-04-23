@@ -64,6 +64,36 @@ const WeatherCard = ({
     fetchData();
   }, [latitude, longitude, city]);
 
+  const handleToggleFavorite = () => {
+    const currentLocation = {
+      city: city || (locationInfo?.components?.city || 'Unknown City'),
+      state: state || (locationInfo?.components?.state_code || 'Unknown'),
+      latitude,
+      longitude,
+      isFavorite: !isFavorite,
+    };
+    try {
+      const savedLocations =
+        JSON.parse(localStorage.getItem('savedLocations') || '[]');
+      const idx = savedLocations.findIndex(
+        loc => loc.latitude === latitude && loc.longitude === longitude
+      );
+      if (!isFavorite) {
+        if (idx === -1) savedLocations.push(currentLocation);
+        else savedLocations[idx] = currentLocation;
+      } else if (idx !== -1) {
+        savedLocations.splice(idx, 1);
+      }
+      localStorage.setItem(
+        'savedLocations',
+        JSON.stringify(savedLocations)
+      );
+    } catch (error) {
+      console.error('Error saving location to localStorage:', error);
+    }
+    onToggleFavorite();
+  };
+  
   // Loading state with animation - structure matches loaded state
   if (loading) {
     return (
