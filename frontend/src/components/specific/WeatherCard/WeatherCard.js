@@ -13,7 +13,7 @@ const REACT_APP_API_URL = process.env.REACT_APP_API_URL;
 
 const WeatherCard = ({
   city,
-  state, // Now optional
+  state,
   latitude,
   longitude,
   backgroundColor,
@@ -29,8 +29,6 @@ const WeatherCard = ({
   React.useEffect(() => {
     const fetchData = async () => {
       try {
-        //console.log(`Fetching data for ${city} at ${latitude}, ${longitude}`);
-
         // This fetches the latitude and longitutde from the the Flask API as JSON data
         const weatherResponse = await axios.get(
           `${REACT_APP_API_URL}/api/weather`,
@@ -38,7 +36,6 @@ const WeatherCard = ({
             params: { lat: latitude, lon: longitude },
           }
         );
-        //console.log('Weather response:', weatherResponse.data);
         setWeatherData(weatherResponse.data);
 
         const locationResponse = await axios.get(
@@ -47,13 +44,9 @@ const WeatherCard = ({
             params: { lat: latitude, lon: longitude },
           }
         );
-        //console.log('Geocoding API response:', locationResponse.data);
         setLocationInfo(locationResponse.data);
 
         setLoading(false);
-
-        
-
       } catch (err) {
         console.error('Error fetching data:', {
           city,
@@ -71,53 +64,37 @@ const WeatherCard = ({
     fetchData();
   }, [latitude, longitude, city]);
 
-    // Function to handle toggling favorite status and save to localStorage
-    const handleToggleFavorite = () => {
-      // Get the current location details
-      const currentLocation = {
-        city: city || (locationInfo?.components?.city || 'Unknown City'),
-        state: state || (locationInfo?.components?.state_code || 'Unknown'),
-        latitude,
-        longitude,
-        isFavorite: !isFavorite,
-      };
-      
-      try {
-        // Get existing saved locations from localStorage
-        const savedLocationsStr = localStorage.getItem('savedLocations') || '[]';
-        const savedLocations = JSON.parse(savedLocationsStr);
-        
-        // Check if this location already exists
-        const existingLocationIndex = savedLocations.findIndex(
-          loc => loc.latitude === latitude && loc.longitude === longitude
-        );
-        
-        if (!isFavorite) {
-          // Add to saved locations if it's being favorited
-          if (existingLocationIndex === -1) {
-            savedLocations.push(currentLocation);
-          } else {
-            // Update the existing location
-            savedLocations[existingLocationIndex] = currentLocation;
-          }
-        } else {
-          // Remove from saved locations if it's being unfavorited
-          if (existingLocationIndex !== -1) {
-            savedLocations.splice(existingLocationIndex, 1);
-          }
-        }
-        
-        // Save back to localStorage
-        localStorage.setItem('savedLocations', JSON.stringify(savedLocations));
-      } catch (error) {
-        console.error('Error saving location to localStorage:', error);
-      }
-      
-      // Call the original onToggleFavorite prop
-      onToggleFavorite();
+  const handleToggleFavorite = () => {
+    const currentLocation = {
+      city: city || (locationInfo?.components?.city || 'Unknown City'),
+      state: state || (locationInfo?.components?.state_code || 'Unknown'),
+      latitude,
+      longitude,
+      isFavorite: !isFavorite,
     };
-
-  // Loading state with animation
+    try {
+      const savedLocations =
+        JSON.parse(localStorage.getItem('savedLocations') || '[]');
+      const idx = savedLocations.findIndex(
+        loc => loc.latitude === latitude && loc.longitude === longitude
+      );
+      if (!isFavorite) {
+        if (idx === -1) savedLocations.push(currentLocation);
+        else savedLocations[idx] = currentLocation;
+      } else if (idx !== -1) {
+        savedLocations.splice(idx, 1);
+      }
+      localStorage.setItem(
+        'savedLocations',
+        JSON.stringify(savedLocations)
+      );
+    } catch (error) {
+      console.error('Error saving location to localStorage:', error);
+    }
+    onToggleFavorite();
+  };
+  
+  // Loading state with animation - structure matches loaded state
   if (loading) {
     return (
       <div
@@ -125,9 +102,17 @@ const WeatherCard = ({
         style={{ backgroundColor }}
         aria-busy="true"
       >
-        <div className="loading-line loading-line--title"></div>
-        <div className="loading-line loading-line--subtitle"></div>
-        <div className="loading-line loading-line--text"></div>
+        <div className="card-header">
+          <div className="location-info">
+            <div className="loading-line loading-line--title"></div>
+            <div className="loading-line loading-line--subtitle"></div>
+            <div className="loading-line loading-line--text"></div>
+          </div>
+          <div className="weather-card-actions">
+            {/* Empty placeholder for buttons */}
+          </div>
+        </div>
+        
         <div className="loading-line loading-line--full"></div>
 
         <div className="weather-stats-grid">
@@ -185,7 +170,7 @@ const WeatherCard = ({
         </div>
         <div className="weather-card-actions">
           <button
-            onClick={handleToggleFavorite}
+            onClick={onToggleFavorite}
             className="action-button"
             title={
               isFavorite

@@ -30,7 +30,7 @@ const Maps = () => {
   const { user } = UserSession();
   
   // State Management
-  const [selectedVariable, setSelectedVariable] = useState('none');
+  const [selectedVariable, setSelectedVariable] = useState('temperature');
   const [timeOffset, setTimeOffset] = useState('now');
   const [isLocationPanelCollapsed, setIsLocationPanelCollapsed] = useState(true);
   const [coordinates, setCoordinates] = useState({ lat: '', lng: '' });
@@ -298,7 +298,7 @@ const Maps = () => {
       }
       
       // Otherwise, we need to load the script
-      console.log('Fetching Google Maps API key and loading script');
+      
       const response = await axios.get(`${REACT_APP_API_URL}/api/google-maps-init`);
       
       if (!response.data || !response.data.googleMapsKey) {
