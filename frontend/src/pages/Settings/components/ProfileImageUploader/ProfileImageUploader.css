@@ -5,6 +5,7 @@
     margin-top: -52.5px;
     margin-left: 38px;
     margin-bottom: 0.5rem;
+    z-index: 1000; 
   }
   
   .profile-image-uploader-wrapper {
