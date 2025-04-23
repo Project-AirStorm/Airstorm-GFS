@@ -10,6 +10,7 @@
 
 .forecasts-content {
   width: 100%;
+  padding:1rem;
 }
 
 .content-title {
@@ -23,6 +24,164 @@
   font-size: 0.875rem;
   color: rgb(75 85 99);
   margin-bottom: 1.5rem;
+}
+
+/* Vertical Weather Grid Layout */
+.weather-grid-vertical {
+  display: flex;
+  flex-direction: column;    /* Changed from row (default) to column */
+  gap: 1.5rem;              /* Maintains spacing between cards */
+  width: 100%;              /* Full width of container */
+  height: calc(100vh - 2rem); /* Takes up full viewport height minus some margin */
+  overflow-y: auto;         /* Changed from overflow-x to overflow-y for vertical scrolling */
+  padding: 0.5rem;          /* Padding around the entire grid */
+  scrollbar-width: thin;
+  scroll-behavior: smooth;
+}
+
+/* Customize scrollbar */
+.weather-grid-vertical::-webkit-scrollbar {
+  width: 6px;               /* Changed from height to width for vertical scrollbar */
+}
+
+.weather-grid-vertical::-webkit-scrollbar-track {
+  background: rgb(243 244 246);
+  border-radius: 3px;
+}
+
+.weather-grid-vertical::-webkit-scrollbar-thumb {
+  background: rgb(209 213 219);
+  border-radius: 3px;
+}
+
+.weather-grid-vertical::-webkit-scrollbar-thumb:hover {
+  background: rgb(156 163 175);
+}
+
+.weather-grid-vertical > * {
+  min-width: calc((100% - 3rem) / 3);    /* Sets minimum width of each card to 1/16 of container minus gaps */
+  max-width: calc((100% - 3rem) / 3);    /* Sets maximum width of each card to 1/16 of container minus gaps */
+  flex: 0 0 auto;                        /* Prevents cards from growing/shrinking and keeps them at fixed size */
+}
+
+/* Make weather cards take full width */
+.weather-grid-vertical > * {
+  width: 100%;             /* Cards take full width of container */
+  flex: 0 0 auto;          /* Prevents cards from growing/shrinking */
+}
+
+/* Remove the min-width and max-width constraints */
+.weather-grid-vertical > * {
+  min-width: unset;
+  max-width: unset;
+}
+
+/* Responsive adjustments */
+@media screen and (max-width: 768px) {
+  .weather-grid {
+    padding: 0.25rem;      /* Slightly less padding on mobile */
+  }
+}
+
+.locationLabel{
+  font-size: 1.25rem;
+  font-weight: 550;
+  color: black;
+  margin-top: 0.5rem;
+}
+
+.coordinatesLabel{
+  font-size: 1.25rem;
+  font-weight: 550;
+  color: black;
+  margin-top: 0.5rem;
+}
+
+/* Dropdown container */
+.saved-locations-dropdown {
+  position: relative;
+  margin: 1rem 0;
+  width: 100%;
+  max-width: 400px;
+}
+
+/* Dropdown button styling */
+.dropdown-button {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 0.75rem 1rem;
+  background-color: white;
+  border: 1px solid rgb(209 213 219);
+  border-radius: 0.5rem;
+  color: rgb(31 41 55);
+  font-size: 0.9rem;
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.dropdown-button:hover {
+  background-color: rgb(243 244 246);
+}
+
+.dropdown-button:focus {
+  outline: none;
+  border-color: rgb(59 130 246);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25);
+}
+
+/* Dropdown menu */
+.dropdown-menu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  z-index: 10;
+  width: 100%;
+  max-height: 250px;
+  overflow-y: auto;
+  margin-top: 0.25rem;
+  padding: 0.5rem 0;
+  background-color: white;
+  border: 1px solid rgb(209 213 219);
+  border-radius: 0.5rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+/* Individual dropdown items */
+.dropdown-item {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  padding: 0.75rem 1rem;
+  color: rgb(31 41 55);
+  font-size: 0.9rem;
+  text-align: left;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.dropdown-item:hover {
+  background-color: rgb(243 244 246);
+}
+
+.dropdown-item span {
+  margin-left: 0.5rem;
+}
+
+.location-coordinates {
+  margin-left: auto;
+  color: rgb(107 114 128);
+  font-size: 0.8rem;
+}
+
+/* Empty state */
+.dropdown-empty {
+  padding: 0.75rem 1rem;
+  color: rgb(107 114 128);
+  text-align: center;
 }
 
 /* Responsive Design */

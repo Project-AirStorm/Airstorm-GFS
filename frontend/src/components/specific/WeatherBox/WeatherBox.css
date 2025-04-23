@@ -1,0 +1,92 @@
+.weather-boxes-container{
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+
+}
+
+.weather-box {
+    border-radius: 0.75rem;
+    padding: 1.5rem;
+    color: rgb(0, 0, 0);
+    display: flex;
+    flex-direction: row;
+    background-color: rgb(204, 204, 204);
+    width:100%;
+    margin: 0.5rem 0; /* Add some vertical spacing */
+    align-items: center;
+  }
+
+  .dayOfWeek{
+    display: block;
+    padding: 15px;
+    font-size: 25px;
+    font-weight: 600;
+    text-align: center;
+  }
+  .date{
+    display: block;
+    font-size: 25px;
+    font-weight: 600;
+  }
+
+  .weatherIcon{
+    display: flex;
+    padding: 35px;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .tempFormatting{
+    padding: 15px;
+    font-size: 40px;
+    font-weight: 600;
+    color: black;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+  }
+
+.openButton{
+  display: flex;
+  padding-left: 700px;
+  align-items: center;
+  flex-direction: row;
+}
+
+.openButton button{
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 10px;
+}
+
+  .minTemp{
+    color: blue;
+    display: inline;
+    margin-right: 5px;
+    font-size: 25px;
+  }
+  .maxTemp{
+    color: red;
+    display: inline;
+    margin-right: 5px;
+    font-size: 25px;
+  }
+
+  .expanded-content{
+    color: black;
+    width: 100%;
+    /* Animation for smooth expansion */
+    animation: expandDown 0.3s ease-out forwards;
+  }
+  @keyframes expandDown {
+    from {
+      max-height: 0;
+      opacity: 0;
+    }
+    to {
+      max-height: 1000px; /* Arbitrary large value */
+      opacity: 1;
+    }
+  }
