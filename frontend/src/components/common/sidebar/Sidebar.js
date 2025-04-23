@@ -18,7 +18,7 @@ import {
   Aperture,
   Info,
 } from 'lucide-react';
-import afgscLogo from '../../../assets/afgsc-logo.png';
+import afgscLogo from '../../../assets/afgsc-logo.webp';
 import './Sidebar.css';
 import { useClerk } from '@clerk/clerk-react';
 import { useUserProfile } from '../../../contexts/UserContext';

@@ -3,7 +3,7 @@ import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { useUserProfile } from '../../contexts/UserContext';
 import { useUser } from '@clerk/clerk-react';
 import './Settings.css';
-import settingsBanner from '../../assets/settings-banner.jpg';
+import settingsBanner from '../../assets/settings-banner.avif';
 import Loader from '../../components/common/loader';
 
 // Import the new ProfileImageUploader component
