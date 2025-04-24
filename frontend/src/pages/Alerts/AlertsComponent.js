@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { UserSession } from '../../utils/UserSession';
 import OverviewSwitch from '../../components/specific/OverviewSwitch/OverviewSwitch';
 import ActionButtons from '../../components/specific/ActionButtons/ActionButtons';
+import Loader from '../../components/common/loader';
 
 import {
   ChevronDown,
@@ -206,11 +207,7 @@ ${alert.instruction ? `Instructions: ${alert.instruction}` : ''}
   };
 
   if (loading) {
-    return (
-      <div className="alerts-body">
-        <div className="text-center py-8">Loading alerts...</div>
-      </div>
-    );
+    return <Loader size="medium" />;
   }
 
   if (error) {
@@ -326,14 +323,14 @@ ${alert.instruction ? `Instructions: ${alert.instruction}` : ''}
                 onClick={toggleExpandAll}
                 className="button-toggle flex items-center gap-2"
               >
-                {Object.keys(expandedAlerts).length === processedAlerts.length
-                  ? 'Collapse All'
-                  : 'Expand All'}
                 {Object.keys(expandedAlerts).length === processedAlerts.length ? (
                   <ChevronsUp className="w-4 h-4" />
                 ) : (
                   <ChevronsDown className="w-4 h-4" />
                 )}
+                {Object.keys(expandedAlerts).length === processedAlerts.length
+                  ? 'Collapse All'
+                  : 'Expand All'}
               </button>
 
               <button
