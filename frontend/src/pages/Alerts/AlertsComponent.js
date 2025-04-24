@@ -256,27 +256,6 @@ ${alert.instruction ? `Instructions: ${alert.instruction}` : ''}
       }
     });
 
-  if (loading) {
-    return (
-      <div className="alerts-body">
-        <div className="text-center py-8">Loading alerts...</div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="alerts-body">
-        <div className="alert-item alert-high">
-          <div className="alert-header">
-            <h3 className="alert-type">Error</h3>
-          </div>
-          <p className="alert-message">{error}</p>
-        </div>
-      </div>
-    );
-  }
-
   const toggleExpandAll = () => {
     if (Object.keys(expandedAlerts).length === processedAlerts.length) {
       // If all are expanded, collapse all
@@ -293,8 +272,19 @@ ${alert.instruction ? `Instructions: ${alert.instruction}` : ''}
     }
   };
 
+  // Format text with paragraphs
+  const formatTextWithParagraphs = (text) => {
+    if (!text) return '';
+    // Split text by double newlines (paragraphs)
+    return text.split(/\n\n+/).map((paragraph, index) => (
+      <p key={index} className="alert-paragraph">
+        {paragraph.trim()}
+      </p>
+    ));
+  };
+
   return (
-    <div classname="dashboard-container">
+    <div className="dashboard-container">
       <div className="main-content">
         <div className="controls-container">
           <OverviewSwitch
@@ -329,7 +319,7 @@ ${alert.instruction ? `Instructions: ${alert.instruction}` : ''}
               >
                 {showFavoritesOnly
                   ? 'Show All Locations'
-                  : 'Show Favoried Locations'}
+                  : 'Show Favorited Locations'}
               </button>
 
               <button
@@ -339,6 +329,11 @@ ${alert.instruction ? `Instructions: ${alert.instruction}` : ''}
                 {Object.keys(expandedAlerts).length === processedAlerts.length
                   ? 'Collapse All'
                   : 'Expand All'}
+                {Object.keys(expandedAlerts).length === processedAlerts.length ? (
+                  <ChevronsUp className="w-4 h-4" />
+                ) : (
+                  <ChevronsDown className="w-4 h-4" />
+                )}
               </button>
 
               <button
@@ -477,27 +472,37 @@ ${alert.instruction ? `Instructions: ${alert.instruction}` : ''}
 
                     {isExpanded && (
                       <div className="alert-details">
-                        <p>
-                          <strong>Start:</strong> {formatDateTime(alert.onset)}
-                        </p>
-                        <p>
-                          <strong>End:</strong> {formatDateTime(alert.expires)}
-                        </p>
-                        <p>
-                          <strong>Sender:</strong> {alert.sender}
-                        </p>
+                        <div className="alert-metadata">
+                          <p>
+                            <strong>Start:</strong> {formatDateTime(alert.onset)}
+                          </p>
+                          <p>
+                            <strong>End:</strong> {formatDateTime(alert.expires)}
+                          </p>
+                          <p>
+                            <strong>Sender:</strong> {alert.sender}
+                          </p>
+                        </div>
+                        
                         {alert.headline && (
-                          <p className="font-bold">{alert.headline}</p>
+                          <h4 className="alert-headline">{alert.headline}</h4>
                         )}
-                        <p>{alert.description}</p>
+                        
+                        <div className="alert-description">
+                          {formatTextWithParagraphs(alert.description)}
+                        </div>
+                        
                         {alert.instruction && (
-                          <div className="mt-4">
-                            <p className="font-bold">Instructions:</p>
-                            <p>{alert.instruction}</p>
+                          <div className="alert-instruction-container">
+                            <h4 className="alert-instruction-title">Instructions:</h4>
+                            <div className="alert-instruction">
+                              {formatTextWithParagraphs(alert.instruction)}
+                            </div>
                           </div>
                         )}
+                        
                         {alert.url && (
-                          <p className="mt-2">
+                          <p className="alert-more-info">
                             <a
                               href={alert.url}
                               target="_blank"
