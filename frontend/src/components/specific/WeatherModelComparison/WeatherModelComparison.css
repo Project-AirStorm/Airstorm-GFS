@@ -313,36 +313,34 @@
   margin-bottom: 0.5rem;
 }
 
+
 .metric-comparison-tag {
   margin-top: 0.25rem;
   padding: 0.25rem 0.5rem;
   border-radius: 0.25rem;
   font-size: 0.75rem;
-  font-weight: 500; /* Use slightly bolder font */
+  font-weight: 500;
   display: inline-block;
   text-align: center;
-  border: 1px solid transparent; /* Add base border */
+  border: 1px solid transparent;
 }
 
 .metric-comparison-tag.graphcast-better {
-  /* Keep existing green style from before */
-  background-color: rgb(220 252 231);
-  color: rgb(22 163 74);
-  border-color: rgb(134 239 172); /* Optional border */
+  background-color: #DBEAFE; 
+  color: #2563eb; 
+  border-color: #93C5FD; 
 }
 
-/* --- Updated NWP Better Style --- */
 .metric-comparison-tag.nwp-better {
-  /* Use light red background and darker red text, similar to alert-high */
-  background-color: rgb(254 226 226); /* alert-high background */
-  color: rgb(153 27 27); /* alert-high text color */
-  border-color: rgb(239 68 68); /* alert-high border color */
+  background-color: #fed7aa; 
+  color: #D55E00; 
+  border-color: #fdba74; 
 }
 
 .metric-comparison-tag.similar {
-  background-color: rgb(224 231 255); /* Keep existing blueish style */
-  color: rgb(79 70 229);
-  border-color: rgb(199 210 254); /* Optional border */
+  background-color: #e5e7eb; 
+  color: #4b5563; 
+  border-color: #d1d5db;
 }
 
 /* Summary section */
