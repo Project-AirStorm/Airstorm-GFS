@@ -372,8 +372,8 @@ const WeatherModelComparison = () => {
   const hasData = getCurrentMetricData().length > 0;
   
   return (
-    <div className="dashboard-container">
-      <div className="main-content">
+    <div>
+      <div>
         <div className="analysis-body">
           <div className="analysis-header">
             <h1 className="content-title">Weather Model Comparison</h1>
