@@ -12,9 +12,8 @@ import {
   MapPin
 } from 'lucide-react';
 
-// Import helper components
 import ErrorState from './ErrorState';
-import LoadingState from './LoadingState';
+import SpeedLoader from '../../common/speedloader/speedloader';
 import LocationDetection from './LocationDetection';
 import ErrorMetrics from './ErrorMetrics';
 import ComparisonChart from './ComparisonChart';
@@ -431,7 +430,16 @@ const WeatherModelComparison = () => {
               )}
             </div>
           ) : loading ? (
-            <LoadingState location={location.name} />
+            <div className="dashboard-container">
+              <div className="main-content">
+                <div className="analysis-body">
+                  <div className="loading-container">
+                    <SpeedLoader variant="primary" size="medium" />
+                    <p>Loading weather data for {location.name}...</p>
+                  </div>
+                </div>
+              </div>
+            </div>
           ) : error ? (
             <ErrorState error={error} rawData={rawData} />
           ) : (

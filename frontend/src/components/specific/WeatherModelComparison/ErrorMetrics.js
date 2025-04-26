@@ -12,6 +12,10 @@ import {
   Tooltip
 } from 'recharts';
 
+// --- Define Colors (matching ComparisonChart) ---
+const GRAPHCAST_COLOR = '#0072B2';  // Blue
+const NWP_COLOR = '#D55E00';        // Orange/Vermillion
+
 /**
  * Component to display error metrics comparison between models
  */
@@ -19,7 +23,7 @@ const ErrorMetrics = ({ selectedMetric, errorMetrics, metricLabel, location }) =
   /**
    * Generate a summary comparison tag for error metrics
    * For RMSE and MAE, lower is better; for ACC, higher is better
-   * 
+   *
    * @param {string} metricType - Type of metric (rmse, mae, acc)
    * @param {boolean} higherIsBetter - Whether higher values are better (true for ACC)
    * @returns {JSX.Element|null} Comparison summary tag
@@ -27,30 +31,46 @@ const ErrorMetrics = ({ selectedMetric, errorMetrics, metricLabel, location }) =
   const getMetricComparisonSummary = (metricType, higherIsBetter = false) => {
     const graphcastValue = errorMetrics[selectedMetric]?.graphcast?.[metricType];
     const nwpValue = errorMetrics[selectedMetric]?.nwp?.[metricType];
-    
+
     // Check if we have valid values for comparison
-    if (graphcastValue === undefined || 
-        nwpValue === undefined || 
-        graphcastValue === 0 || 
-        nwpValue === 0) {
-      return null;
+    if (graphcastValue === undefined || graphcastValue === null ||
+        nwpValue === undefined || nwpValue === null) {
+      return null; // Return null if any value is missing
     }
-    
+
+     // Handle cases where one or both values are zero or very close
+     if (Math.abs(graphcastValue - nwpValue) < 0.01) { // Use a small tolerance for floating point comparison
+        return (
+          <div className="metric-comparison-tag similar">
+            Models perform similarly
+          </div>
+        );
+     }
+
     // For RMSE and MAE, lower is better; for ACC, higher is better
-    const isGraphcastBetter = higherIsBetter 
-      ? graphcastValue > nwpValue 
+    const isGraphcastBetter = higherIsBetter
+      ? graphcastValue > nwpValue
       : graphcastValue < nwpValue;
-    
-    // Reference value for percentage calculation
-    const referenceValue = higherIsBetter 
-      ? (isGraphcastBetter ? nwpValue : graphcastValue) // For ACC, use the lower value as reference
-      : (isGraphcastBetter ? nwpValue : graphcastValue); // For RMSE/MAE, use the higher value as reference
-      
+
+    // Reference value for percentage calculation (use the worse performing model as the base)
+    const referenceValue = higherIsBetter
+      ? Math.min(graphcastValue, nwpValue) // For ACC, reference is the lower value
+      : Math.max(graphcastValue, nwpValue); // For RMSE/MAE, reference is the higher value
+
+     // Avoid division by zero if referenceValue is 0
+     if (referenceValue === 0) {
+          return (
+          <div className="metric-comparison-tag similar">
+            Comparison not applicable (zero baseline)
+          </div>
+        );
+     }
+
     // Calculate percentage difference
     const percentDifference = Math.abs(
       ((graphcastValue - nwpValue) / referenceValue) * 100
     ).toFixed(1);
-    
+
     // Only show tag if difference is significant (over 1%)
     if (parseFloat(percentDifference) < 1) {
       return (
@@ -59,7 +79,7 @@ const ErrorMetrics = ({ selectedMetric, errorMetrics, metricLabel, location }) =
         </div>
       );
     }
-    
+
     return (
       <div className={`metric-comparison-tag ${isGraphcastBetter ? 'graphcast-better' : 'nwp-better'}`}>
         {isGraphcastBetter ? 'GraphCast better by ' : 'NWP better by '}
@@ -68,117 +88,84 @@ const ErrorMetrics = ({ selectedMetric, errorMetrics, metricLabel, location }) =
     );
   };
 
+
   return (
     <div className="analysis-details">
       <h3 className="details-title">Model Performance Metrics</h3>
-      
-      
+
       {/* Error metrics visualization */}
       <div className="error-metrics-container">
+        {/* RMSE Chart */}
         <div className="error-metric-chart">
-          <h4 className="error-metric-title">
-            Root Mean Square Error (RMSE)
-          </h4>
+          <h4 className="error-metric-title">Root Mean Square Error (RMSE)</h4>
           <ResponsiveContainer width="100%" height={80}>
             <BarChart
               data={[
-                { 
-                  name: 'GraphCast', 
-                  value: errorMetrics[selectedMetric]?.graphcast?.rmse || 0 
-                },
-                { 
-                  name: 'NWP', 
-                  value: errorMetrics[selectedMetric]?.nwp?.rmse || 0 
-                }
+                { name: 'GraphCast', value: errorMetrics[selectedMetric]?.graphcast?.rmse ?? 0 },
+                { name: 'NWP', value: errorMetrics[selectedMetric]?.nwp?.rmse ?? 0 }
               ]}
               layout="vertical"
               margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
             >
               <XAxis type="number" hide />
               <YAxis dataKey="name" type="category" width={80} />
-              <Tooltip 
-                formatter={(value) => [`${value.toFixed(2)}`, 'RMSE']}
-                labelFormatter={() => ''}
-              />
+              <Tooltip formatter={(value) => [`${value.toFixed(2)}`, 'RMSE']} labelFormatter={() => ''} />
               <Bar dataKey="value" nameKey="name">
-                {[
-                  <Cell key="cell-0" fill="#82ca9d" />,
-                  <Cell key="cell-1" fill="#ff7300" />
-                ]}
+                 {/* Updated Cell colors */}
+                 <Cell key="cell-0" fill={GRAPHCAST_COLOR} />
+                 <Cell key="cell-1" fill={NWP_COLOR} />
               </Bar>
               <ReferenceLine x={0} stroke="#666" />
             </BarChart>
           </ResponsiveContainer>
           {getMetricComparisonSummary('rmse')}
         </div>
-        
+
+        {/* MAE Chart */}
         <div className="error-metric-chart">
-          <h4 className="error-metric-title">
-            Mean Absolute Error (MAE)
-          </h4>
-          <ResponsiveContainer width="100%" height={80}>
-            <BarChart
-              data={[
-                { 
-                  name: 'GraphCast', 
-                  value: errorMetrics[selectedMetric]?.graphcast?.mae || 0 
-                },
-                { 
-                  name: 'NWP', 
-                  value: errorMetrics[selectedMetric]?.nwp?.mae || 0 
-                }
-              ]}
-              layout="vertical"
-              margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
-            >
-              <XAxis type="number" hide />
-              <YAxis dataKey="name" type="category" width={80} />
-              <Tooltip 
-                formatter={(value) => [`${value.toFixed(2)}`, 'MAE']}
-                labelFormatter={() => ''}
-              />
-              <Bar dataKey="value" nameKey="name">
-                {[
-                  <Cell key="cell-0" fill="#82ca9d" />,
-                  <Cell key="cell-1" fill="#ff7300" />
-                ]}
-              </Bar>
-              <ReferenceLine x={0} stroke="#666" />
-            </BarChart>
-          </ResponsiveContainer>
+          <h4 className="error-metric-title">Mean Absolute Error (MAE)</h4>
+           <ResponsiveContainer width="100%" height={80}>
+             <BarChart
+               data={[
+                 { name: 'GraphCast', value: errorMetrics[selectedMetric]?.graphcast?.mae ?? 0 },
+                 { name: 'NWP', value: errorMetrics[selectedMetric]?.nwp?.mae ?? 0 }
+               ]}
+               layout="vertical"
+               margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+             >
+               <XAxis type="number" hide />
+               <YAxis dataKey="name" type="category" width={80} />
+               <Tooltip formatter={(value) => [`${value.toFixed(2)}`, 'MAE']} labelFormatter={() => ''}/>
+               <Bar dataKey="value" nameKey="name">
+                  {/* Updated Cell colors */}
+                  <Cell key="cell-0" fill={GRAPHCAST_COLOR} />
+                  <Cell key="cell-1" fill={NWP_COLOR} />
+               </Bar>
+               <ReferenceLine x={0} stroke="#666" />
+             </BarChart>
+           </ResponsiveContainer>
           {getMetricComparisonSummary('mae')}
         </div>
-        
+
+        {/* ACC Chart */}
         <div className="error-metric-chart">
-          <h4 className="error-metric-title">
-            Anomaly Correlation Coefficient (ACC)
-          </h4>
+          <h4 className="error-metric-title">Anomaly Correlation Coefficient (ACC)</h4>
           <ResponsiveContainer width="100%" height={80}>
             <BarChart
               data={[
-                { 
-                  name: 'GraphCast', 
-                  value: errorMetrics[selectedMetric]?.graphcast?.acc || 0 
-                },
-                { 
-                  name: 'NWP', 
-                  value: errorMetrics[selectedMetric]?.nwp?.acc || 0 
-                }
+                 { name: 'GraphCast', value: errorMetrics[selectedMetric]?.graphcast?.acc ?? 0 },
+                 { name: 'NWP', value: errorMetrics[selectedMetric]?.nwp?.acc ?? 0 }
               ]}
               layout="vertical"
               margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
             >
               <XAxis type="number" domain={[0, 1]} hide />
               <YAxis dataKey="name" type="category" width={80} />
-              <Tooltip 
-                formatter={(value) => [`${value.toFixed(2)}`, 'ACC']}
-                labelFormatter={() => ''}
-              />
+              <Tooltip formatter={(value) => [`${value.toFixed(2)}`, 'ACC']} labelFormatter={() => ''} />
               <Bar dataKey="value" nameKey="name">
-                {[
-                  <Cell key="cell-0" fill="#82ca9d" />,
-                  <Cell key="cell-1" fill="#ff7300" />
-                ]}
+                 {/* Updated Cell colors */}
+                 <Cell key="cell-0" fill={GRAPHCAST_COLOR} />
+                 <Cell key="cell-1" fill={NWP_COLOR} />
               </Bar>
               <ReferenceLine x={0.7} stroke="#666" strokeDasharray="3 3" />
             </BarChart>
@@ -186,14 +173,14 @@ const ErrorMetrics = ({ selectedMetric, errorMetrics, metricLabel, location }) =
           {getMetricComparisonSummary('acc', true)}
         </div>
       </div>
-      
-      {/* Performance summary */}
-      <div className="metric-summary">
+
+      {/* Performance summary (remains the same) */}
+       <div className="metric-summary">
         <h4 className="summary-title">Performance Summary</h4>
         <p className="summary-text">
           This visualization compares actual weather measurements with model forecasts.
           The data shows how GraphCast (AI-based) and traditional NWP models perform
-          for {metricLabel.toLowerCase()} prediction using historical data as ground truth.
+          for {metricLabel.toLowerCase()} prediction using historical data as ground truth. Lower RMSE/MAE and higher ACC indicate better performance.
         </p>
         <p className="data-note">
           Data shown for location: {location.name} ({location.lat.toFixed(2)}, {location.lon.toFixed(2)})
