@@ -5,7 +5,6 @@ import Login from '../pages/Login/Login';
 import Alerts from '../pages/Alerts/Alerts';
 import Analysis from '../pages/Analysis/Analysis';
 import Settings from '../pages/Settings/Settings';
-import Logs from '../pages/Logs/Logs';
 import Feedback from '../pages/Feedback/Feedback';
 import NotFound from '../pages/NotFound/NotFound';
 import Signup from '../pages/Signup/Signup';
@@ -15,9 +14,7 @@ import Charts from '../pages/Charts/Charts';
 import ChartViewer from '../pages/Charts/ChartViewer';
 import About from '../pages/About/About';
 // Unused imports for now
-// import Maps from '../pages/Maps/Maps';
-// import MeteogramPbp from '../components/specific/MeteogramPbp/MeteogramPbp';
-// import SkewTPbp from '../components/specific/SkewTPbp/SkewTPbp';
+// import Logs from '../pages/Logs/Logs';
 
 /**
  * Application route configuration
@@ -80,11 +77,11 @@ export const ROUTES = {
     title: 'Settings',
     element: Settings,
   },
-  logs: {
-    path: '/logs',
-    title: 'Logs',
-    element: Logs,
-  },
+  // logs: {
+  //   path: '/logs',
+  //   title: 'Logs',
+  //   element: Logs,
+  // },
   feedback: {
     path: '/feedback',
     title: 'Feedback',
