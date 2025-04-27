@@ -155,75 +155,75 @@ const Maps = () => {
   }, []); // Empty dependency array as it doesn't depend on changing state/props
 
   // Map right-click handler for context menu (e.g., Skew-T)
-  const handleMapRightClick = useCallback((e) => {
-     if (!mapRef.current || !mapContainer.current) return; // Ensure map and container are ready
+ const handleMapRightClick = useCallback((e) => {
+  if (!mapRef.current || !mapContainer.current) return; // Ensure map and container are ready
 
-     // Prevent default browser context menu
-     e.stop(); // Recommended by Google Maps docs for right-click
+  // Prevent default browser context menu
+  e.stop(); // Recommended by Google Maps docs for right-click
 
-     const lat = e.latLng.lat();
-     const lng = e.latLng.lng();
-     console.log(`Maps: Map right-clicked at ${lat.toFixed(4)}, ${lng.toFixed(4)}`);
+  const lat = e.latLng.lat();
+  const lng = e.latLng.lng();
+  console.log(`Maps: Map right-clicked at ${lat.toFixed(4)}, ${lng.toFixed(4)}`);
 
-     // Remove any existing context menu first
-     const existingMenu = mapContainer.current.querySelector('.map-context-menu');
-     if (existingMenu) {
-         existingMenu.remove();
+  // Remove any existing context menu first
+  const existingMenu = mapContainer.current.querySelector('.map-context-menu');
+  if (existingMenu) {
+      existingMenu.remove();
+  }
+
+  // Create context menu div
+  const contextMenu = document.createElement('div');
+  contextMenu.className = 'map-context-menu'; // Apply CSS class
+
+  Object.assign(contextMenu.style, {
+      position: 'absolute',
+      // background: 'white', // Use CSS
+      // border: '1px solid #ccc', // Use CSS
+      // borderRadius: '4px', // Use CSS
+      // boxShadow: '0 2px 6px rgba(0,0,0,0.3)', // Use CSS
+      // padding: '5px 0', // Use CSS
+      zIndex: 1000, // Keep zIndex (or use CSS value: 2000)
+      left: `${e.pixel.x}px`, // Keep positioning
+      top: `${e.pixel.y}px`  // Keep positioning
+  });
+  // --- End of removals ---
+
+  // Menu items - Use classes defined in Maps.css
+  // Assign title class and item class
+  contextMenu.innerHTML = `
+    <div class="context-menu-title">Point Actions</div> 
+    <div class="context-menu-item" id="generate-skewt">Generate SKEW-T Chart</div>
+    <div class="context-menu-item" id="center-map">Center Map Here</div>
+  `;
+
+  // Function to close the menu (remains the same)
+  const closeMenu = () => {
+    if (contextMenu.parentNode) {
+      contextMenu.remove();
+    }
+    document.removeEventListener('click', closeMenu, true); 
+  };
+
+  // Add event listeners to menu items (remains the same)
+  contextMenu.querySelector('#generate-skewt').addEventListener('click', () => {
+    console.log("Maps: Opening Skew-T chart in new tab.");
+    window.open(`/charts?lat=${lat.toFixed(4)}&lon=${lng.toFixed(4)}`, '_blank');
+    closeMenu();
+  });
+   contextMenu.querySelector('#center-map').addEventListener('click', () => {
+     if (mapRef.current) {
+          mapRef.current.setCenter(e.latLng);
      }
+    closeMenu();
+  });
 
-     // Create context menu div
-     const contextMenu = document.createElement('div');
-     contextMenu.className = 'map-context-menu'; // Apply CSS class
-     // Basic styling - ideally use CSS file
-     Object.assign(contextMenu.style, {
-         position: 'absolute',
-         background: 'white',
-         border: '1px solid #ccc',
-         borderRadius: '4px',
-         boxShadow: '0 2px 6px rgba(0,0,0,0.3)',
-         padding: '5px 0',
-         zIndex: 1000, // Ensure it's above map tiles
-         left: `${e.pixel.x}px`,
-         top: `${e.pixel.y}px`
-     });
-     // Menu items
-     contextMenu.innerHTML = `
-       <div style="padding: 8px 12px; font-size: 14px; font-weight: bold; border-bottom: 1px solid #eee;">Point Actions</div>
-       <div class="context-menu-item" id="generate-skewt" style="padding: 8px 12px; font-size: 13px; cursor: pointer;">Generate SKEW-T Chart</div>
-       <div class="context-menu-item" id="center-map" style="padding: 8px 12px; font-size: 13px; cursor: pointer;">Center Map Here</div>
-     `;
+  // Add the menu to the map container (remains the same)
+  mapContainer.current.appendChild(contextMenu);
 
-     // Function to close the menu
-     const closeMenu = () => {
-       if (contextMenu.parentNode) {
-         contextMenu.remove();
-       }
-       // Remove the global click listener once the menu is closed
-       document.removeEventListener('click', closeMenu, true); // Use capture phase
-       // It's generally safer NOT to remove map listeners here, let map cleanup handle it
-     };
+  // Add a one-time global click listener (remains the same)
+  setTimeout(() => document.addEventListener('click', closeMenu, { once: true, capture: true }), 0);
 
-     // Add event listeners to menu items
-     contextMenu.querySelector('#generate-skewt').addEventListener('click', () => {
-       console.log("Maps: Opening Skew-T chart in new tab.");
-       window.open(`/charts?lat=${lat.toFixed(4)}&lon=${lng.toFixed(4)}`, '_blank');
-       closeMenu();
-     });
-      contextMenu.querySelector('#center-map').addEventListener('click', () => {
-        if (mapRef.current) {
-             mapRef.current.setCenter(e.latLng);
-        }
-       closeMenu();
-     });
-
-     // Add the menu to the map container (which allows absolute positioning relative to the map)
-     mapContainer.current.appendChild(contextMenu);
-
-     // Add a one-time global click listener to close the menu if clicked outside
-     // Use capture phase to catch clicks before they might be stopped elsewhere
-     setTimeout(() => document.addEventListener('click', closeMenu, { once: true, capture: true }), 0);
-
-  }, []); // Empty dependency array
+}, []); // Empty dependency array
 
 
   // Map Initialization Logic using refs and useCallback

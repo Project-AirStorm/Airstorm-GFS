@@ -55,19 +55,18 @@ file_handler.addFilter(sensitive_filter)
 # Explicitly Configure Console Handler
 console_handler = logging.StreamHandler(sys.stdout) # Use sys.stdout for console
 console_handler.setFormatter(log_formatter)
-# Set desired level for console output (e.g., INFO or DEBUG)
+
 console_handler.setLevel(logging.DEBUG)
-# Apply the filter to the console handler
 console_handler.addFilter(sensitive_filter)
 
 # Configure Root Logger
 # Get root logger, set its base level (the lowest level any handler will process)
 root_logger = logging.getLogger('')
 root_logger.setLevel(logging.DEBUG) 
-# Remove existing handlers added by basicConfig or Flask's defaults
+
 if root_logger.hasHandlers():
     root_logger.handlers.clear()
-# Add configured handlers
+
 root_logger.addHandler(file_handler)
 root_logger.addHandler(console_handler)
 
@@ -80,25 +79,9 @@ logging.getLogger("watchdog").setLevel(logging.ERROR)
 
 # Configure Werkzeug logger (Flask's web server)
 werkzeug_logger = logging.getLogger('werkzeug')
-# Decide how Werkzeug logs should be handled:
-# Option 1: Let the root logger's handlers manage them (simpler)
+
 werkzeug_logger.setLevel(logging.INFO) # Or DEBUG if needed
 werkzeug_logger.propagate = True # Send to root logger handlers (which have the filter)
-
-# Option 2: Handle Werkzeug logs separately (more complex)
-# werkzeug_logger.setLevel(logging.INFO) # Or DEBUG
-# werkzeug_logger.propagate = False # Stop messages going to root
-# # Add handlers *directly* to werkzeug_logger if not propagating
-# if not werkzeug_logger.hasHandlers():
-#     werkzeug_logger.addHandler(console_handler) 
-#     werkzeug_logger.addHandler(file_handler)
-# else: # If it has handlers (like Flask default), add filter to them
-#     for handler in werkzeug_logger.handlers:
-#         # Check if filter already exists to avoid duplicates
-#         if sensitive_filter not in handler.filters:
-#             handler.addFilter(sensitive_filter)
-
-# --- End Logging Configuration ---
 
 # Create a logger for this specific application module (optional)
 # It will inherit level and handlers from the root logger
@@ -115,8 +98,6 @@ app.register_blueprint(charts_api_bp)
 db_initializer = DatabaseInitializer()
 
 if __name__ == "__main__":
-    # debug=True enables Flask's interactive debugger AND sets logging level to DEBUG for Flask related loggers
-    # Setting debug=False relies solely on your logging configuration above.
     # Use debug=True for development, but ensure it's False for production.
     is_debug_mode = os.getenv('FLASK_DEBUG', 'false').lower() == 'true'
     app.run(host="0.0.0.0", port=5001, debug=is_debug_mode)
