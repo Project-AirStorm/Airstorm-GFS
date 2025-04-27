@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import WeatherModelComparison from '../../components/specific/WeatherModelComparison/WeatherModelComparison';
-import ActionButtons from '../../components/specific/ActionButtons/ActionButtons';
 import Loader from '../../components/common/loader';
 import './Analysis.css';
 
@@ -10,7 +9,6 @@ import './Analysis.css';
  * with a loading state for better user experience
  */
 const Analysis = () => {
-  const [activeView, setActiveView] = useState('overview');
   const [loading, setLoading] = useState(true);
 
   // Simulate loading data
@@ -33,7 +31,7 @@ const Analysis = () => {
     <div className="dashboard-container">
       <div>
         {/* Weather Model Comparison Component */}
-        <WeatherModelComparison activeView={activeView} />
+        <WeatherModelComparison/>
       </div>
     </div>
   );

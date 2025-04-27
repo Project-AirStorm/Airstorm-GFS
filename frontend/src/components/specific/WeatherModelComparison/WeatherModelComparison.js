@@ -369,13 +369,11 @@ const WeatherModelComparison = () => {
 
       {/* Content Area: Shows message, loader, error, or the main grid */}
       <div className="analysis-content-area">
-        {!location ? (
-             // Message shown if no location is selected
-             <div className="analysis-card no-location-message">
-                <p>Please select or add a location to view the analysis.</p>
-                {savedLocations.length === 0 && (
-                    <p className="no-saved-locations-note">You haven't saved any locations yet. Click "Add New Location" in the dropdown above.</p>
-                )}
+      {!location ? (
+             // Loading state display
+             <div className="analysis-card loading-container">
+                 <SpeedLoader variant="primary" size="large" />
+                 <p></p>
              </div>
         ) : loading ? (
              // Loading state display

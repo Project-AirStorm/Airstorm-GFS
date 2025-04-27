@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { AlertTriangle, Monitor, Smartphone, Laptop, ExternalLink } from 'lucide-react';
+import { AlertTriangle, Monitor, Smartphone, Laptop } from 'lucide-react';
 import { useClerk } from '@clerk/clerk-react';
 import ActionButton from '../common/ActionButton/ActionButton';
 import './LoginSecuritySection.css';
@@ -25,22 +25,6 @@ const LoginSecuritySection = ({ user, showFeedback }) => {
   const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
   const [deleteConfirmText, setDeleteConfirmText] = useState('');
   const [isDeleting, setIsDeleting] = useState(false);
-  
-  /**
-   * Open Clerk's user profile for security settings
-   */
-  const openSecuritySettings = () => {
-    openUserProfile({
-      appearance: {
-        elements: {
-          navbar: { display: 'none' },
-          footer: { display: 'none' },
-          rootBox: { maxWidth: '100%' }
-        }
-      },
-      initialTab: 'security'
-    });
-  };
   
   /**
    * Fetch active devices from user object when available

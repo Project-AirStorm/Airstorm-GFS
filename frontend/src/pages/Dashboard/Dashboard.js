@@ -20,7 +20,7 @@ const Dashboard = ({ setCurrentPage }) => {
   const [activeView, setActiveView] = useState('overview');
   const [locations, setLocations] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [, setError] = useState(null); 
   const [selectedLocation, setSelectedLocation] = useState(null);
   
   // Define the handlers

@@ -11,8 +11,6 @@ import {
   MapPin,
   ArrowUpDown,
   AlertTriangle,
-  ChevronsDown,
-  ChevronsUp,
   Copy,
 } from 'lucide-react';
 import axios from 'axios';
