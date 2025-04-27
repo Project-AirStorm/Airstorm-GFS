@@ -79,6 +79,7 @@
   border: 1px solid var(--border-color);
   margin-bottom: 1.5rem;
   width: 100%;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
 }
 
 .chart-title {
@@ -106,6 +107,7 @@
   padding: 1.5rem;
   border-radius: 0.5rem;
   border: 1px solid var(--border-color);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
 }
 
 .card-title {
