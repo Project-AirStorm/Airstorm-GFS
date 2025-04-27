@@ -1,0 +1,166 @@
+/* EmailVerificationPopup.css */
+
+.verification-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+  }
+  
+  .verification-popup {
+    background-color: white;
+    border-radius: 0.5rem;
+    padding: 2rem;
+    width: 90%;
+    max-width: 480px;
+    position: relative;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    animation: popIn 0.3s ease;
+  }
+  
+  @keyframes popIn {
+    from {
+      opacity: 0;
+      transform: scale(0.95);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+  
+  .close-button {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    background: none;
+    border: none;
+    color: #6b7280;
+    cursor: pointer;
+    padding: 0.25rem;
+    transition: color 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .close-button:hover {
+    color: #111827;
+  }
+  
+  .verification-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #232360;
+    margin-bottom: 0.5rem;
+    text-align: center;
+  }
+  
+  .verification-description {
+    font-size: 0.875rem;
+    color: #6b7280;
+    margin-bottom: 1.5rem;
+    text-align: center;
+  }
+  
+  .code-input-container {
+    display: flex;
+    justify-content: center;
+    gap: 0.5rem;
+    margin-bottom: 1.5rem;
+  }
+  
+  .code-input {
+    width: 2.5rem;
+    height: 3rem;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.25rem;
+    font-size: 1.25rem;
+    font-weight: 600;
+    text-align: center;
+    color: #232360;
+    transition: border-color 0.2s;
+  }
+  
+  .code-input:focus {
+    outline: none;
+    border-color: #3361e0;
+    box-shadow: 0 0 0 2px rgba(51, 97, 224, 0.1);
+  }
+  
+  .verification-error {
+    color: #dc2626;
+    font-size: 0.875rem;
+    margin-bottom: 1rem;
+    text-align: center;
+  }
+  
+  .verification-actions {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    margin-bottom: 1rem;
+  }
+  
+  .cancel-action {
+    padding: 0.5rem 1rem;
+    background-color: white;
+    border: 1px solid #e5e7eb;
+    color: #6b7280;
+    border-radius: 0.375rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.2s;
+  }
+  
+  .cancel-action:hover {
+    background-color: #f9fafb;
+  }
+  
+  .verify-action {
+    padding: 0.5rem 1rem;
+    background-color: #3361e0;
+    color: white;
+    border: none;
+    border-radius: 0.375rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.2s;
+  }
+  
+  .verify-action:hover:not(:disabled) {
+    background-color: #2851c7;
+  }
+  
+  .verify-action:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+  
+  .verification-help {
+    font-size: 0.75rem;
+    color: #6b7280;
+    text-align: center;
+  }
+  
+  .resend-button {
+    background: none;
+    border: none;
+    color: #3361e0;
+    font-size: 0.75rem;
+    font-weight: 500;
+    cursor: pointer;
+    padding: 0;
+  }
+  
+  .resend-button:hover {
+    text-decoration: underline;
+  }

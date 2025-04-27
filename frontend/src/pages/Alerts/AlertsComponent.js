@@ -11,8 +11,6 @@ import {
   MapPin,
   ArrowUpDown,
   AlertTriangle,
-  ChevronsDown,
-  ChevronsUp,
   Copy,
 } from 'lucide-react';
 import axios from 'axios';
@@ -252,6 +250,23 @@ ${alert.instruction ? `Instructions: ${alert.instruction}` : ''}
           return new Date(b.onset || 0) - new Date(a.onset || 0);
       }
     });
+
+  if (loading) {
+    return <Loader size="medium" />;
+  } 
+
+  if (error) {
+    return (
+      <div className="alerts-body">
+        <div className="alert-item alert-high">
+          <div className="alert-header">
+            <h3 className="alert-type">Error</h3>
+          </div>
+          <p className="alert-message">{error}</p>
+        </div>
+      </div>
+    );
+  }
 
   const toggleExpandAll = () => {
     if (Object.keys(expandedAlerts).length === processedAlerts.length) {

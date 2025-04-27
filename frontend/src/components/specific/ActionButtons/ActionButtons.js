@@ -24,7 +24,7 @@ const ActionButtons = ({ onTimeframeChange, onAddBase, timeframe = 'Week', onLoc
       <div className="action-buttons-container">
         {/* Timeframe button commented out but preserved for future use
         <button 
-          className="timeframe-button"
+          className="timeframe-button"handleAddBase
           onClick={onTimeframeChange}
         >
           {timeframe}
@@ -35,7 +35,7 @@ const ActionButtons = ({ onTimeframeChange, onAddBase, timeframe = 'Week', onLoc
           onClick={handleAddBase}
         >
           <span className="add-button-plus">+</span>
-          Add New Base
+          Add New Location
         </button>
       </div>
       <AddLocationPopup
