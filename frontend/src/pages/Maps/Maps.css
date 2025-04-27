@@ -321,3 +321,26 @@
 .context-menu-item:hover {
   background-color: rgba(255, 255, 255, 0.2);
 }
+
+.map-loader-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(255, 255, 255, 0.8); /* Semi-transparent white */
+  display: flex;
+  flex-direction: column; /* Allow message below loader */
+  align-items: center;
+  justify-content: center;
+  z-index: 1100; /* Ensure it's above map tiles */
+  border-radius: inherit; /* Match parent rounding */
+  pointer-events: none; /* Allow clicks to pass through if needed, though usually not desired for a loader */
+}
+
+/* Optional: Style for the message within the loader component if you pass one */
+.map-loader-overlay .loader-message { /* Assuming your Loader uses this class */
+    margin-top: 1rem;
+    color: #333; /* Darker text for visibility */
+    font-weight: 500;
+}

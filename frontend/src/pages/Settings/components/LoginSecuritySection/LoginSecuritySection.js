@@ -16,8 +16,7 @@ import SpeedLoader from '../../../../components/common/speedloader/speedloader';
  * @returns {JSX.Element} LoginSecuritySection component
  */
 const LoginSecuritySection = ({ user, showFeedback }) => {
-  // Fix: Properly destructure openUserProfile from useClerk hook
-  const { signOut, openUserProfile } = useClerk();
+  const { signOut } = useClerk();
   const [activeDevices, setActiveDevices] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   
