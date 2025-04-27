@@ -31,7 +31,7 @@ const Analysis = () => {
 
   return (
     <div className="dashboard-container">
-      <div className="main-content">
+      <div>
         {/* Weather Model Comparison Component */}
         <WeatherModelComparison activeView={activeView} />
       </div>
