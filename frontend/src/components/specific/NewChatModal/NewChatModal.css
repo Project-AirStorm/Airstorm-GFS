@@ -14,17 +14,17 @@
 
 .modal-content {
   background: white;
-  border-radius: 8px;
+  border-radius: 0.5rem;
   width: 90%;
-  max-width: 500px;
+  max-width: 31.25rem;
   max-height: 90vh;
   overflow-y: auto;
   position: relative;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 0.25rem 0.375rem rgba(0, 0, 0, 0.1);
 }
 
 .modal-header {
-  padding: 20px;
+  padding: 1.25rem;
   border-bottom: 1px solid #e5e7eb;
   display: flex;
   justify-content: space-between;
@@ -47,8 +47,8 @@
   border: none;
   color: #6b7280;
   cursor: pointer;
-  padding: 8px;
-  border-radius: 4px;
+  padding: 0.5rem;
+  border-radius: 0.25rem;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -59,11 +59,11 @@
 }
 
 .modal-body {
-  padding: 20px;
+  padding: 1.25rem;
 }
 
 .group-chat-toggle {
-  margin-bottom: 15px;
+  margin-bottom: 0.9375rem;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -72,7 +72,7 @@
 .group-chat-toggle label {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 0.625rem;
   font-size: 0.875rem;
   color: #4b5563;
   cursor: pointer;
@@ -81,16 +81,16 @@
 .selected-users {
   display: flex;
   flex-wrap: wrap;
-  gap: 10px;
-  margin-bottom: 15px;
+  gap: 0.625rem;
+  margin-bottom: 0.9375rem;
 }
 
 .selected-user-chip {
   display: flex;
   align-items: center;
   background-color: #e5e7eb;
-  border-radius: 20px;
-  padding: 5px 10px;
+  border-radius: 1.25rem;
+  padding: 0.3125rem 0.625rem;
   font-size: 0.875rem;
   color: #1f2937;
 }
@@ -99,7 +99,7 @@
   background: none;
   border: none;
   color: #6b7280;
-  margin-left: 5px;
+  margin-left: 0.3125rem;
   cursor: pointer;
   font-size: 1rem;
   line-height: 1;
@@ -108,24 +108,24 @@
 
 .search-container {
   position: relative;
-  margin-bottom: 20px;
+  margin-bottom: 1.25rem;
 }
 
 .search-icon {
   position: absolute;
-  left: 12px;
+  left: 0.75rem;
   top: 50%;
   transform: translateY(-50%);
   color: #9ca3af;
-  width: 20px;
-  height: 20px;
+  width: 1.25rem;
+  height: 1.25rem;
 }
 
 .search-input {
   width: 100%;
-  padding: 12px 12px 12px 40px;
+  padding: 0.75rem 0.75rem 0.75rem 2.5rem;
   border: 1px solid #e5e7eb;
-  border-radius: 6px;
+  border-radius: 0.375rem;
   font-size: 0.875rem;
   transition: border-color 0.2s;
   outline: none;
@@ -133,11 +133,11 @@
 
 .search-input:focus {
   border-color: #2563eb;
-  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.1);
+  box-shadow: 0 0 0 0.125rem rgba(37, 99, 235, 0.1);
 }
 
 .users-list {
-  max-height: 400px;
+  max-height: 25rem;
   overflow-y: auto;
 }
 
@@ -145,10 +145,10 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 12px;
-  border-radius: 6px;
+  padding: 0.75rem;
+  border-radius: 0.375rem;
   transition: background-color 0.2s;
-  margin-bottom: 8px;
+  margin-bottom: 0.5rem;
   cursor: pointer;
 }
 
@@ -163,12 +163,12 @@
 .user-info {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 0.75rem;
 }
 
 .user-avatar {
-  width: 40px;
-  height: 40px;
+  width: 2.5rem;
+  height: 2.5rem;
   border-radius: 50%;
   overflow: hidden;
 }
@@ -200,7 +200,7 @@
 }
 
 .start-chat-container {
-  margin-top: 15px;
+  margin-top: 0.9375rem;
   display: flex;
   justify-content: center;
 }
@@ -208,12 +208,12 @@
 .start-chat-button {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 10px 16px;
+  gap: 0.5rem;
+  padding: 0.625rem 1rem;
   background-color: #2563eb;
   color: white;
   border: none;
-  border-radius: 6px;
+  border-radius: 0.375rem;
   font-size: 0.875rem;
   cursor: pointer;
   transition: background-color 0.2s;
@@ -227,7 +227,7 @@
 .no-results,
 .empty-state {
   text-align: center;
-  padding: 40px 20px;
+  padding: 2.5rem 1.25rem;
   color: #6b7280;
   font-size: 0.875rem;
 }

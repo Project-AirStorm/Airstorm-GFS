@@ -1,28 +1,26 @@
-
 /* These styles are unique to Analysis.css and needed for general page layout */
 .dashboard-container {
   width: 100%;
-  padding: 20px;
+  padding: 1.25rem; /* 20px converted to rem */
 }
 
 .main-content {
   background-color: white;
-  border-radius: 8px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-  margin-bottom: 20px;
+  border-radius: 0.5rem; /* 8px converted to rem */
+  box-shadow: 0 0.125rem 0.625rem rgba(0, 0, 0, 0.05); /* 0 2px 10px converted to rem */
+  margin-bottom: 1.25rem; /* 20px converted to rem */
   overflow: hidden;
 }
 
 /* Comparison tags styling - unique to Analysis.css */
 .metric-comparison-tag {
   font-size: 0.75rem;
-  padding: 3px 8px;
-  border-radius: 4px;
-  margin-top: 6px;
+  padding: 0.1875rem 0.5rem; /* 3px 8px converted to rem */
+  border-radius: 0.25rem; /* 4px converted to rem */
+  margin-top: 0.375rem; /* 6px converted to rem */
   text-align: center;
   font-weight: 500;
-  color: white;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 0.0625rem 0.125rem rgba(0, 0, 0, 0.1); /* 0 1px 2px converted to rem */
 }
 
 .graphcast-better {
@@ -39,12 +37,12 @@
 
 /* Make the error metric charts taller */
 .error-metric-chart {
-  margin-bottom: 16px;
+  margin-bottom: 1rem; /* 16px converted to rem */
 }
 
 /* Ensure proper padding in the error metrics container */
 .error-metrics-container {
-  padding: 8px 0;
+  padding: 0.5rem 0; /* 8px 0 converted to rem */
 }
 
 /* Responsive adjustments - modified for Analysis page specifically */

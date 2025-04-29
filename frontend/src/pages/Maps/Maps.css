@@ -333,7 +333,7 @@
   flex-direction: column; /* Allow message below loader */
   align-items: center;
   justify-content: center;
-  z-index: 1100; /* Ensure it's above map tiles */
+  z-index: 1000; /* Ensure it's above map tiles */
   border-radius: inherit; /* Match parent rounding */
   pointer-events: none; /* Allow clicks to pass through if needed, though usually not desired for a loader */
 }

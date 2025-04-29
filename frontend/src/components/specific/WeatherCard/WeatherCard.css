@@ -6,9 +6,9 @@
   color: white;
   display: flex;
   flex-direction: column;
-  min-height: 17.5rem; /* 280px → 17.5rem */
   width: 100%;
   transition: opacity 0.3s ease;
+  /* max-height: 17.5rem; 280px - Set max same as min, or adjust as needed */
 }
 
 /* Card Header */
@@ -26,7 +26,7 @@
 }
 
 .location-primary {
-  font-size: 24px;  /* Changed from clamp to fixed size */
+  font-size: 24px;  
   font-weight: 700;
   color: white;
   margin-bottom: 8px;
@@ -37,7 +37,7 @@
 }
 
 .location-secondary {
-  font-size: 18px;  /* Changed from clamp to fixed size */
+  font-size: 18px;  
   color: rgba(255, 255, 255, 0.9);
   margin-bottom: 6px;
   line-height: 1.2;
@@ -47,7 +47,7 @@
 }
 
 .location-details {
-  font-size: 16px;  /* Changed from clamp to fixed size */
+  font-size: 16px;  
   color: rgba(255, 255, 255, 0.8);
   font-style: italic;
   display: flex;

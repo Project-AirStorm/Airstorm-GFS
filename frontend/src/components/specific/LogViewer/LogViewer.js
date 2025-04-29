@@ -1,4 +1,4 @@
-// LogViewer.js
+/* LogViewer.js
 import React from 'react';
 import PropTypes from 'prop-types';
 import { Badge } from "@/components/ui/badge";
@@ -26,4 +26,4 @@ LogViewer.propTypes = {
   logs: PropTypes.arrayOf(PropTypes.string).isRequired
 };
 
-export default LogViewer;
+export default LogViewer; */
