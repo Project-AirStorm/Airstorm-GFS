@@ -13,7 +13,7 @@
   justify-content: space-between;
   margin-bottom: 0.75rem;
   padding-bottom: 0.5rem;
-  border-bottom: 1px solid rgb(211 213 216);
+  border-bottom: 0.0625rem solid rgb(211 213 216);
 }
 
 /* Location Title */
@@ -39,7 +39,7 @@
   font-weight: 500;
   color: rgb(31 41 55);
   padding-right: 1.5rem;
-  border-right: 1px solid rgb(211 213 216);
+  border-right: 0.0625rem solid rgb(211 213 216);
 }
 
 .weather-stats {
@@ -83,8 +83,8 @@
   background-color: white;
   padding: 0.75rem;
   border-radius: 0.375rem;
-  box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1);
-  border: 1px solid rgb(229 231 235);
+  box-shadow: 0 0.0625rem 0.1875rem 0 rgb(0 0 0 / 0.1);
+  border: 0.0625rem solid rgb(229 231 235);
 }
 
 .tooltip-label {

@@ -1,0 +1,130 @@
+/* src/components/specific/DashboardLocationSelector/DashboardLocationSelector.css */
+
+.dashboard-location-selector-wrapper {
+    position: relative;
+    display: inline-block; /* Allows it to sit nicely in the flex container */
+    min-width: 200px; /* Adjust as needed */
+  }
+  
+  .dashboard-location-selector-button {
+    display: flex;
+    align-items: center;
+    justify-content: space-between; /* Pushes icon to the right */
+    width: 100%;
+    padding: 0.5rem 1rem; /* Match ActionButton padding */
+    background-color: white;
+    border: 1px solid rgb(229 231 235); /* Match ActionButton border */
+    border-radius: 0.375rem; /* Match ActionButton border-radius */
+    color: rgb(75 85 99);
+    font-size: 0.875rem;
+    text-align: left;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  
+  .dashboard-location-selector-button:hover {
+    background-color: rgb(249 250 251); /* Light gray hover */
+    border-color: rgb(209 213 219);
+  }
+  
+  .dashboard-location-selector-button:focus {
+    outline: none;
+    border-color: rgb(59 130 246);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+  }
+  
+  .dashboard-location-selector-button span {
+    margin-left: 0.5rem; /* Space between icon and text */
+    flex-grow: 1; /* Allow text to take available space */
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  
+  .dashboard-location-selector-button .dropdown-arrow {
+    transition: transform 0.2s ease;
+    flex-shrink: 0; /* Prevent icon from shrinking */
+  }
+  
+  .dashboard-location-selector-button[aria-expanded='true'] .dropdown-arrow {
+    transform: rotate(180deg);
+  }
+  
+  .dashboard-location-selector-menu {
+    position: absolute;
+    top: calc(100% + 0.25rem); /* Position below the button */
+    left: 0;
+    z-index: 50; /* Ensure it's above other content */
+    width: 100%;
+    max-height: 300px; /* Limit height and allow scrolling */
+    overflow-y: auto;
+    padding: 0.5rem 0;
+    background-color: white;
+    border: 1px solid rgb(209 213 219);
+    border-radius: 0.5rem;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    scrollbar-width: thin; /* Firefox */
+  }
+  
+  /* Scrollbar for Webkit */
+  .dashboard-location-selector-menu::-webkit-scrollbar {
+    width: 6px;
+  }
+  .dashboard-location-selector-menu::-webkit-scrollbar-track {
+    background: rgb(243 244 246);
+  }
+  .dashboard-location-selector-menu::-webkit-scrollbar-thumb {
+    background: rgb(209 213 219);
+    border-radius: 3px;
+  }
+  .dashboard-location-selector-menu::-webkit-scrollbar-thumb:hover {
+    background: rgb(156 163 175);
+  }
+  
+  
+  .dashboard-location-selector-item {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    padding: 0.6rem 1rem; /* Consistent padding */
+    color: rgb(31 41 55);
+    font-size: 0.875rem;
+    text-align: left;
+    background: none;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.15s ease;
+  }
+  
+  .dashboard-location-selector-item:hover {
+    background-color: rgb(243 244 246);
+  }
+  
+  .dashboard-location-selector-item .location-icon {
+    margin-right: 0.5rem;
+    flex-shrink: 0;
+  }
+  
+  .dashboard-location-selector-item .location-name {
+    flex-grow: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  
+  .dashboard-location-selector-item .location-coords {
+    margin-left: 0.5rem;
+    color: rgb(107 114 128);
+    font-size: 0.75rem;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  
+  
+  .dashboard-location-selector-empty {
+    padding: 0.75rem 1rem;
+    color: rgb(107 114 128);
+    text-align: center;
+    font-style: italic;
+    font-size: 0.875rem;
+  }

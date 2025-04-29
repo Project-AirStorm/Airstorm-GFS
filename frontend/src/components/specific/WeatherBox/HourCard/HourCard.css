@@ -10,12 +10,12 @@
 .hour-card{
     border-radius: 0.75rem;
     padding: 1.5rem;
-    color: rgb(0, 0, 0);
+    color: rgb(61, 42, 42);
     background-color: white;
     display: flex;
     flex-direction: column;
     margin: 0.5rem 0;
-    width: 100px;
+    width: 6.25rem;
     align-items: center;
 }
 

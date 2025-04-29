@@ -38,12 +38,14 @@ const CustomLegend = (props) => {
   // Using inline styles as before, but could be moved to CSS using a class like 'comparison-chart-legend'
   const legendStyle = {
     border: '1px solid #e5e7eb', /* Slightly lighter border */
-    borderRadius: '8px', /* Match card rounding */
+    borderRadius: '0.5rem', /* Match card rounding */
     padding: '1rem',
     backgroundColor: '#f9fafb', /* Light gray background */
-    marginTop: '20px',
-    display: 'inline-block',
+    display: 'justify-content: center', 
+    maxWidth: '20rem',
+    margin: '0 auto', /* Centered */
   };
+  
   const titleStyle = {
     fontSize: '0.9rem', fontWeight: 600, color: '#374151',
     marginBottom: '0.75rem', textAlign: 'center',
@@ -54,7 +56,7 @@ const CustomLegend = (props) => {
   const handleItemClick = (item) => { onClick(item.dataKey); };
 
   return (
-    <div style={legendStyle} className="comparison-chart-legend"> {/* Add class if moving styles */}
+    <div style={legendStyle}> 
       <h4 style={titleStyle}>Legend</h4>
       <ul style={listStyle}>
         {payload.map((entry, index) => {
@@ -204,7 +206,7 @@ const ComparisonChart = ({ data, metricName, metricUnit }) => {
         {metricName} Forecast Comparison
         <span className="comparison-chart-unit">({metricUnit})</span>
       </h3>
-      <div className="recharts-responsive-container-wrapper"> {/* Added wrapper div */}
+      <div className="recharts-responsive-container-wrapper"> 
         <ResponsiveContainer width="100%" height={450}> {/* Adjusted height */}
           <LineChart data={data} margin={{ top: 5, right: 30, left: 0, bottom: 30 }}> {/* Adjusted margins */}
             <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
@@ -225,7 +227,7 @@ const ComparisonChart = ({ data, metricName, metricUnit }) => {
                ticks={fixedYTicks}
                allowDecimals={metricName === 'Precipitation'}
                tickFormatter={(value) => metricName === 'Precipitation' ? value.toFixed(1) : Math.round(value)}
-               label={{ value: `${metricName} (${metricUnit})`, angle: -90, position: 'insideLeft', offset: 10, fontSize: 12, fill: '#6b7280' }}
+               label={{ value: `${metricName} (${metricUnit})`, angle: -90, position: 'insideLeft', offset: 12, fontSize: 12, fill: '#6b7280' }}
                axisLine={{ stroke: '#d1d5db' }}
                tickLine={{ stroke: '#d1d5db' }}
                tick={{ fontSize: 11, fill: '#6b7280' }}

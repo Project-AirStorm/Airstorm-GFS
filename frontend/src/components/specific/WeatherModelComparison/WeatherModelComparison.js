@@ -113,25 +113,34 @@ const WeatherModelComparison = () => {
     // Only run if locations are loaded from context and no location is currently selected
     if (!isLocationLoading && savedLocations.length > 0 && !location) {
       const firstLocation = savedLocations[0];
-      handleLocationSelected(firstLocation); // Use the handler to set state
+      handleLocationSelected(firstLocation); 
     } else if (!isLocationLoading && savedLocations.length === 0 && !location) {
       // If no saved locations after loading, ensure component loading stops
       setLoading(false);
     }
   }, [isLocationLoading, savedLocations, location]); // Add location to deps
 
-  // Callback to get date range (no changes needed)
+  // Callback to get date range
   const getCurrentDateRange = useCallback(() => {
-      const currentDate = new Date();
-      const endDate = new Date(currentDate);
-      endDate.setDate(endDate.getDate() - 5); // Data fetching ends 5 days ago
-      const startDate = new Date(endDate);
-      startDate.setDate(startDate.getDate() - parseInt(timeframe, 10));
-      return {
-        startDate: startDate.toISOString().split('T')[0],
-        endDate: endDate.toISOString().split('T')[0]
-      };
-  }, [timeframe]);
+    const currentDate = new Date();
+    const endDate = new Date(currentDate);
+    endDate.setDate(endDate.getDate() - 5); // Data fetching ends 5 days ago
+    const startDate = new Date(endDate);
+    
+    // Subtract (timeframe - 1) days to get the correct inclusive start date
+    startDate.setDate(startDate.getDate() - (parseInt(timeframe, 10) - 1)); 
+
+    
+    const startDateString = startDate.toISOString().split('T')[0];
+    const endDateString = endDate.toISOString().split('T')[0];
+
+    console.log(`Timeframe: ${timeframe}, Start Date: ${startDateString}, End Date: ${endDateString}`);
+
+    return {
+      startDate: startDateString,
+      endDate: endDateString
+    };
+}, [timeframe]);
 
   // REMOVE fetchSavedLocations - Handled by UserContext now
 
@@ -298,19 +307,23 @@ const WeatherModelComparison = () => {
     <div className="analysis-page-container">
       {/* Header Card */}
       <div className="analysis-card analysis-header-card">
-         <h1 className="analysis-title">Weather Model Comparison</h1>
+         <h2 className="analysis-title">Weather Model Comparison</h2>
          <p className="analysis-description">
            Compare the performance of GraphCast AI and traditional NWP models against historical weather data.
            {location && !loading && ( // Show timeframe info only when data is loaded for a location
-             <span className="timeframe-info"> Currently showing data for {location.name} for the past {timeframe} days (ending {getCurrentDateRange().endDate}).</span>
-           )}
-           {!location && !isLocationLoading && savedLocations.length > 0 && (
-                <span className="timeframe-info"> Select a location to view comparison.</span>
-           )}
-         </p>
-      </div>
+             <span className="timeframe-info"> Currently showing data for {location.name} for the past {timeframe} days. Due to historical weather data processing, this means it ends at {(() => {
+              const endDate = new Date(getCurrentDateRange().endDate);
+              endDate.setDate(endDate.getDate()); // No subtraction here, endDate is already 5 days ago
+              return endDate.toLocaleDateString(); // Format the date for display
+              })()}, which is 5 days ago.</span>
+             )}
+             {!location && !isLocationLoading && savedLocations.length > 0 && (
+              <span className="timeframe-info"> Select a location to view comparison.</span>
+             )}
+             </p>
+            </div>
 
-      {/* Controls Card */}
+            {/* Controls Card */}
       <div className="analysis-card analysis-controls-card">
          {/* Metrics Selector */}
          <div className="controls-section metrics-controls">
@@ -335,7 +348,6 @@ const WeatherModelComparison = () => {
               <span>{timeframe === '16' ? '16 Days' : '7 Days'}</span>
             </button>
             <span className="control-label">Location:</span>
-            {/* Show placeholder while context loads locations */}
             {isLocationLoading ? (
                <div className='location-loading-placeholder'>Loading locations...</div>
             ) : (

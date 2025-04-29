@@ -444,8 +444,8 @@ const Maps = () => {
 
   // Main component render
   return (
-    <div className="dashboard-container"> {/* Use dashboard-container for consistent padding/layout */}
-      <div className="main-content">
+    <div className="white-dashboard-container"> {/* Use dashboard-container for consistent padding/layout */}
+      <div className="white-main-content">
         <div className="weather-page-container"> {/* Specific container for map layout */}
 
           {/* Show loader overlay while map/context is initializing */}

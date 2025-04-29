@@ -1,16 +1,5 @@
 /* These styles are unique to Analysis.css and needed for general page layout */
-.dashboard-container {
-  width: 100%;
-  padding: 1.25rem; /* 20px converted to rem */
-}
 
-.main-content {
-  background-color: white;
-  border-radius: 0.5rem; /* 8px converted to rem */
-  box-shadow: 0 0.125rem 0.625rem rgba(0, 0, 0, 0.05); /* 0 2px 10px converted to rem */
-  margin-bottom: 1.25rem; /* 20px converted to rem */
-  overflow: hidden;
-}
 
 /* Comparison tags styling - unique to Analysis.css */
 .metric-comparison-tag {
