@@ -1,12 +1,13 @@
-// src/pages/Logs/Logs.js
+/* src/pages/Logs/Logs.js
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Search, Filter, Download, Clock, Trash2 } from 'lucide-react';
+import { Search, Filter, Download, Clock} from 'lucide-react';
 import './Logs.css';
 
 /**
  * Parses a log line into structured data
  */
+/* 
 const parseLogLine = (logLine) => {
   const parts = logLine.split('|').map(s => s.trim());
   let [timestamp, logger, level, message] = parts;
@@ -25,7 +26,7 @@ const parseLogLine = (logLine) => {
   }
 
   // Remove ANSI color codes
-  message = message?.replace(/\u001B\[\d+m/g, '');
+  message = message?.replace(/\x1B\[\d+m/g, ''); // Use \x1B for the ESC character
 
   return {
     timestamp,
@@ -39,6 +40,7 @@ const parseLogLine = (logLine) => {
 /**
  * Main Logs component
  */
+/* 
 const Logs = () => {
   const [logs, setLogs] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -115,6 +117,7 @@ const Logs = () => {
   /**
    * Handle exporting logs as TSV file
    */
+  /* 
   const handleExportLogs = () => {
     try {
       // Format the logs for export, using the filtered logs
@@ -310,7 +313,7 @@ const Logs = () => {
             </div>
           )}
 
-          {/* Table display format with Type column removed */}
+          
           <div className="logs-table">
             {filteredLogs.length === 0 ? (
               <div className="logs-empty-state">
@@ -379,4 +382,5 @@ const Logs = () => {
   );
 };
 
-export default Logs;
+// export default Logs;
+*/

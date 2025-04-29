@@ -1,8 +1,7 @@
 // AccountSection.js
 import React, { useState, useEffect } from 'react';
 import { ExternalLink, Save, X, Mail } from 'lucide-react';
-import { useClerk, useUser } from '@clerk/clerk-react';
-import { useUserProfile } from '../../../../contexts/UserContext';
+import { useClerk } from '@clerk/clerk-react';
 import './AccountSection.css';
 import ActionButton from '../common/ActionButton/ActionButton';
 import FormField from '../common/FormField/FormField';
@@ -13,9 +12,8 @@ import GoogleIcon from '../../../../assets/google-icon.png';
 /**
  * AccountSection component handles connected accounts and adding additional emails
  */
-const AccountSection = ({ user, userProfile, showFeedback }) => {
+const AccountSection = ({ user, showFeedback }) => {
   const { openUserProfile } = useClerk();
-  const { isLoaded } = useUser();
 
   // New email input state
   const [email, setEmail] = useState('');

@@ -1,236 +1,246 @@
 // src/components/specific/WeatherModelComparison/ComparisonChart.js
-import React, { useState, useEffect, useRef, useMemo } from 'react';
+import React, { useState, useMemo, useRef } from 'react';
 import PropTypes from 'prop-types';
 import {
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend,
-  ResponsiveContainer
+  LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer
 } from 'recharts';
+import { BsToggleOn, BsToggleOff } from "react-icons/bs";
 
-// Custom tooltip component
+// Colors (Keep consistent)
+const HISTORICAL_COLOR = '#555555'; // Dark Gray/Black
+const GRAPHCAST_COLOR = '#0072B2';  // Blue
+const NWP_COLOR = '#D55E00';        // Orange/Vermillion
+const INACTIVE_COLOR = '#cccccc';  // Lighter Gray
+
+// Custom Tooltip (Keep using the existing class name 'custom-tooltip')
 const CustomTooltip = ({ active, payload, unit }) => {
-  if (active && payload && payload.length) {
-    const item = payload[0].payload;
-    
-    return (
-      <div className="custom-tooltip">
-        <p className="tooltip-label">{`Day ${item.day} (${item.displayDate || item.date})`}</p>
-        <p className="tooltip-value">Historical (Ground Truth): {item.historical?.toFixed(1) || 'N/A'}{unit}</p>
-        <p className="tooltip-value">GraphCast: {item.graphcast?.toFixed(1) || 'N/A'}{unit}</p>
-        <p className="tooltip-value">NWP: {item.nwp?.toFixed(1) || 'N/A'}{unit}</p>
-        {item.min !== undefined && item.max !== undefined && (
-          <p className="tooltip-value">Range: {item.min.toFixed(1)}{unit} - {item.max.toFixed(1)}{unit}</p>
-        )}
-      </div>
-    );
-  }
-  
-  return null;
+    if (active && payload && payload.length) {
+        const item = payload[0].payload;
+        const colors = { historical: HISTORICAL_COLOR, graphcast: GRAPHCAST_COLOR, nwp: NWP_COLOR };
+        return (
+        <div className="custom-tooltip"> {/* Existing class */}
+            <p className="tooltip-label">{`Day ${item.day} (${item.displayDate || item.date})`}</p>
+            {payload.map((pld, index) => (
+            <p key={index} style={{ color: pld.strokeOpacity < 1 ? INACTIVE_COLOR : (pld.color || colors[pld.dataKey]) }} className="tooltip-value">
+                {pld.name}: {pld.value?.toFixed(1) || 'N/A'}{unit}
+                {pld.strokeOpacity < 1 && ' (Hidden)'}
+            </p>
+            ))}
+        </div>
+        );
+    }
+    return null;
 };
 
-const ComparisonChart = ({ data, metricName, metricUnit }) => {
-  const chartRef = useRef(null);
-  const chartMounted = useRef(false);
+// Custom Legend (Keep using existing class names or inline styles)
+const CustomLegend = (props) => {
+  const { payload, onClick, lineVisibility } = props;
+  // Using inline styles as before, but could be moved to CSS using a class like 'comparison-chart-legend'
+  const legendStyle = {
+    border: '1px solid #e5e7eb', /* Slightly lighter border */
+    borderRadius: '0.5rem', /* Match card rounding */
+    padding: '1rem',
+    backgroundColor: '#f9fafb', /* Light gray background */
+    display: 'justify-content: center', 
+    maxWidth: '20rem',
+    margin: '0 auto', /* Centered */
+  };
   
-  // Determine chart parameters based on data
-  const maxDay = useMemo(() => {
-    return data && data.length > 0 ? Math.max(...data.map(d => d.day)) : 16;
-  }, [data]);
-  
-  // Create hardcoded ticks based on forecast length
-  const fixedTicks = useMemo(() => {
-    if (maxDay >= 15) {
-      return [1, 3, 5, 7, 9, 11, 13, 15]; // 16-day forecast
-    } else if (maxDay >= 9) {
-      return [1, 3, 5, 7, 9]; // 10-day forecast
-    } else {
-      return [1, 3, 5, 7]; // 7-day forecast
-    }
-  }, [maxDay]);
-  
-  // Apply styling after the chart is fully rendered
-  useEffect(() => {
-    if (!chartRef.current) return;
-    
-    chartMounted.current = true;
-    
-    // One-time fix for tick visibility after the initial render
-    const timeoutId = setTimeout(() => {
-      const tickElements = chartRef.current.querySelectorAll('.recharts-xAxis .recharts-cartesian-axis-tick');
-      if (!tickElements || tickElements.length === 0) return;
-      
-      tickElements.forEach(tick => {
-        const tickText = tick.querySelector('text');
-        if (!tickText) return;
-        
-        const dayText = tickText.textContent.trim();
-        const dayNumber = parseInt(dayText.replace('Day ', ''), 10);
-        
-        // Check if this tick should be visible
-        if (isNaN(dayNumber) || !fixedTicks.includes(dayNumber)) {
-          tick.style.display = 'none';
-        } else {
-          tick.style.display = '';
-        }
-      });
-    }, 300); // A single delayed execution
-
-    // Setup resize handler
-    const resizeObserver = new ResizeObserver(() => {
-      // Only apply the tick visibility fix once the chart is resized
-      setTimeout(() => {
-        if (chartRef.current) {
-          const tickElements = chartRef.current.querySelectorAll('.recharts-xAxis .recharts-cartesian-axis-tick');
-          if (!tickElements || tickElements.length === 0) return;
-          
-          tickElements.forEach(tick => {
-            const tickText = tick.querySelector('text');
-            if (!tickText) return;
-            
-            const dayText = tickText.textContent.trim();
-            const dayNumber = parseInt(dayText.replace('Day ', ''), 10);
-            
-            if (isNaN(dayNumber) || !fixedTicks.includes(dayNumber)) {
-              tick.style.display = 'none';
-            } else {
-              tick.style.display = '';
-            }
-          });
-        }
-      }, 100);
-    });
-    
-    if (chartRef.current) {
-      resizeObserver.observe(chartRef.current);
-    }
-    
-    return () => {
-      clearTimeout(timeoutId);
-      resizeObserver.disconnect();
-      chartMounted.current = false;
-    };
-  }, [fixedTicks, data]); // Only re-run when data or ticks change
+  const titleStyle = {
+    fontSize: '0.9rem', fontWeight: 600, color: '#374151',
+    marginBottom: '0.75rem', textAlign: 'center',
+    borderBottom: '1px solid #e5e7eb', paddingBottom: '0.5rem',
+  };
+  const listStyle = { listStyle: 'none', padding: 0, margin: 0, display: 'flex', justifyContent: 'center', gap: '1.5rem' };
+  const itemStyle = { display: 'flex', alignItems: 'center', cursor: 'pointer', fontSize: '0.875rem' };
+  const handleItemClick = (item) => { onClick(item.dataKey); };
 
   return (
-    <div 
-      className="analysis-chart comparison-chart-wrapper" 
-      ref={chartRef}
-    >
-      <h3 className="chart-title">
-        {metricName} Forecast Comparison
-        <span className="chart-unit">({metricUnit})</span>
-      </h3>
-      <div style={{ width: '100%', height: 400 }}>
-        <ResponsiveContainer width="100%" height="100%">
-          <LineChart
-            data={data}
-            margin={{ top: 20, right: 30, left: 20, bottom: 30 }}
-          >
-            <CartesianGrid 
-              strokeDasharray="3 3" 
-              vertical={true}
-              verticalCoordinatesGenerator={
-                (props) => {
-                  // Generate coordinates for grid lines at each tick position
-                  const { xAxis, width } = props;
-                  return fixedTicks.map(tick => xAxis.scale(tick));
-                }
+    <div style={legendStyle}> 
+      <h4 style={titleStyle}>Legend</h4>
+      <ul style={listStyle}>
+        {payload.map((entry, index) => {
+          const dataKey = entry.dataKey;
+          const isActive = lineVisibility[dataKey];
+          const currentItemStyle = { ...itemStyle, color: isActive ? '#4b5563' : INACTIVE_COLOR, opacity: isActive ? 1 : 0.6 };
+          const iconColor = isActive ? entry.color : INACTIVE_COLOR;
+          return (
+            <li key={`item-${index}`} style={currentItemStyle} onClick={() => handleItemClick(entry)}>
+              {isActive ?
+                <BsToggleOn size={20} color={iconColor} style={{ marginRight: '6px', flexShrink: 0 }} /> :
+                <BsToggleOff size={20} color={iconColor} style={{ marginRight: '6px', flexShrink: 0 }} />
               }
-            />
-            
-            <XAxis 
-              dataKey="day" 
-              name="Day" 
-              type="number"
-              domain={[1, maxDay]}
-              ticks={fixedTicks}
-              tickFormatter={(day) => `Day ${day}`}
-              label={{ 
-                value: 'Day', 
-                position: 'insideBottom', 
-                offset: -5,
-                fontSize: 14
-              }}
-              allowDecimals={false}
-              padding={{ left: 10, right: 10 }}
-            />
-            
-            <YAxis 
-              label={{ 
-                value: `${metricName} (${metricUnit})`, 
-                angle: -90, 
-                position: 'insideLeft',
-                offset: -5,
-                fontSize: 14
-              }}
-            />
-            
+              {entry.value}
+            </li>
+          );
+        })}
+      </ul>
+    </div>
+  );
+};
+
+
+// Main Comparison Chart Component
+const ComparisonChart = ({ data, metricName, metricUnit }) => {
+  const chartRef = useRef(null);
+  const [lineVisibility, setLineVisibility] = useState({ historical: true, graphcast: true, nwp: true });
+
+  const maxDay = useMemo(() => data && data.length > 0 ? Math.max(...data.map(d => d.day)) : 16, [data]);
+
+  // Y Domain calculation (remains same)
+  const yDomain = useMemo(() => {
+    if (!data || data.length === 0) return [0, 'auto'];
+    const visibleKeys = Object.entries(lineVisibility).filter(([, value]) => value).map(([key]) => key);
+    const allValues = data.flatMap(d => visibleKeys.map(key => d[key])).filter(v => v !== null && v !== undefined && !isNaN(v));
+    if (allValues.length === 0) return [0, 10];
+    const min = Math.min(...allValues);
+    const max = Math.max(...allValues);
+    const padding = Math.max((max - min) * 0.1, 1); // Ensure padding is at least 1
+    // Adjust domain logic slightly for better presentation, especially near zero
+    let domainMin = Math.floor(min - padding);
+    let domainMax = Math.ceil(max + padding);
+     // If min is positive and close to zero, start Y axis at 0
+     if (min >= 0 && min < padding * 2) {
+        domainMin = 0;
+     }
+     // Ensure range is not zero if min === max
+     if (domainMin === domainMax) {
+        domainMax += 1;
+     }
+
+    return [domainMin, domainMax];
+  }, [data, lineVisibility]);
+
+
+  // X Ticks calculation (remains same)
+  const fixedXTicks = useMemo(() => {
+    const ticks = [];
+    // Show fewer ticks for longer timeframes if needed, e.g., every 2 days
+    const interval = maxDay > 10 ? 2 : 1;
+    for (let i = 1; i <= maxDay; i += interval) {
+      ticks.push(i);
+    }
+    // Ensure the last day is included if interval > 1
+    if (interval > 1 && ticks[ticks.length - 1] < maxDay) {
+        ticks.push(maxDay);
+    }
+    return ticks;
+  }, [maxDay]);
+
+
+   // Y Ticks calculation (remains same)
+   const fixedYTicks = useMemo(() => {
+       const [min, max] = yDomain;
+       if (typeof min !== 'number' || typeof max !== 'number' || min >= max) return undefined;
+
+       const domainRange = max - min;
+       // Determine a reasonable number of ticks (e.g., 5-7)
+       const targetTickCount = 6;
+       let interval = Math.max(1, Math.round(domainRange / targetTickCount));
+
+       // Adjust interval to be 'nice' numbers (e.g., 1, 2, 5, 10)
+       if (interval > 2 && interval < 5) interval = 2;
+       else if (interval > 5 && interval < 10) interval = 5;
+       else if (interval > 10) interval = Math.ceil(interval / 5) * 5; // Round up to nearest 5
+
+        // Special handling for precipitation (small values)
+        if (metricName === 'Precipitation' && domainRange <= 5) {
+            interval = 0.5; // Use smaller steps
+             // Ensure ticks have only one decimal place for precipitation
+             const ticks = [];
+             let startTick = Math.floor(min / interval) * interval;
+             if (startTick < min) startTick += interval; // Ensure start is within or at domain min
+
+             for (let i = startTick; i <= max; i += interval) {
+                 ticks.push(parseFloat(i.toFixed(1))); // Format to 1 decimal place
+             }
+             // Ensure domain boundaries are included if needed
+             if (ticks.length === 0 || ticks[0] > min) ticks.unshift(parseFloat(min.toFixed(1)));
+             if (ticks.length === 0 || ticks[ticks.length - 1] < max) ticks.push(parseFloat(max.toFixed(1)));
+             return [...new Set(ticks)].sort((a, b) => a - b);
+        } else if (metricName === 'Precipitation' && domainRange > 5 && domainRange <= 10) {
+            interval = 1; // Use steps of 1 if range is moderate
+        } else if (metricName !== 'Precipitation') {
+            interval = Math.max(1, Math.round(interval)); // Ensure integer interval for others
+        }
+
+
+       const ticks = [];
+       let startTick = Math.floor(min / interval) * interval;
+        if (startTick < min) {
+           startTick += interval;
+        }
+
+
+       for (let i = startTick; i <= max; i += interval) {
+           ticks.push(metricName === 'Precipitation' ? parseFloat(i.toFixed(1)) : Math.round(i));
+       }
+
+       if (ticks.length === 0 || ticks[0] > min) {
+           ticks.unshift(metricName === 'Precipitation' ? parseFloat(min.toFixed(1)) : Math.round(min));
+       }
+        if (ticks.length === 0 || ticks[ticks.length - 1] < max) {
+            ticks.push(metricName === 'Precipitation' ? parseFloat(max.toFixed(1)) : Math.round(max));
+        }
+
+       const finalTicks = [...new Set(ticks)].sort((a, b) => a - b);
+
+       // Limit number of ticks if too many calculated
+       if (finalTicks.length > 8) {
+            const newInterval = Math.ceil(finalTicks.length / targetTickCount);
+            return finalTicks.filter((_, index) => index % newInterval === 0);
+       }
+
+       return finalTicks;
+   }, [yDomain, metricName]);
+
+
+  const handleLegendClick = (dataKey) => {
+    setLineVisibility(prev => ({ ...prev, [dataKey]: !prev[dataKey] }));
+  };
+
+  return (
+    // Removed comparison-chart-wrapper, assuming parent card handles structure
+    <div className="comparison-chart-content" ref={chartRef}>
+      <h3 className="comparison-chart-title">
+        {metricName} Forecast Comparison
+        <span className="comparison-chart-unit">({metricUnit})</span>
+      </h3>
+      <div className="recharts-responsive-container-wrapper"> 
+        <ResponsiveContainer width="100%" height={450}> {/* Adjusted height */}
+          <LineChart data={data} margin={{ top: 5, right: 30, left: 0, bottom: 30 }}> {/* Adjusted margins */}
+            <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+             <XAxis
+               dataKey="day" name="Day" type="number"
+               domain={[1, maxDay]}
+               ticks={fixedXTicks}
+               tickFormatter={(day) => `${day}`}
+               label={{ value: 'Forecast Day', position: 'insideBottom', offset: -15, fontSize: 12, fill: '#6b7280' }}
+               axisLine={{ stroke: '#d1d5db' }}
+               tickLine={{ stroke: '#d1d5db' }}
+               tick={{ fontSize: 11, fill: '#6b7280' }}
+               interval="preserveStartEnd" // Show first and last tick defined in fixedXTicks
+               padding={{ left: 10, right: 10 }}
+             />
+             <YAxis
+               domain={yDomain}
+               ticks={fixedYTicks}
+               allowDecimals={metricName === 'Precipitation'}
+               tickFormatter={(value) => metricName === 'Precipitation' ? value.toFixed(1) : Math.round(value)}
+               label={{ value: `${metricName} (${metricUnit})`, angle: -90, position: 'insideLeft', offset: 12, fontSize: 12, fill: '#6b7280' }}
+               axisLine={{ stroke: '#d1d5db' }}
+               tickLine={{ stroke: '#d1d5db' }}
+               tick={{ fontSize: 11, fill: '#6b7280' }}
+               width={50} // Adjust width if needed
+             />
             <Tooltip content={<CustomTooltip unit={metricUnit} />} />
-            
-            <Legend 
-              verticalAlign="top" 
-              align="center"
-              height={60}
-              iconSize={16}
-              iconType="line"
-              formatter={(value, entry, index) => {
-                // Custom class names for different legend items
-                let customClassName = "";
-                if (value.includes("Historical")) {
-                  customClassName = "recharts-legend-item-historical";
-                } else if (value.includes("GraphCast")) {
-                  customClassName = "recharts-legend-item-graphcast";
-                } else if (value.includes("NWP")) {
-                  customClassName = "recharts-legend-item-nwp";
-                }
-                
-                // Return the legend item with custom class
-                return <span className={customClassName}>{value}</span>;
-              }}
-              wrapperStyle={{
-                position: "relative",
-                top: -20
-              }}
-              onClick={null} // Disable click handler
-            />
-            
-            <Line 
-              name="Historical Data (Ground Truth)" 
-              dataKey="historical" 
-              stroke="#8884d8" 
-              strokeWidth={2}
-              type="monotone"
-              dot={{ r: 4, strokeWidth: 1 }}
-              activeDot={{ r: 6, strokeWidth: 1, stroke: '#fff' }}
-              connectNulls={false}
-            />
-            
-            <Line 
-              name="GraphCast Model" 
-              dataKey="graphcast" 
-              stroke="#82ca9d" 
-              strokeWidth={2}
-              type="monotone"
-              dot={{ r: 4, strokeWidth: 1 }}
-              activeDot={{ r: 6, strokeWidth: 1, stroke: '#fff' }}
-              connectNulls={false}
-            />
-            
-            <Line 
-              name="NWP Model" 
-              dataKey="nwp" 
-              stroke="#ff7300" 
-              strokeWidth={2}
-              type="monotone"
-              dot={{ r: 4, strokeWidth: 1 }}
-              activeDot={{ r: 6, strokeWidth: 1, stroke: '#fff' }}
-              connectNulls={false}
-            />
+            <Legend content={<CustomLegend onClick={handleLegendClick} lineVisibility={lineVisibility} />}
+              verticalAlign="bottom" wrapperStyle={{ paddingTop: '20px' }} />
+
+            {/* Lines */}
+            <Line name="Historical" dataKey="historical" stroke={HISTORICAL_COLOR} strokeWidth={lineVisibility.historical ? 2.5 : 1.5} type="monotone" dot={lineVisibility.historical ? { r: 3, fill: HISTORICAL_COLOR } : false} activeDot={{ r: 5, strokeWidth: 1, stroke: '#fff', fill: HISTORICAL_COLOR }} connectNulls={false} strokeOpacity={lineVisibility.historical ? 1 : 0.2} isAnimationActive={false} />
+            <Line name="GraphCast" dataKey="graphcast" stroke={GRAPHCAST_COLOR} strokeWidth={lineVisibility.graphcast ? 2.5 : 1.5} type="monotone" dot={lineVisibility.graphcast ? { r: 3, fill: GRAPHCAST_COLOR } : false} activeDot={{ r: 5, strokeWidth: 1, stroke: '#fff', fill: GRAPHCAST_COLOR }} connectNulls={false} strokeOpacity={lineVisibility.graphcast ? 1 : 0.2} isAnimationActive={false} />
+            <Line name="NWP" dataKey="nwp" stroke={NWP_COLOR} strokeWidth={lineVisibility.nwp ? 2.5 : 1.5} type="monotone" dot={lineVisibility.nwp ? { r: 3, fill: NWP_COLOR } : false} activeDot={{ r: 5, strokeWidth: 1, stroke: '#fff', fill: NWP_COLOR }} connectNulls={false} strokeOpacity={lineVisibility.nwp ? 1 : 0.2} isAnimationActive={false} />
           </LineChart>
         </ResponsiveContainer>
       </div>

@@ -1,9 +1,10 @@
+import sys
+import os
+import logging
+from logging.handlers import RotatingFileHandler
 from flask import Flask
 from flask_cors import CORS
 from dotenv import load_dotenv
-import logging
-from logging.handlers import RotatingFileHandler
-import os
 from db.database_initializer import DatabaseInitializer
 
 # Import blueprints correctly
@@ -21,51 +22,71 @@ load_dotenv()
 # Initialize Flask app
 app = Flask(__name__)
 
-# Configure CORS properly - allow all origins for KML files to work with Google Maps
-# It's crucial that Google's servers can access our KML files
+# Configure CORS properly
 CORS(app, resources={r"/api/*": {"origins": "*", "supports_credentials": False}})
 
-# Configure logging
-logging.basicConfig(
-    level=logging.DEBUG,
-    format='%(asctime)s | %(name)s | %(levelname)s | %(message)s',
+# --- Logging Configuration ---
+
+# Create sensitive data filter instance
+sensitive_filter = SensitiveDataFilter()
+
+# Define log format
+log_formatter = logging.Formatter(
+    '%(asctime)s | %(name)s | %(levelname)s | %(message)s',
     datefmt='%Y-%m-%d %H:%M:%S'
 )
 
-#Create logs directory if it doesn't exist
+# Create logs directory if it doesn't exist
 if not os.path.exists('logs'):
     os.makedirs('logs')
 
-# Add file handler
+# Configure File Handler
 file_handler = RotatingFileHandler(
     'logs/app.log',
     maxBytes=1024 * 1024,  # 1MB
     backupCount=10
 )
-file_handler.setFormatter(logging.Formatter(
-    '%(asctime)s | %(name)s | %(levelname)s | %(message)s'
-))
+file_handler.setFormatter(log_formatter)
+# Set desired level for file output (e.g., INFO or DEBUG)
 file_handler.setLevel(logging.INFO)
-
-# Create sensitive data filter
-sensitive_filter = SensitiveDataFilter()
+# Apply the filter ONLY to the handler(s)
 file_handler.addFilter(sensitive_filter)
 
-# Add the handler to the root logger
+# Explicitly Configure Console Handler
+console_handler = logging.StreamHandler(sys.stdout) # Use sys.stdout for console
+console_handler.setFormatter(log_formatter)
+
+console_handler.setLevel(logging.DEBUG)
+console_handler.addFilter(sensitive_filter)
+
+# Configure Root Logger
+# Get root logger, set its base level (the lowest level any handler will process)
 root_logger = logging.getLogger('')
+root_logger.setLevel(logging.DEBUG) 
+
+if root_logger.hasHandlers():
+    root_logger.handlers.clear()
+
 root_logger.addHandler(file_handler)
-root_logger.addFilter(sensitive_filter)
+root_logger.addHandler(console_handler)
 
-# Specifically configure werkzeug logger
-werkzeug_logger = logging.getLogger('werkzeug')
-werkzeug_logger.addHandler(file_handler)
-werkzeug_logger.addFilter(sensitive_filter)
-
+# Configure Third-Party Loggers
+# Silence noisy library loggers by setting their level higher
+logging.getLogger("urllib3").setLevel(logging.WARNING)
+logging.getLogger("requests_cache").setLevel(logging.WARNING)
 # Set watchdog to ERROR level to reduce noise
 logging.getLogger("watchdog").setLevel(logging.ERROR)
 
-# Create a logger for the application
+# Configure Werkzeug logger (Flask's web server)
+werkzeug_logger = logging.getLogger('werkzeug')
+
+werkzeug_logger.setLevel(logging.INFO) # Or DEBUG if needed
+werkzeug_logger.propagate = True # Send to root logger handlers (which have the filter)
+
+# Create a logger for this specific application module (optional)
+# It will inherit level and handlers from the root logger
 logger = logging.getLogger(__name__)
+logger.info("Logging configured with sensitive data filter on handlers.")
 
 # Register blueprints
 app.register_blueprint(external_api_bp)
@@ -77,4 +98,6 @@ app.register_blueprint(charts_api_bp)
 db_initializer = DatabaseInitializer()
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5001)
+    # Use debug=True for development, but ensure it's False for production.
+    is_debug_mode = os.getenv('FLASK_DEBUG', 'false').lower() == 'true'
+    app.run(host="0.0.0.0", port=5001, debug=is_debug_mode)

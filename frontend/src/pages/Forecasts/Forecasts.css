@@ -1,192 +1,229 @@
-/* Forecasts.css */
-.forecasts-body {
-  background-color: white;
-  padding: 1.5rem;
-  border-radius: 0.5rem;
-  border: 1px solid rgb(229 231 235);
-  margin-bottom: 1.5rem;
-  width: 100%;
-}
+/* Airstorm-GFS/frontend/src/pages/Forecasts/Forecasts.css */
+/* Updated styles for consistency and modern practices */
 
-.forecasts-content {
-  width: 100%;
-  padding:1rem;
-}
+/* Use global layout classes from App.css where applicable */
+/* The .dashboard-container and .main-content classes should provide base layout */
 
-.content-title {
-  font-size: 1.25rem;
-  font-weight: 600;
-  color: rgb(31 41 55);
-  margin-bottom: 0.5rem;
-}
+/* Ensure controls container on this page aligns with global styles */
+/* The .controls-container class in App.css provides base flex layout */
+/* No specific overrides needed here unless Forecasts page has unique needs */
 
-.content-description {
-  font-size: 0.875rem;
-  color: rgb(75 85 99);
-  margin-bottom: 1.5rem;
-}
-
-/* Vertical Weather Grid Layout */
-.weather-grid-vertical {
+/* Style the right side controls specifically for this page */
+.forecast-controls-right {
   display: flex;
-  flex-direction: column;    /* Changed from row (default) to column */
-  gap: 1.5rem;              /* Maintains spacing between cards */
-  width: 100%;              /* Full width of container */
-  height: calc(100vh - 2rem); /* Takes up full viewport height minus some margin */
-  overflow-y: auto;         /* Changed from overflow-x to overflow-y for vertical scrolling */
-  padding: 0.5rem;          /* Padding around the entire grid */
-  scrollbar-width: thin;
-  scroll-behavior: smooth;
+  align-items: center;
+  gap: 1rem; /* Consistent gap */
+  margin-left: auto; /* Push to the right */
 }
 
-/* Customize scrollbar */
-.weather-grid-vertical::-webkit-scrollbar {
-  width: 6px;               /* Changed from height to width for vertical scrollbar */
-}
-
-.weather-grid-vertical::-webkit-scrollbar-track {
-  background: rgb(243 244 246);
-  border-radius: 3px;
-}
-
-.weather-grid-vertical::-webkit-scrollbar-thumb {
-  background: rgb(209 213 219);
-  border-radius: 3px;
-}
-
-.weather-grid-vertical::-webkit-scrollbar-thumb:hover {
-  background: rgb(156 163 175);
-}
-
-.weather-grid-vertical > * {
-  min-width: calc((100% - 3rem) / 3);    /* Sets minimum width of each card to 1/16 of container minus gaps */
-  max-width: calc((100% - 3rem) / 3);    /* Sets maximum width of each card to 1/16 of container minus gaps */
-  flex: 0 0 auto;                        /* Prevents cards from growing/shrinking and keeps them at fixed size */
-}
-
-/* Make weather cards take full width */
-.weather-grid-vertical > * {
-  width: 100%;             /* Cards take full width of container */
-  flex: 0 0 auto;          /* Prevents cards from growing/shrinking */
-}
-
-/* Remove the min-width and max-width constraints */
-.weather-grid-vertical > * {
-  min-width: unset;
-  max-width: unset;
-}
-
-/* Responsive adjustments */
-@media screen and (max-width: 768px) {
-  .weather-grid {
-    padding: 0.25rem;      /* Slightly less padding on mobile */
-  }
-}
-
-.locationLabel{
-  font-size: 1.25rem;
-  font-weight: 550;
-  color: black;
-  margin-top: 0.5rem;
-}
-
-.coordinatesLabel{
-  font-size: 1.25rem;
-  font-weight: 550;
-  color: black;
-  margin-top: 0.5rem;
-}
-
-/* Dropdown container */
-.saved-locations-dropdown {
+/* Location Selector Wrapper */
+.forecast-location-selector-wrapper {
   position: relative;
-  margin: 1rem 0;
-  width: 100%;
-  max-width: 400px;
+  display: inline-block;
+  min-width: 220px; /* Maintain minimum width */
 }
 
-/* Dropdown button styling */
-.dropdown-button {
+/* Location Selector Button - Align with general button/input styles */
+.forecast-location-selector-button {
   display: flex;
   align-items: center;
   justify-content: space-between;
   width: 100%;
-  padding: 0.75rem 1rem;
+  padding: 0.5rem 0.75rem; /* Consistent padding */
   background-color: white;
-  border: 1px solid rgb(209 213 219);
-  border-radius: 0.5rem;
-  color: rgb(31 41 55);
-  font-size: 0.9rem;
+  border: 1px solid var(--border-color); /* Use variable */
+  border-radius: 0.375rem; /* 6px */
+  color: rgb(31 41 55); /* text-gray-800 */
+  font-size: 0.875rem; /* text-sm */
   text-align: left;
   cursor: pointer;
   transition: all 0.2s ease;
 }
 
-.dropdown-button:hover {
-  background-color: rgb(243 244 246);
+.forecast-location-selector-button:hover {
+  background-color: rgb(249 250 251); /* bg-gray-50 */
+  border-color: rgb(209 213 219); /* border-gray-300 */
 }
 
-.dropdown-button:focus {
+.forecast-location-selector-button:focus {
   outline: none;
-  border-color: rgb(59 130 246);
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25);
+  border-color: rgb(59 130 246); /* focus:border-blue-500 */
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2); /* Focus ring */
 }
 
-/* Dropdown menu */
-.dropdown-menu {
+/* Text and icon inside the button */
+.forecast-location-selector-button span {
+  margin-left: 0.5rem;
+  flex-grow: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.forecast-location-selector-button .location-icon,
+.forecast-location-selector-button .dropdown-icon {
+  flex-shrink: 0;
+  color: rgb(107 114 128); /* text-gray-500 */
+}
+
+.forecast-location-selector-button .dropdown-icon {
+  transition: transform 0.2s ease;
+}
+
+.forecast-location-selector-button[aria-expanded='true'] .dropdown-icon {
+  transform: rotate(180deg);
+}
+
+/* Location Selector Dropdown Menu - Align with general dropdown styles */
+.forecast-location-selector-menu {
   position: absolute;
-  top: 100%;
-  left: 0;
-  z-index: 10;
-  width: 100%;
-  max-height: 250px;
+  top: calc(100% + 0.25rem);
+  right: 0; /* Align dropdown to the right */
+  z-index: 50; /* Ensure visibility */
+  width: 250px; /* Keep specific width or adjust as needed */
+  max-height: 300px;
   overflow-y: auto;
-  margin-top: 0.25rem;
   padding: 0.5rem 0;
   background-color: white;
-  border: 1px solid rgb(209 213 219);
-  border-radius: 0.5rem;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  border: 1px solid var(--border-color); /* Use variable */
+  border-radius: 0.5rem; /* 8px */
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); /* Standard shadow */
+  scrollbar-width: thin;
+  scrollbar-color: rgb(209 213 219) rgb(243 244 246); /* scrollbar-thumb scrollbar-track */
 }
 
-/* Individual dropdown items */
-.dropdown-item {
+/* Scrollbar styling for Webkit */
+.forecast-location-selector-menu::-webkit-scrollbar { width: 6px; }
+.forecast-location-selector-menu::-webkit-scrollbar-track { background: rgb(243 244 246); } /* bg-gray-100 */
+.forecast-location-selector-menu::-webkit-scrollbar-thumb { background: rgb(209 213 219); border-radius: 3px;} /* bg-gray-300 */
+.forecast-location-selector-menu::-webkit-scrollbar-thumb:hover { background: rgb(156 163 175); } /* hover:bg-gray-400 */
+
+/* Dropdown Item Styles */
+.location-option, .add-location-option {
   display: flex;
+  justify-content: space-between;
   align-items: center;
   width: 100%;
-  padding: 0.75rem 1rem;
-  color: rgb(31 41 55);
-  font-size: 0.9rem;
+  padding: 0.6rem 1rem; /* Consistent padding */
   text-align: left;
-  background: none;
   border: none;
+  background-color: transparent;
   cursor: pointer;
+  transition: background-color 0.15s ease;
+  font-size: 0.875rem; /* text-sm */
+  color: rgb(55 65 81); /* text-gray-700 */
 }
 
-.dropdown-item:hover {
-  background-color: rgb(243 244 246);
+.location-option:hover, .add-location-option:hover {
+  background-color: rgb(243 244 246); /* bg-gray-100 */
 }
 
-.dropdown-item span {
+.location-option.selected {
+  background-color: rgb(229 231 235); /* bg-gray-200 */
+  font-weight: 500; /* medium */
+}
+
+.location-option-content {
+  display: flex;
+  flex-direction: column;
+}
+
+.location-name {
+  font-weight: 500; /* medium */
+}
+
+.location-coords {
+  font-size: 0.75rem; /* text-xs */
+  color: rgb(107 114 128); /* text-gray-500 */
+}
+
+.location-favorite {
+  color: #f59e0b; /* text-amber-500 */
+  font-size: 1rem;
   margin-left: 0.5rem;
 }
 
-.location-coordinates {
-  margin-left: auto;
-  color: rgb(107 114 128);
-  font-size: 0.8rem;
+.location-divider {
+  height: 1px;
+  background-color: var(--border-color); /* Use variable */
+  margin: 0.5rem 0;
 }
 
-/* Empty state */
-.dropdown-empty {
+.add-location-option {
+    /* Styles inherited, specific overrides if needed */
+    color: rgb(59 130 246); /* text-blue-500 */
+    gap: 0.5rem; /* Space between icon and text */
+}
+
+/* Message States */
+.no-locations-message {
   padding: 0.75rem 1rem;
-  color: rgb(107 114 128);
+  color: rgb(107 114 128); /* text-gray-500 */
+  font-style: italic;
+  text-align: center;
+  font-size: 0.875rem;
+}
+
+.no-locations-message-center {
+  text-align: center;
+  padding: 3rem 1rem;
+  color: rgb(107 114 128); /* text-gray-500 */
+  font-size: 1rem; /* text-base */
+  font-style: italic;
+}
+
+.location-loading-placeholder {
+  padding: 0.5rem 0.75rem;
+  color: rgb(107 114 128); /* text-gray-500 */
+  font-style: italic;
+  border: 1px solid var(--border-color);
+  border-radius: 0.375rem; /* 6px */
+  background-color: rgb(249 250 251); /* bg-gray-50 */
+  min-width: 220px; /* Match selector width */
   text-align: center;
 }
 
-/* Responsive Design */
-@media screen and (max-width: 768px) {
-  .forecasts-body {
-    padding: 1rem;
-  }
+/* Error Message Style */
+.error-message {
+  padding: 0.75rem;
+  margin-bottom: 1rem;
+  color: #b91c1c; /* text-red-700 */
+  background-color: #fee2e2; /* bg-red-100 */
+  border: 1px solid #fecaca; /* border-red-200 */
+  border-radius: 0.375rem; /* 6px */
+  font-size: 0.875rem; /* text-sm */
+  text-align: center;
+}
+
+/* Forecasts Body Layout */
+/* Removed margin-top as controls-container handles spacing */
+.forecasts-body {
+  /* Add any specific body styles if needed, otherwise rely on main-content */
+}
+
+/* White Content Box - Should inherit from .white-main-content in App.css */
+/* No extra margin-top needed */
+
+/* Vertical Weather Grid Layout - Keep specific styles */
+.weather-grid-vertical {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem; /* Consistent gap */
+  width: 100%;
+  overflow-y: auto; /* Allow vertical scrolling if content overflows *//* Add slight padding around grid */
+  max-height: calc(100vh - var(--header-height) - 1.5rem); /* Example: Limit height to fit viewport minus header and controls, adjust as needed */
+  scrollbar-width: thin;
+  scroll-behavior: smooth;
+}
+
+/* Customize scrollbar - Keep styles */
+.weather-grid-vertical::-webkit-scrollbar { width: 6px; }
+.weather-grid-vertical::-webkit-scrollbar-track { background: rgb(243 244 246); border-radius: 3px; }
+.weather-grid-vertical::-webkit-scrollbar-thumb { background: rgb(209 213 219); border-radius: 3px; }
+.weather-grid-vertical::-webkit-scrollbar-thumb:hover { background: rgb(156 163 175); }
+
+/* Weather card sizing within the vertical grid - Keep styles */
+.weather-grid-vertical > * {
+  width: 100%;
+  flex: 0 0 auto; /* Prevent cards from shrinking */
 }

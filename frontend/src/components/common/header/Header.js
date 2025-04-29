@@ -1,6 +1,5 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import { UserButton } from '@clerk/clerk-react'; 
 // import { dark } from '@clerk/themes'
 import './Header.css';
 

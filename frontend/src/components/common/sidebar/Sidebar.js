@@ -8,7 +8,6 @@ import {
   Map,
   BarChart2,
   Bell,
-  FileText,
   Grid,
   Sticker,
   LogOut,
@@ -67,7 +66,6 @@ const Sidebar = () => {
   const { signOut } = useClerk();
   const { user } = useClerk();
   const { userProfile } = useUserProfile();
-  const isLoadingProfile = !userProfile || !userProfile.role;
   const [userRole, setUserRole] = useState(userProfile?.role ?? 'Loading…'); 
 
   const [alertCount, setAlertCount] = useState('0');
@@ -153,12 +151,9 @@ const Sidebar = () => {
       label: 'Dashboard',
       page: '/dashboard',
     },
-    { icon: <Map className="w-4 h-4" />, label: 'Maps', page: '/maps' },
-    // {
-    //   icon: <BarChart2 className="w-4 h-4" />,
-    //   label: 'Forecasts',
-    //   page: '/forecasts',
-    // },
+    { icon: <Map className="w-4 h-4" />, 
+      label: 'Maps', 
+      page: '/maps' },
     {
       icon: <Bell className="w-4 h-4" />,
       label: 'Alerts',
@@ -169,6 +164,11 @@ const Sidebar = () => {
       icon: <AreaChart className="w-4 h-4" />,
       label: 'Analysis',
       page: '/analysis',
+    },
+    {
+      icon: <BarChart2 className="w-4 h-4" />,
+      label: 'Forecasts',
+      page: '/forecasts',
     },
     {
       icon: <Aperture className="w-4 h-4" />,

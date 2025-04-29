@@ -79,8 +79,8 @@ const Settings = () => {
   }
 
   return (
-    <div className="dashboard-container">
-      <div className="main-content">
+    <div className="white-dashboard-container">
+      <div className="white-main-content">
         <div className="settings-container">
           {/* Banner image - displayed for all tabs */}
           <div className="settings-banner">

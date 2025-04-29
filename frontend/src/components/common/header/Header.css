@@ -3,9 +3,9 @@
   top: 0;
   right: 0;
   left: 16rem;
-  height: 77px;
+  height: 4.8125rem;
   background-color: white;
-  border-bottom: 1px solid rgb(229 231 235);
+  border-bottom: 0.0625rem solid rgb(229 231 235);
   z-index: 30;
   width: calc(100% - 16rem);
 }
@@ -17,10 +17,6 @@
   align-items: center;
   justify-content: space-between;
 }
-
-
-
-
 
 /* Media query for mobile devices */
 @media screen and (max-width: 768px) {
