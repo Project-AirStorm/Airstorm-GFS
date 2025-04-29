@@ -2,30 +2,29 @@
 
 /* Main footer container */
 .footer {
-    background-color: rgba(51,97,224,255);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 1rem 0;
-    width: 100%;
-    margin-top: auto; /* This pushes the footer to the bottom */
-  }
-  
-  .footer-container {
-    max-width: 1280px;
-    margin-left: auto;
-    margin-right: auto;
-    padding-left: 1rem;
-    padding-right: 1rem;
-    text-align: center;
-  }
-  
-  .footer-text {
-    font-size: 0.875rem;
-    color: rgb(255 255 255);
-    line-height: 1.25;
-  }
-  
-  .footer-company {
-    font-weight: 500;
-  }
+  background-color: rgba(51,97,224,255);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem 0;
+  width: 100%;
+  margin-top: auto; 
+}
+
+.footer-container {
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 1rem;
+  padding-right: 1rem;
+  text-align: center;
+}
+
+.footer-text {
+  font-size: 0.875rem;
+  color: rgb(255 255 255);
+  line-height: 1.25;
+}
+
+.footer-company {
+  font-weight: 500;
+}

@@ -1,22 +1,22 @@
 .map-controls {
   position: absolute;
-  top: calc(var(--header-height) + 20px);
-  left: 20px;
+  top: calc(var(--header-height) + 1.25rem);
+  left: 1.25rem;
   z-index: 10;
   background: rgba(0, 0, 0, 0.65);
   padding: 0.75rem;
   border-radius: 0.5rem; /* Matching main map container */
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 0.125rem 0.625rem rgba(0, 0, 0, 0.1);
 }
 
 .map-type-selector {
   padding: 0.625rem;
-  border: 1px solid rgba(255, 255, 255, 0.3);
+  border: 0.0625rem solid rgba(255, 255, 255, 0.3);
   border-radius: 0.5rem; /* Matching LocationPanel inputs */
   background: rgba(255, 255, 255, 0.1);
   font-size: 0.875rem;
   color: white;
-  width: 200px;
+  width: 12.5rem;
   cursor: pointer;
   transition: border-color 0.2s ease;
 }
@@ -28,7 +28,7 @@
 .map-type-selector:focus {
   outline: none;
   border-color: white;
-  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.1);
+  box-shadow: 0 0 0 0.125rem rgba(255, 255, 255, 0.1);
 }
 
 .map-type-selector option {

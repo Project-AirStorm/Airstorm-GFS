@@ -1,185 +1,220 @@
-// Forecasts.js
+// File: Airstorm-GFS/frontend/src/pages/Forecasts/Forecasts.js
+
 import PropTypes from 'prop-types';
-import OverviewSwitch from '../../components/specific/OverviewSwitch/OverviewSwitch';
-import ActionButtons from '../../components/specific/ActionButtons/ActionButtons';
-import GraphCastForecast from '../../components/specific/GraphCastForecast/GraphCastForecast';
 import './Forecasts.css';
 import axios from 'axios';
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { UserSession } from '../../utils/UserSession';
-import WeatherBox from '../../components/specific/WeatherBox/WeatherBox';
-import { ChevronDown, ChevronUp, MapPin } from 'lucide-react';
-
-
-/**
- * Forecasts page component that displays weather forecasts and predictions
- * @component
- * @param {Object} props - Component properties
- * @param {Function} props.setCurrentPage - Function to update current page in parent component
- * @returns {JSX.Element} Forecasts component
- */
+import WeatherBox from '../../components/specific/WeatherBox/WeatherBox'; // Import WeatherBox
+import { ChevronDown, ChevronUp, MapPin, Plus } from 'lucide-react';
+import Loader from '../../components/common/loader';
+import AddLocationPopup from '../../components/specific/AddLocationPopup/AddLocationPopup';
+import OverviewSwitch from '../../components/specific/OverviewSwitch/OverviewSwitch';
+import ActionButtons from '../../components/specific/ActionButtons/ActionButtons';
 
 const REACT_APP_API_URL = process.env.REACT_APP_API_URL;
 
-const Forecasts = ({ setCurrentPage }) => {
-  const { user } = UserSession(); // User session
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [userLocation, setUserLocation] = useState(null);
+// --- LocationSelector Component (Keep as defined previously) ---
+const LocationSelector = ({ locations, onSelectLocation, selectedLocation, isPopupOpen }) => {
   const [isOpen, setIsOpen] = useState(false);
-  const [savedLocations, setSavedLocations] = useState([]);
-  const [selectedLocation, setSelectedLocation] = useState(null);
-
-  const defaultLocation = {
-    latitude: 32.385219,
-    longitude: -93.762035,
-    city: "Shreveport",
-    state: "LA"
-
-  };
-
-  const handleClick = () => {
-    setIsOpen(!isOpen);
-  };
-
-  const selectLocation = (location) => {
-    setSelectedLocation(location);
-    setUserLocation({ 
-      latitude: location.latitude, 
-      longitude: location.longitude 
-    });
-    setIsOpen(false);
-  };
+  const dropdownRef = useRef(null);
+  const toggleDropdown = () => setIsOpen(!isOpen);
 
   useEffect(() => {
-    const fetchSavedLocations = () => {
-      try {
-        const storedLocations = localStorage.getItem('savedLocations');
-        if (storedLocations) {
-          const parsedLocations = JSON.parse(storedLocations);
-          setSavedLocations(parsedLocations);
-        } else {
-          // Initialize with a default location if none are saved
-          const initialLocations = [defaultLocation];
-          localStorage.setItem('savedLocations', JSON.stringify(initialLocations));
-          setSavedLocations(initialLocations);
-        }
-      } catch (error) {
-        console.error('Error fetching saved locations:', error);
-        setSavedLocations([defaultLocation]);
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsOpen(false);
       }
     };
+    if (isOpen && !isPopupOpen) { // Only listen when dropdown is open AND popup is closed
+      document.addEventListener('mousedown', handleClickOutside);
+    } else {
+      document.removeEventListener('mousedown', handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isOpen, isPopupOpen]); // Add isPopupOpen dependency
 
-    fetchSavedLocations();
-  }, []);
+  const getButtonText = () => {
+    if (!locations || locations.length === 0) return 'No Locations';
+    if (selectedLocation) return selectedLocation.name || `${selectedLocation.latitude?.toFixed(4)}, ${selectedLocation.longitude?.toFixed(4)}`;
+    return 'Select Location';
+  };
+
+  return (
+    <div className="forecast-location-selector-wrapper" ref={dropdownRef}>
+      <button className="forecast-location-selector-button" onClick={toggleDropdown} aria-expanded={isOpen}>
+        <MapPin size={16} className="location-icon" />
+        <span>{getButtonText()}</span>
+        {isOpen ? <ChevronUp size={16} className="dropdown-icon" /> : <ChevronDown size={16} className="dropdown-icon" />}
+      </button>
+      {isOpen && (
+        <div className="forecast-location-selector-menu">
+          {locations && locations.length > 0 ? (
+            locations.map((loc) => (
+              <button
+                key={`${loc.latitude}-${loc.longitude}`}
+                className={`location-option ${selectedLocation && selectedLocation.latitude === loc.latitude && selectedLocation.longitude === loc.longitude ? 'selected' : ''}`}
+                onClick={() => { onSelectLocation(loc); setIsOpen(false); }}
+              >
+                <div className="location-option-content">
+                  <span className="location-name">{loc.name || 'Unnamed Location'}</span>
+                  <span className="location-coords">{loc.latitude.toFixed(4)}, {loc.longitude.toFixed(4)}</span>
+                </div>
+                {loc.isFavorite && <span className="location-favorite">★</span>}
+              </button>
+            ))
+          ) : <div className="no-locations-message">No saved locations</div>}
+        </div>
+      )}
+    </div>
+  );
+};
+
+LocationSelector.propTypes = {
+    locations: PropTypes.arrayOf(PropTypes.shape({
+        name: PropTypes.string, latitude: PropTypes.number.isRequired, longitude: PropTypes.number.isRequired, isFavorite: PropTypes.bool
+    })).isRequired,
+    onSelectLocation: PropTypes.func.isRequired,
+    selectedLocation: PropTypes.shape({ name: PropTypes.string, latitude: PropTypes.number, longitude: PropTypes.number }),
+    isPopupOpen: PropTypes.bool.isRequired
+};
+// --- End LocationSelector Component ---
+
+
+const Forecasts = ({ setCurrentPage }) => {
+  const { user, isLoaded: userSessionLoaded } = UserSession();
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [currentDisplayLocationCoords, setCurrentDisplayLocationCoords] = useState(null);
+  const [allSavedLocations, setAllSavedLocations] = useState([]);
+  const [selectedLocation, setSelectedLocation] = useState(null);
+  const [fetchingLocations, setFetchingLocations] = useState(false);
+  const [showLocationPopup, setShowLocationPopup] = useState(false);
+  const [activeView, setActiveView] = useState('overview');
+  const [expandAllBoxes, setExpandAllBoxes] = useState(false); // State to control expansion
+
+  // --- Fetching Logic (Keep as is) ---
+  const fetchAllLocations = useCallback(async () => {
+    if (!user || !user.id) { setAllSavedLocations([]); setLoading(false); return; }
+    setFetchingLocations(true); setError(null);
+    try {
+        const response = await axios.get(`${REACT_APP_API_URL}/api/locations?userId=${user.id}`);
+        const locationsData = response.data || [];
+        const normalizedLocations = locationsData.map(location => ({
+             ...location, name: location.name || 'Unnamed Location', latitude: Number(location.latitude), longitude: Number(location.longitude), isFavorite: Boolean(location.isFavorite)
+        }));
+        setAllSavedLocations(normalizedLocations);
+        if (!selectedLocation && normalizedLocations.length > 0) {
+            setSelectedLocation(normalizedLocations[0]);
+            setCurrentDisplayLocationCoords({ latitude: normalizedLocations[0].latitude, longitude: normalizedLocations[0].longitude });
+        } else if (normalizedLocations.length === 0) {
+            setSelectedLocation(null); setCurrentDisplayLocationCoords(null);
+        } else if (selectedLocation && !normalizedLocations.some(loc => loc.latitude === selectedLocation.latitude && loc.longitude === selectedLocation.longitude)) {
+            const firstLoc = normalizedLocations.length > 0 ? normalizedLocations[0] : null;
+            setSelectedLocation(firstLoc); setCurrentDisplayLocationCoords(firstLoc ? { latitude: firstLoc.latitude, longitude: firstLoc.longitude } : null);
+        }
+    } catch (err) {
+        setError(`Could not fetch your saved locations: ${err.message}`); setAllSavedLocations([]); setSelectedLocation(null); setCurrentDisplayLocationCoords(null);
+    } finally {
+        setFetchingLocations(false); setLoading(false);
+    }
+  }, [user, selectedLocation]);
 
   useEffect(() => {
-    if ('geolocation' in navigator) {
-      const options = {
-        timeout: 10000, // 10 seconds timeout
-        maximumAge: 0,   // Don't use cached position
-        enableHighAccuracy: false // Don't need high accuracy for weather
-      };
-      
-      navigator.geolocation.getCurrentPosition(
-        // Success callback
-        (position) => {
-          const { latitude, longitude } = position.coords;
-          setUserLocation({ latitude, longitude });
-          setLoading(false);
-        },
-        
-        // Error callback
-        (error) => {
-          console.error('Error retrieving location:', error);
-          // Use default location when geolocation fails
-          setUserLocation(defaultLocation);
-          setError('Using default location. Could not access your location: ' + error.message);
-          setLoading(false);
-        },
-        options // Pass the options
-      );
-    } else {
-      console.error('Geolocation is not supported by your browser');
-      setUserLocation(defaultLocation);
-      setError('Geolocation is not supported by your browser. Using default location.');
-      setLoading(false);
+    if (userSessionLoaded) {
+      fetchAllLocations();
     }
-  }, []); // Empty dependency array to run once on mount
+  }, [userSessionLoaded, fetchAllLocations]);
+  // --- End Fetching Logic ---
 
-  if (loading) {
-    return <div>Loading...</div>;
+  const handleLocationSelected = (location) => {
+    setSelectedLocation(location);
+    setCurrentDisplayLocationCoords({
+      latitude: location.latitude,
+      longitude: location.longitude
+    });
+  };
+
+   const handleShowAddLocation = () => {
+       setShowLocationPopup(true);
+   };
+
+   const handleLocationAdded = () => {
+       setShowLocationPopup(false);
+       fetchAllLocations();
+   };
+
+   // ** Modified onViewChange Handler **
+   const handleViewChange = (view) => {
+       setActiveView(view);
+       // Set expandAllBoxes based on the selected view
+       setExpandAllBoxes(view === 'detailed');
+   };
+
+  if (!userSessionLoaded || loading) {
+    return <Loader size="medium" />;
   }
 
-
-
-  
-  
   return (
-    <div className="forecast-container">
-      <div className="main-content2">
-        
+    <div className="dashboard-container">
+      <div className="main-content">
+        <div className="controls-container">
+            <OverviewSwitch
+              activeView={activeView}
+              onViewChange={handleViewChange} // Use the modified handler
+            />
+            <div className="forecast-controls-right">
+              {fetchingLocations ? (
+                  <div className="location-loading-placeholder">Loading...</div>
+              ) : (
+                  <LocationSelector
+                      locations={allSavedLocations}
+                      selectedLocation={selectedLocation}
+                      onSelectLocation={handleLocationSelected}
+                      isPopupOpen={showLocationPopup}
+                  />
+              )}
+              <ActionButtons
+                  onTimeframeChange={() => {}}
+                  onAddBase={handleShowAddLocation}
+                  onLocationAdded={handleLocationAdded}
+               />
+            </div>
+        </div>
+
         {error && (
-          <div className="alert" style={{ color: 'orange', margin: '10px 0' }}>
-            {error}
+          <div className="alert error-message">
+            Error: {error}
           </div>
         )}
 
-        <div className='locationLabel'>
-          {selectedLocation ? 
-            `Location: ${selectedLocation.city}, ${selectedLocation.state}` : 
-            `Location: Latitude: ${userLocation?.latitude.toFixed(6)} Longitude: ${userLocation?.longitude.toFixed(6)}`}
-        </div>
-
-        <div className="saved-locations-dropdown">
-          <button 
-            onClick={handleClick} 
-            className="dropdown-button"
-            aria-expanded={isOpen}
-            aria-haspopup="true"
-          >
-            <span className="font-medium">Select Saved Location</span>
-            {isOpen ? (
-              <ChevronUp className="transition-transform duration-300" />
+        <div>
+          <div className="weather-grid-vertical">
+            {currentDisplayLocationCoords ? (
+              <WeatherBox
+                key={`${currentDisplayLocationCoords.latitude}-${currentDisplayLocationCoords.longitude}`}
+                latitude={currentDisplayLocationCoords.latitude}
+                longitude={currentDisplayLocationCoords.longitude}
+                expandAll={expandAllBoxes} // Pass the new prop here
+              />
             ) : (
-              <ChevronDown className="transition-transform duration-300" />
+                 !loading && allSavedLocations.length === 0 && (
+                    <div className="no-locations-message-center">
+                        Please add a location using the 'Add Location' button to view forecasts.
+                    </div>
+                 )
             )}
-          </button>
-          
-          {isOpen && (
-            <div className="dropdown-menu">
-              {savedLocations.length > 0 ? (
-                savedLocations.map((location, index) => (
-                  <button
-                    key={index}
-                    className="dropdown-item"
-                    onClick={() => selectLocation(location)}
-                  >
-                    <MapPin size={16} />
-                    <span>{location.city}, {location.state || 'Unknown'}</span>
-                    <span className="location-coordinates">
-                      ({location.latitude.toFixed(4)}, {location.longitude.toFixed(4)})
-                    </span>
-                  </button>
-                ))
-              ) : (
-                <div className="dropdown-empty">No saved locations</div>
-              )}
-            </div>
-          )}
+          </div>
         </div>
       </div>
-      
-      {/* Vertical scrolling weather grid */}
-      <div className="weather-grid-vertical">    
-        {userLocation && (
-          <WeatherBox
-            key={`${userLocation.latitude}-${userLocation.longitude}`}
-            latitude={userLocation.latitude}
-            longitude={userLocation.longitude}
-          />
-        )}
-      </div>
+       {/* Add Location Popup Modal */}
+       <AddLocationPopup
+            isOpen={showLocationPopup}
+            onClose={() => setShowLocationPopup(false)}
+            onLocationAdded={handleLocationAdded}
+        />
     </div>
   );
 };

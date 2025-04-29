@@ -1,31 +1,267 @@
-.hourCardHolder {
-    display: flex;
-    flex-direction: row;
-    flex-wrap: nowrap;
-    overflow-x: auto;
-    gap: 0.5rem;
-    padding: 0.5rem 0;
-}
+/* ======================================== */
+/* General Forecast Layout & Containers     */
+/* ======================================== */
 
-.hour-card{
-    border-radius: 0.75rem;
-    padding: 1.5rem;
-    color: rgb(0, 0, 0);
-    background-color: white;
+.forecast-container {
+    font-family: sans-serif; /* Example font */
+    padding: 15px;
+    background-color: #f0f4f8; /* Light background for the overall forecast area */
+    border-radius: 8px;
+    max-width: 900px; /* Example max width */
+    margin: 20px auto; /* Center the container */
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  }
+  
+  .forecast-section-title {
+    font-size: 1.4em;
+    font-weight: bold;
+    color: #333;
+    margin-bottom: 15px;
+    padding-bottom: 5px;
+    border-bottom: 2px solid #e0e0e0;
+  }
+  
+  /* ======================================== */
+  /* Daily Forecast Styles (Example)        */
+  /* ======================================== */
+  
+  .daily-forecast-holder {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); /* Responsive grid */
+    gap: 15px;
+    margin-bottom: 25px;
+  }
+  
+  .day-card {
+    background-color: #ffffff;
+    border-radius: 8px;
+    padding: 15px;
+    text-align: center;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+  
+  .day-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.12);
+  }
+  
+  .day-card .day-name {
+    font-weight: bold;
+    font-size: 1em;
+    color: #555;
+    margin-bottom: 5px;
+  }
+  
+  .day-card .day-date {
+    font-size: 0.8em;
+    color: #777;
+    margin-bottom: 10px;
+  }
+  
+  .day-card .day-icon svg { /* Style the main weather icon */
+    width: 40px;
+    height: 40px;
+    margin: 5px auto 10px auto;
+    color: #4a90e2; /* Example icon color */
+  }
+  
+  .day-card .day-temp-high {
+    font-size: 1.1em;
+    font-weight: bold;
+    color: #333;
+  }
+  
+  .day-card .day-temp-low {
+    font-size: 0.9em;
+    color: #666;
+    margin-bottom: 8px;
+  }
+  
+  .day-card .day-precip-prob {
+    font-size: 0.8em;
+    color: #1e40af; /* Blueish for rain prob */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+  }
+  
+  
+  /* ======================================== */
+  /* Hourly Forecast Styles (HourCard.css Ref)*/
+  /* ======================================== */
+  /* These styles are relevant to HourCard.js */
+  
+  .hourCardHolder {
+    display: flex; /* Use flexbox for horizontal layout */
+    overflow-x: auto; /* Allow horizontal scrolling */
+    padding: 15px 0; /* Padding top/bottom */
+    gap: 10px; /* Space between cards */
+    /* Add scrollbar styling if desired */
+    scrollbar-width: thin; /* Firefox */
+    scrollbar-color: #ccc #f0f0f0; /* Firefox */
+  }
+  /* Webkit scrollbar styling */
+  .hourCardHolder::-webkit-scrollbar {
+    height: 8px;
+  }
+  .hourCardHolder::-webkit-scrollbar-track {
+    background: #f0f0f0;
+    border-radius: 4px;
+  }
+  .hourCardHolder::-webkit-scrollbar-thumb {
+    background-color: #ccc;
+    border-radius: 4px;
+    border: 2px solid #f0f0f0;
+  }
+  .hourCardHolder::-webkit-scrollbar-thumb:hover {
+    background-color: #aaa;
+  }
+  
+  
+  .hour-card {
+    flex: 0 0 auto; /* Prevent cards from shrinking/growing */
+    width: 90px; /* Fixed width for each card */
+    background-color: #ffffff;
+    border-radius: 6px;
+    padding: 10px 8px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.07);
     display: flex;
     flex-direction: column;
-    margin: 0.5rem 0;
-    width: 100px;
     align-items: center;
-}
-
-.hour{
-    align-self: center;
-    font-weight: 500;
-    white-space: nowrap;
+    font-size: 0.85em; /* Base font size for card content */
+    border: 1px solid #e5e7eb;
+  }
+  
+  .hour-card .hour {
+    font-weight: bold;
+    font-size: 0.9em;
+    color: #374151;
+    margin-bottom: 6px;
+  }
+  
+  .hour-card .hour-icon svg {
+    width: 28px; /* Adjust size as needed */
+    height: 28px;
+    margin-bottom: 6px;
+    color: #4a90e2; /* Default/fallback icon color */
+  }
+  /* Specific icon colors (optional) */
+  .hour-card .hour-icon .sun-icon {
+    color: #f59e0b; /* Sunny */
+  }
+  
+  .hour-card .hour-temp {
+    font-weight: bold;
+    font-size: 1.1em; /* Make temp slightly larger */
+    color: #111827;
+    margin-bottom: 4px;
+  }
+  
+  /* Styling for the smaller data points */
+  .hour-card .hour-data-point {
+    display: flex;
+    align-items: center;
+    width: 100%; /* Ensure takes full width for centering/spacing */
+    justify-content: flex-start; /* Align items to the start */
+    font-size: 0.8em;
+    margin-top: 3px;
+    color: #4b5563;
+    gap: 4px; /* Space between icon and text */
+    white-space: nowrap; /* Prevent wrapping */
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  
+  /* Align icon and text */
+  .hour-data-point svg {
+    flex-shrink: 0; /* Prevent icon from shrinking */
+    margin-right: 3px; /* Consistent spacing after icon */
+  }
+  
+  /* Specific data point styles (colors set inline now, but could be here) */
+  .hour-humidity { /* Styles specific to humidity if needed */ }
+  .hour-precip { /* Styles specific to precipitation if needed */ }
+  .hour-cloud { /* Styles specific to cloud cover if needed */ }
+  .hour-wind { /* Styles specific to wind if needed */ }
+  .hour-pressure { /* Styles specific to pressure if needed */ }
+  .hour-visibility { /* Styles specific to visibility if needed */ }
+  
+  /* Styles for the placeholder when precipitation chance is 0% (if used) */
+  .hour-precip--no-chance {
+    height: calc(0.8em + 6px); /* Match approximate height: font-size + margin-top */
+    /* visibility: hidden; */ /* Keeps space but content is not visible */
+    /* Alternative: display: none; if space doesn't need preserving */
+  }
+  
+  
+  /* ======================================== */
+  /* Loading Skeleton Styles                */
+  /* ======================================== */
+  /* Shared styles for loading placeholders */
+  .loading-line {
+    background-color: #e0e0e0;
+    border-radius: 4px;
+    animation: pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+  .loading-placeholder-icon-small-circle {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background-color: #e0e0e0;
+      margin-bottom: 6px;
+      animation: pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+  }
+  
+  /* Specific placeholder sizes used in HourCard skeleton */
+  .loading-placeholder-hour { height: 0.9em; width: 50%; margin-bottom: 6px; }
+  .loading-placeholder-temp-small { height: 1.1em; width: 40%; margin-bottom: 4px; }
+  .loading-placeholder-extra-small { height: 0.8em; width: 70%; margin-top: 3px; }
+  
+  
+  /* Hour card specific loading styles */
+  .hour-card--loading {
+    /* Styles for the loading card container */
+    background-color: #ffffff;
+    border: 1px solid #e5e7eb;
+    /* Ensure loading items are centered */
+     display: flex;
+     flex-direction: column;
+     align-items: center;
+  }
+  
+  /* Adjust loading container if needed */
+  .hourCardHolder .hour-card--loading {
+      padding: 10px 8px; /* Match normal card padding */
+  }
+  
+  /* ======================================== */
+  /* Error Message Styles                   */
+  /* ======================================== */
+  
+  .hour-card-error,
+  .hour-card-no-data {
+    color: #ef4444; /* Red color for errors */
+    font-size: 0.9em;
+    padding: 20px;
     text-align: center;
-}
+    background-color: #fff1f2; /* Light red background */
+    border: 1px solid #fecaca;
+    border-radius: 6px;
+    margin: 10px; /* Add some margin */
+    width: 100%; /* Ensure takes full width within its container */
+    box-sizing: border-box;
+  }
+  
+  .hour-card-no-data {
+      color: #6b7280; /* Grey for no data */
+      background-color: #f3f4f6;
+      border-color: #e5e7eb;
+  }
 
-.hour-icon {
-    margin: 0.5rem 0;
-}
+  
