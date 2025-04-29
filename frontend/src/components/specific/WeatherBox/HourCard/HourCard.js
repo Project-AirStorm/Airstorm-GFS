@@ -17,7 +17,7 @@ const HourCard = ({
     latitude,
     longitude,
     date
-}) => { 
+}) => {
   const [hourlyForecastData, setHourlyForecastData] = useState(null);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -31,7 +31,7 @@ const HourCard = ({
                 setLoading(false);
                 return;
             }
-            
+
             const response = await axios.get(`https://customer-api.open-meteo.com/v1/forecast?apikey=${process.env.REACT_APP_OPENMETEO_API_KEY}`,
                 {
                     params: {
@@ -48,7 +48,7 @@ const HourCard = ({
                     ],
                     temperature_unit: 'fahrenheit',
                     forecast_days: 1,
-                    timezone: 'auto',
+                    timezone: 'GMT', // Request times in UTC (Zulu)
                     models: 'best_match'
                     },
                 }
@@ -100,23 +100,26 @@ const HourCard = ({
 
             // Check if hourly data exists in the response
             if (response.data && response.data.hourly) {
-                const hourlyData = response.data.hourly.time.map((time, index) => ({
-                    time: new Date(time).toLocaleTimeString('en-US', {
-                      hour: 'numeric',
-                      hour12: true
-                    }),
-                    temperature: Math.round(response.data.hourly.temperature_2m[index]),
-                    relative_humidity: response.data.hourly.relative_humidity_2m ? 
-                        Math.round(response.data.hourly.relative_humidity_2m[index]) : null,
-                    precipitation_probability: response.data.hourly.precipitation_probability ? 
-                        Math.round(response.data.hourly.precipitation_probability[index]) : null,
-                    surface_pressure: response.data.hourly.surface_pressure ? 
-                        Math.round(response.data.hourly.surface_pressure[index]) : null,
-                    visibility: response.data.hourly.visibility ? 
-                        Math.round(response.data.hourly.visibility[index]) : null,
-                    weatherCode: calculateIcon(response.data.hourly.weather_code[index]),
-                }));
-                
+                const hourlyData = response.data.hourly.time.map((time, index) => {
+                    const utcDate = new Date(time); // Parse the ISO string (already in UTC)
+                    const hours = String(utcDate.getUTCHours()).padStart(2, '0'); // Get UTC hours (0-23)
+                    const minutes = String(utcDate.getUTCMinutes()).padStart(2, '0'); // Get UTC minutes
+                    const formattedTime = `${hours}:${minutes}Z`; // Format as HH:mmZ
+                    return {
+                        time: formattedTime, // Use the new UTC formatted time
+                        temperature: Math.round(response.data.hourly.temperature_2m[index]),
+                        relative_humidity: response.data.hourly.relative_humidity_2m ?
+                            Math.round(response.data.hourly.relative_humidity_2m[index]) : null,
+                        precipitation_probability: response.data.hourly.precipitation_probability ?
+                            Math.round(response.data.hourly.precipitation_probability[index]) : null,
+                        surface_pressure: response.data.hourly.surface_pressure ?
+                            Math.round(response.data.hourly.surface_pressure[index]) : null,
+                        visibility: response.data.hourly.visibility ?
+                            Math.round(response.data.hourly.visibility[index]) : null,
+                        weatherCode: calculateIcon(response.data.hourly.weather_code[index]),
+                    };
+                });
+
                 setHourlyForecastData(hourlyData);
             } else {
                 setError('Invalid API response format');
