@@ -457,7 +457,7 @@ def get_forecast():
             "precipitation_unit": "inch",
             "forecast_days": 16,
             "timezone": "auto",
-            "models": "best_match",
+            "models": "gfs_graphcast025",
         }
 
         # Make the request to Open-Meteo

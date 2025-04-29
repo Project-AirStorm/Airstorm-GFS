@@ -152,3 +152,91 @@
     transform: translateY(0);
   }
 }
+
+/* --- Loading Skeleton Styles for WeatherBox --- */
+
+/* Apply pulsing animation to the loading box */
+.weather-box.weather-box--loading {
+  background-color: #e5e7eb; /* Lighter gray background for loading state */
+  border-color: #d1d5db; /* Slightly darker border */
+  box-shadow: none; /* Remove shadow during loading */
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* General loading line style */
+.weather-box--loading .loading-line {
+  background-color: rgba(107, 114, 128, 0.3); /* Gray loading placeholder color */
+  border-radius: 0.25rem; /* 4px */
+}
+
+/* Container for placeholder elements to match spacing */
+.weather-box--loading .loading-placeholder-container {
+   display: flex;
+   align-items: center;
+   justify-content: center;
+   flex-direction: column; /* Stack date elements */
+}
+/* Adjust specific containers */
+.weather-box--loading .dayOfWeek.loading-placeholder-container {
+    min-width: 60px;
+    margin-right: 1.5rem;
+    gap: 0.25rem; /* Space between weekday and daynum */
+}
+.weather-box--loading .weatherIcon.loading-placeholder-container {
+    margin-right: 1.5rem;
+}
+.weather-box--loading .tempFormatting.loading-placeholder-container {
+    flex-direction: row; /* Temps are row */
+    align-items: baseline;
+    gap: 0.25rem;
+}
+.weather-box--loading .openButton.loading-placeholder-container {
+    margin-left: auto;
+}
+
+
+/* Specific placeholder styles */
+.weather-box--loading .loading-placeholder-weekday {
+  height: 1.125rem; /* Match font size */
+  width: 80%;
+  margin-bottom: 0.125rem; /* Small space */
+}
+.weather-box--loading .loading-placeholder-daynum {
+  height: 1rem; /* Match font size */
+  width: 50%;
+}
+
+.weather-box--loading .loading-placeholder-icon-circle {
+  height: 50px; /* Match icon size */
+  width: 50px; /* Match icon size */
+  background-color: rgba(107, 114, 128, 0.3);
+  border-radius: 50%;
+}
+
+.weather-box--loading .loading-placeholder-temp {
+  height: 1.25rem; /* Match font size */
+  width: 2rem; /* Approx width of 'XX°' */
+}
+.weather-box--loading .loading-placeholder-slash {
+  height: 1.125rem;
+  width: 0.5rem;
+}
+
+.weather-box--loading .loading-placeholder-button-circle {
+  height: 30px; /* Approx button size */
+  width: 30px;
+  background-color: rgba(107, 114, 128, 0.3);
+  border-radius: 50%;
+  margin: 0.5rem; /* Match button padding */
+}
+
+
+/* Animation Keyframes (Copy from WeatherCard.css if not already global) */
+@keyframes pulse {
+  0%, 100% {
+      opacity: 1;
+  }
+  50% {
+      opacity: .6; /* Slightly different opacity */
+  }
+}
