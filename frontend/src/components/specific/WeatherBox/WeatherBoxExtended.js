@@ -1,50 +1,44 @@
-import React from 'react';
-import { useState } from 'react';
+import React, { useState, useEffect } from 'react'; // Added useEffect
 import './WeatherBoxExtended.css';
 import HourCard from './HourCard/HourCard.js';
 
-const WeatherBoxExtended = ({day, latitude, longitude}) =>{
-    const [userLocation, setUserLocation] = useState({latitude, longitude});
-    const [loading, setLoading] = useState(false); // Changed to false since we already have location
+const WeatherBoxExtended = ({ day, latitude, longitude }) => {
+    const [userLocation, setUserLocation] = useState({ latitude, longitude });
+    const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
 
-    const defaultLocation = {
-        latitude: 32.385219,
-        longitude: -93.762035
-    };
+    // No need for defaultLocation here as coords are passed down
 
-    // Since we're already receiving latitude and longitude as props, 
-    // we don't need to get location again. We'll use the provided coords.
-    React.useEffect(() => {
-        // Update userLocation if props change
+    useEffect(() => {
         if (latitude && longitude) {
             setUserLocation({ latitude, longitude });
             setLoading(false);
         } else {
-            setUserLocation(defaultLocation);
-            setError('Using default location. No coordinates provided.');
+            // Handle missing coords if necessary, though parent should ensure they exist
+            setError('Missing coordinates for detailed view.');
             setLoading(false);
         }
-    }, [latitude, longitude]); // Depend on latitude and longitude props
+    }, [latitude, longitude]);
 
-    if (loading) {
-        return <div>Loading...</div>;
-    }
-    
-    if (error) {
-        return <div>{error}</div>;
-    } 
+    if (loading) { return <div>Loading details...</div>; }
+    if (error) { return <div>{error}</div>; }
+
+    // *** Use day.originalDateStr for a more unique key if available ***
+    // Otherwise, fallback to day.date (numeric day)
+    const dateKey = day.originalDateStr ? new Date(day.originalDateStr).toISOString().split('T')[0] : day.date;
 
     return (
         <div className='WeatherBoxExtended'>
             <h3>Detailed forecast for {day.dayOfWeek}, {day.date}</h3>
-            {/* You can add HourCard components here when they're ready */}
             {userLocation && (
-                <HourCard 
-                key={`${userLocation.latitude}-${userLocation.longitude}-${day.date}`}
-                latitude={userLocation.latitude}
-                longitude={userLocation.longitude}
-                date={day.date}
+                <HourCard
+                    // Use a potentially more unique key combining location and the full date
+                    key={`${userLocation.latitude}-${userLocation.longitude}-${dateKey}`}
+                    latitude={userLocation.latitude}
+                    longitude={userLocation.longitude}
+                    // Pass the date string expected by HourCard (might need adjustment)
+                    // Assuming HourCard needs YYYY-MM-DD or similar from originalDateStr
+                    date={dateKey}
                 />
             )}
         </div>
