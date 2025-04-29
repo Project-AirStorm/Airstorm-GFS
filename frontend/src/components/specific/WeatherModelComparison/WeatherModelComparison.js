@@ -362,7 +362,7 @@ const WeatherModelComparison = () => {
       </div>
 
       {/* Content Area: Shows message, loader, error, or the main grid */}
-      <div className="analysis-content-area">
+      <div>
       {/* Show initial loader if context OR component is loading */}
       {(isLocationLoading || (loading && location)) && !error ? (
            <div className="analysis-card loading-container">

@@ -272,10 +272,11 @@ ${alert.instruction ? `Instructions: ${alert.instruction}` : ''}
 
   const toggleExpandAll = () => {
     if (Object.keys(expandedAlerts).length === processedAlerts.length) {
-      // If all are expanded, collapse all
+      // If all are expanded, collapse all and switch to overview
       setExpandedAlerts({});
+      setActiveView('overview'); // Switch to overview when collapsing all
     } else {
-      // Expand all
+      // Expand all and switch to detailed view
       const newExpandedState = {};
       processedAlerts.forEach((alert, index) => {
         newExpandedState[
@@ -283,8 +284,11 @@ ${alert.instruction ? `Instructions: ${alert.instruction}` : ''}
         ] = true;
       });
       setExpandedAlerts(newExpandedState);
+      setActiveView('detailed'); // Switch to detailed when expanding all
     }
   };
+
+  
 
   // Format text with paragraphs
   const formatTextWithParagraphs = (text) => {
@@ -301,10 +305,27 @@ ${alert.instruction ? `Instructions: ${alert.instruction}` : ''}
     <div className="dashboard-container">
       <div className="main-content">
         <div className="controls-container">
-          <OverviewSwitch
-            activeView={activeView}
-            onViewChange={setActiveView}
-          />
+        <OverviewSwitch
+          activeView={activeView}
+          onViewChange={(view) => {
+            // Set the active view
+            setActiveView(view);
+            
+            // When switching to detailed view, expand all alerts
+            if (view === 'detailed') {
+              const newExpandedState = {};
+              processedAlerts.forEach((alert, index) => {
+                newExpandedState[
+                  `${alert.location_name}-${alert.event}-${index}`
+                ] = true;
+              });
+              setExpandedAlerts(newExpandedState);
+            } else {
+              // When switching to overview, collapse all alerts
+              setExpandedAlerts({});
+            }
+          }}
+        />
 
           <ActionButtons
             onTimeframeChange={() => console.log('Timeframe changed')}
