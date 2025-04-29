@@ -25,7 +25,8 @@ const WeatherBox = ({ latitude, longitude, expandAll }) => {
 
   // Function to calculate weather icons (no change)
   function calculateIcon(code){
-    if(code===0){ return <TiWeatherSunny size={50} />; }
+    // UPDATED: Added className="sun-icon"
+    if(code===0){ return <TiWeatherSunny size={50} className="sun-icon" />; }
     else if (code ===1 || code===2 || code=== 3){ return <TiWeatherPartlySunny size={50}/>; }
     else if (code ===45 || code===48){ return <LuCloudFog size={50}/>; }
     else if (code ===51 || code===53 || code=== 55){ return <RiDrizzleLine size={50}/>; }

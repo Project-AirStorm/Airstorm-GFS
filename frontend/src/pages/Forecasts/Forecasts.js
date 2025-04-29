@@ -190,7 +190,7 @@ const Forecasts = ({ setCurrentPage }) => {
           </div>
         )}
 
-        <div className="white-main-content">
+        <div>
           <div className="weather-grid-vertical">
             {currentDisplayLocationCoords ? (
               <WeatherBox

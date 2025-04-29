@@ -23,6 +23,7 @@ const HourCard = ({
   const [loading, setLoading] = useState(true);
 
   // Use proper useEffect hook instead of useState
+  // Use proper useEffect hook instead of useState
   useEffect(() => {
     const fetchWeatherData = async () => {
         try {
@@ -32,81 +33,70 @@ const HourCard = ({
                 return;
             }
 
+            // Log which date is being fetched
+            console.log(`HourCard: Fetching hourly data for date: ${date}`); // <<< ADDED LOG
+
             const response = await axios.get(`https://customer-api.open-meteo.com/v1/forecast?apikey=${process.env.REACT_APP_OPENMETEO_API_KEY}`,
                 {
                     params: {
                         latitude,
                         longitude,
-                        date,
+                        date, // The specific date (e.g., '2025-05-01')
                     hourly: [
                         'temperature_2m',
                         'relative_humidity_2m',
                         'precipitation_probability',
-                        'weather_code',
+                        'weather_code', // We need this
                         'surface_pressure',
                         'visibility'
                     ],
                     temperature_unit: 'fahrenheit',
-                    forecast_days: 1,
-                    timezone: 'GMT', // Request times in UTC (Zulu)
+                    forecast_days: 1, // Fetching only 1 day's worth of hourly data
+                    timezone: 'GMT',
                     models: 'best_match'
                     },
                 }
             );
 
+            // --- ADDED CONSOLE LOGS ---
+            console.log('HourCard: Raw API Response Data:', response.data);
+            if (response.data && response.data.hourly) {
+                 console.log('HourCard: Hourly Weather Codes Received:', response.data.hourly.weather_code);
+                 console.log('HourCard: Corresponding Hourly Times:', response.data.hourly.time);
+            } else {
+                 console.warn('HourCard: Hourly data not found in response.');
+            }
+            // --- END ADDED CONSOLE LOGS ---
+
+
             function calculateIcon(code) {
-                if(code===0){
-                    return <TiWeatherSunny size={30} />;
-                }
-                else if (code ===1 || code===2 || code=== 3){
-                    return <TiWeatherPartlySunny size={30}/>
-                }
-                else if (code ===45 || code===48){
-                    return <LuCloudFog size={30}/>
-                }
-                else if (code ===51 || code===53 || code=== 55){
-                    return <RiDrizzleLine size={30}/>
-                }
-                else if (code ===56 || code===57){
-                    return <TiWeatherSnow size={30}/>
-                }
-                else if (code ===61 || code===63 || code=== 65){
-                    return <TiWeatherDownpour size={30}/>
-                }
-                else if (code ===66 || code===67){
-                    return <TiWeatherSnow size={30}/>
-                }
-                else if (code ===71 || code===73 || code===75){
-                    return <TiWeatherSnow size={30}/>
-                }
-                else if (code ===77){
-                    return <TiWeatherSnow size={30}/>
-                }
-                else if (code ===80 || code===81 || code===82){
-                    return <TiWeatherDownpour size={30}/>
-                }
-                else if (code ===85|| code===86){
-                    return <TiWeatherSnow size={30}/>
-                }
-                else if (code ===95){
-                    return <TiWeatherStormy size={30}/>
-                }
-                else if (code=== 96||code===99){
-                    return <RiHailLine size={30}/>
-                }
+               // ... (calculateIcon function remains the same)
+                 if(code===0){ return <TiWeatherSunny size={30} className="sun-icon"/>; }
+                else if (code ===1 || code===2 ){ return <TiWeatherPartlySunny size={30}/> }
+                else if (code ===3 || code===48){ return <LuCloudFog size={30}/> }
+                else if (code ===51 || code===53 || code=== 55){ return <RiDrizzleLine size={30}/> }
+                else if (code ===56 || code===57){ return <TiWeatherSnow size={30}/> }
+                else if (code ===61 || code===63 || code=== 65){ return <TiWeatherDownpour size={30}/> }
+                else if (code ===66 || code===67){ return <TiWeatherSnow size={30}/> }
+                else if (code ===71 || code===73 || code===75){ return <TiWeatherSnow size={30}/> }
+                else if (code ===77){ return <TiWeatherSnow size={30}/> }
+                else if (code ===80 || code===81 || code===82){ return <TiWeatherDownpour size={30}/> }
+                else if (code ===85|| code===86){ return <TiWeatherSnow size={30}/> }
+                else if (code ===95){ return <TiWeatherStormy size={30}/> }
+                else if (code=== 96||code===99){ return <RiHailLine size={30}/> }
                 // Default icon for unknown codes
                 return <TiWeatherPartlySunny size={30}/>
             }
 
             // Check if hourly data exists in the response
-            if (response.data && response.data.hourly) {
+            if (response.data && response.data.hourly && response.data.hourly.time) { // Added check for time array
                 const hourlyData = response.data.hourly.time.map((time, index) => {
-                    const utcDate = new Date(time); // Parse the ISO string (already in UTC)
-                    const hours = String(utcDate.getUTCHours()).padStart(2, '0'); // Get UTC hours (0-23)
-                    const minutes = String(utcDate.getUTCMinutes()).padStart(2, '0'); // Get UTC minutes
-                    const formattedTime = `${hours}:${minutes}Z`; // Format as HH:mmZ
+                    const utcDate = new Date(time);
+                    const hours = String(utcDate.getUTCHours()).padStart(2, '0');
+                    const minutes = String(utcDate.getUTCMinutes()).padStart(2, '0');
+                    const formattedTime = `${hours}:${minutes}Z`;
                     return {
-                        time: formattedTime, // Use the new UTC formatted time
+                        time: formattedTime,
                         temperature: Math.round(response.data.hourly.temperature_2m[index]),
                         relative_humidity: response.data.hourly.relative_humidity_2m ?
                             Math.round(response.data.hourly.relative_humidity_2m[index]) : null,
@@ -116,13 +106,14 @@ const HourCard = ({
                             Math.round(response.data.hourly.surface_pressure[index]) : null,
                         visibility: response.data.hourly.visibility ?
                             Math.round(response.data.hourly.visibility[index]) : null,
+                        // Pass the specific hourly weather code
                         weatherCode: calculateIcon(response.data.hourly.weather_code[index]),
                     };
                 });
 
                 setHourlyForecastData(hourlyData);
             } else {
-                setError('Invalid API response format');
+                setError('Invalid API response format or missing hourly data');
             }
         }
         catch(err) {
@@ -140,7 +131,8 @@ const HourCard = ({
         setLoading(false);
         setError('Missing location or date data');
     }
-  }, [latitude, longitude, date]);
+    // Ensure API key environment variable check is done elsewhere if needed
+  }, [latitude, longitude, date]); // Dependencies remain the same
 
   if(loading) {
     return <div>Loading hourly forecast...</div>;

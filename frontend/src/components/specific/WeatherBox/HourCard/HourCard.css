@@ -1,31 +1,78 @@
+/* Airstorm-GFS/frontend/src/components/specific/WeatherBox/HourCard/HourCard.css */
+
+/* Container for the horizontally scrolling hour cards */
 .hourCardHolder {
     display: flex;
     flex-direction: row;
     flex-wrap: nowrap;
-    overflow-x: auto;
-    gap: 0.5rem;
-    padding: 0.5rem 0;
+    overflow-x: auto; /* Enable horizontal scrolling */
+    gap: 0.75rem; /* Consistent gap */
+    padding: 0.75rem 0.25rem; /* Add padding top/bottom and slight horizontal padding */
+    scrollbar-width: thin; /* Firefox */
+    scrollbar-color: rgb(209 213 219) transparent; /* Scrollbar colors (thumb track) */
+    scroll-behavior: smooth;
 }
 
-.hour-card{
-    border-radius: 0.75rem;
-    padding: 1.5rem;
-    color: rgb(61, 42, 42);
+/* Webkit scrollbar styling */
+.hourCardHolder::-webkit-scrollbar {
+    height: 6px; /* Adjust height */
+}
+.hourCardHolder::-webkit-scrollbar-track {
+    background: transparent; /* Make track transparent */
+}
+.hourCardHolder::-webkit-scrollbar-thumb {
+    background-color: rgb(209 213 219); /* Gray thumb */
+    border-radius: 3px;
+}
+.hourCardHolder::-webkit-scrollbar-thumb:hover {
+    background-color: rgb(156 163 175); /* Darker gray on hover */
+}
+
+
+/* Individual Hour Card */
+.hour-card {
     background-color: white;
+    border-radius: 0.5rem; /* Slightly smaller radius for smaller cards */
+    border: 1px solid var(--border-color, rgb(229 231 235)); /* Use variable, fallback */
+    padding: 0.75rem; /* Reduced padding */
+    color: rgb(55 65 81); /* text-gray-700 */
     display: flex;
     flex-direction: column;
-    margin: 0.5rem 0;
-    width: 6.25rem;
-    align-items: center;
+    align-items: center; /* Center content */
+    min-width: 5rem; /* Keep min-width */
+    flex-shrink: 0; /* Prevent shrinking */
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05); /* Subtle shadow */
 }
 
-.hour{
-    align-self: center;
-    font-weight: 500;
+/* Time display (e.g., 14:00Z) */
+.hour {
+    font-size: 0.75rem; /* Smaller font */
+    font-weight: 500; /* Medium weight */
+    color: rgb(107 114 128); /* text-gray-500 */
     white-space: nowrap;
-    text-align: center;
+    margin-bottom: 0.5rem; /* Space below time */
 }
 
+/* Weather Icon */
 .hour-icon {
-    margin: 0.5rem 0;
+    margin-bottom: 0.5rem; /* Space below icon */
+    color: #60a5fa; /* UPDATED: Lighter Sky Blue */
 }
+
+/* Temperature display */
+.hour-temp {
+    font-size: 1rem; /* Base font size */
+    font-weight: 600; /* Semibold */
+    color: rgb(31 41 55); /* text-gray-800 */
+}
+
+/* Ensure icons inside have consistent size if not set by library */
+.hour-icon svg {
+    width: 30px; /* Explicit size */
+    height: 30px;
+}
+
+/* Add this rule to HourCard.css */
+.hour-icon .sun-icon {
+    color: #facc15; /* Tailwind yellow-400 */
+  }

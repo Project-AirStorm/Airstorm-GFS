@@ -29,7 +29,7 @@ const WeatherBoxExtended = ({ day, latitude, longitude }) => {
 
     return (
         <div className='WeatherBoxExtended'>
-            <h3>Detailed forecast for {day.dayOfWeek}, {day.date}</h3>
+            <h3>Hourly Forecast {day.dayOfWeek}, {day.date}</h3>
             {userLocation && (
                 <HourCard
                     // Use a potentially more unique key combining location and the full date
