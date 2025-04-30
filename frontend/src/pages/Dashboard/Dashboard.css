@@ -25,6 +25,7 @@
 .weather-grid {
   display: flex;
   gap: 1.5rem;
+  margin-top: -.25rem;
   margin-bottom: 1.5rem;
   width: 100%;
   overflow-x: auto;
@@ -133,25 +134,25 @@
   flex-direction: column; /* Added for potential vertical alignment */
 }
 
-.card-title {
+.card-title { /* This is the ORIGINAL card-title style */
   font-size: 1.125rem;
   font-weight: 600;
   margin-bottom: 1rem;
   color: #1f2937; /* Added color */
 }
 
-.stats-list {
+.stats-list { /* This is the ORIGINAL stats-list style */
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
 }
 
-.stats-text {
+.stats-text { /* This is the ORIGINAL stats-text style */
   font-size: 0.875rem;
   color: rgb(75 85 99);
 }
 
-/* --- Styles for the MiniMap within the bottom card --- */
+/* --- Styles for the MiniMap within the bottom card --- */ /* ORIGINAL MiniMap style */
 .bottom-card--map {
   /* Remove default padding if map should fill the card */
   padding: 0;
@@ -163,7 +164,7 @@
 }
 
 
-/* Loading and Error States */
+/* Loading and Error States */ /* ORIGINAL Loading/Error styles */
 /* Keep existing styles from original file if needed */
 .loading-state,
 .error-state {
@@ -179,7 +180,7 @@
   color: rgb(239 68 68);
 }
 
-/* Responsive adjustments */
+/* Responsive adjustments */ /* ORIGINAL Responsive styles */
 @media screen and (max-width: 1200px) {
   .weather-grid > * {
     /* Adjust card widths for medium screens */
@@ -207,12 +208,194 @@
     padding: 1rem;
   }
 
-  .bottom-card {
+  .bottom-card { /* This is the ORIGINAL responsive bottom-card style */
     padding: 1rem; /* Adjust padding for smaller screens */
   }
-  /* Ensure map card still respects height */
+  /* Ensure map card still respects height */ /* ORIGINAL responsive map style */
    .bottom-card--map {
     padding: 0; /* Override padding for map card */
     height: 300px; /* Potentially adjust height for mobile */
   }
 }
+/* --- END Original Styles --- */
+
+
+/* --- ADDED Styles for Dashboard Alerts (Appended, No Original Styles Changed) --- */
+
+/* Container for the scrollable alert list */
+.dashboard-alerts-container {
+  flex-grow: 1; /* Allow list to fill available vertical space in .bottom-card */
+  min-height: 50px;
+  /* --- SET MAX HEIGHT AND SCROLL --- */
+  max-height: 150px; /* <<< ADJUST THIS HEIGHT AS NEEDED */
+  overflow-y: scroll;
+  /* --- END --- */
+  margin-top: 0.25rem; /* Consistent spacing below card-title */
+  padding-right: 5px; /* Space for scrollbar */
+}
+
+/* Placeholder messages (loading, error, no alerts) */
+.dashboard-alerts-placeholder {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%; /* Try to fill container */
+  min-height: 50px; /* Ensure visibility */
+  color: #6b7280; /* Gray-500 */
+  font-style: italic;
+  font-size: 0.85rem;
+  text-align: center;
+  padding: 1rem;
+}
+.dashboard-alerts-placeholder.error {
+  color: #b91c1c; /* Red-700 */
+  font-style: normal;
+}
+
+/* Styling for the alert item wrapper */
+.dashboard-alert-item {
+  margin-bottom: 0.3rem;
+  background-color: rgba(243, 244, 246, 0.5); /* Gray-100 with opacity */
+  border-radius: 3px;
+  border-left: 3px solid #6b7280; /* Default border color (gray) */
+  overflow: hidden; /* Contain details section */
+  /* Add transition for smooth border color change if desired */
+  /* transition: border-left-color 0.2s ease-in-out; */
+}
+.dashboard-alert-item:last-child {
+    margin-bottom: 0; /* Remove margin from last item */
+}
+
+/* Severity Border Colors */
+.dashboard-alert-item.alert-extreme, /* Match JS: alert.severity.toLowerCase() */
+.dashboard-alert-item.alert-severe { border-left-color: #ef4444; } /* Red-500 */
+.dashboard-alert-item.alert-moderate { border-left-color: #f97316; } /* Orange-500 */
+.dashboard-alert-item.alert-minor,
+.dashboard-alert-item.alert-unknown { border-left-color: #eab308; } /* Yellow-500 */
+
+/* Alert Header (clickable part) */
+.dashboard-alert-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.4rem 0.3rem;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: background-color 0.15s ease-in-out;
+}
+.dashboard-alert-header:hover {
+    background-color: rgba(209, 213, 219, 0.3); /* Gray-300 with opacity */
+}
+
+/* Alert Icon */
+.dashboard-alert-icon {
+  width: 1rem; /* 16px */
+  height: 1rem; /* 16px */
+  flex-shrink: 0;
+  color: #6b7280; /* Default icon color */
+}
+/* Severity Icon Colors */
+.dashboard-alert-icon.alert-extreme,
+.dashboard-alert-icon.alert-severe { color: #ef4444; }
+.dashboard-alert-icon.alert-moderate { color: #f97316; }
+.dashboard-alert-icon.alert-minor,
+.dashboard-alert-icon.alert-unknown { color: #eab308; }
+
+/* Text part of the header */
+.dashboard-alert-header-text {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden; /* Prevent text overflow */
+}
+
+.dashboard-alert-event {
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.2;
+  color: #1f2937; /* Gray-800 */
+}
+
+.dashboard-alert-time {
+  font-size: 0.7rem;
+  color: #4b5563; /* Gray-600 */
+  line-height: 1.2;
+}
+
+/* Severity Badge */
+.dashboard-severity-badge {
+  font-size: 0.7rem;
+  font-weight: bold;
+  padding: 0.1rem 0.4rem;
+  border-radius: 3px;
+  text-transform: uppercase;
+  flex-shrink: 0;
+  margin-left: 0.5rem; /* Space from text */
+  background-color: #6b7280; /* Default background */
+  color: white; /* Default text color */
+}
+/* Severity Badge Colors */
+.dashboard-severity-badge.alert-extreme,
+.dashboard-severity-badge.alert-severe { background-color: #ef4444; color: white; }
+.dashboard-severity-badge.alert-moderate { background-color: #f97316; color: white; }
+.dashboard-severity-badge.alert-minor,
+.dashboard-severity-badge.alert-unknown { background-color: #eab308; color: #333; }
+
+/* Chevron Icon */
+.dashboard-alert-chevron {
+  width: 1rem; /* 16px */
+  height: 1rem; /* 16px */
+  flex-shrink: 0;
+  color: #6b7280; /* Gray-500 */
+  margin-left: 0.25rem; /* Small space */
+}
+
+/* Expanded Details Section */
+.dashboard-alert-details {
+  padding: 0.5rem 0.5rem 0.5rem calc(0.3rem + 1rem + 0.5rem); /* Pad left: itemPadL + iconW + gap */
+  font-size: 0.75rem;
+  border-top: 1px solid rgba(209, 213, 219, 0.5); /* Gray-300 border */
+  margin-top: 0.4rem;
+  background-color: #f3f4f6; 
+  color: #374151; /* Gray-700 */
+  border-bottom-left-radius: 3px; /* Optional: round bottom corners */
+  border-bottom-right-radius: 3px; /* Optional: round bottom corners */
+}
+
+.dashboard-alert-headline {
+  font-weight: bold;
+  margin-bottom: 0.4em;
+  color: #1f2937; /* Gray-800 */
+}
+
+/* Paragraphs within description/instruction */
+.dashboard-alert-paragraph { /* Class added in JS helper */
+  margin-bottom: 0.5em;
+  line-height: 1.4;
+}
+
+.dashboard-alert-instruction {
+    margin-top: 0.5em;
+}
+
+.dashboard-alert-instruction-title {
+    font-weight: bold;
+    margin-bottom: 0.2em;
+    color: #1f2937; /* Gray-800 */
+}
+
+.dashboard-alert-no-details {
+  font-style: italic;
+  color: #6b7280; /* Gray-500 */
+}
+
+
+/* Responsive adjustments for ADDED alert styles */
+@media screen and (max-width: 768px) {
+  .dashboard-alerts-container {
+      max-height: 150px; /* Example: Shorter scroll area on mobile */
+  }
+}
+/* --- END Added Styles --- */
