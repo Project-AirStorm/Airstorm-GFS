@@ -13,7 +13,7 @@
   justify-content: space-between;
   margin-bottom: 0.75rem;
   padding-bottom: 0.5rem;
-  border-bottom: 0.0625rem solid rgb(211 213 216);
+  border-bottom: 0.0625rem solid rgb(211 213 216); /* 1px / 16 = 0.0625rem */
 }
 
 /* Location Title */
@@ -39,7 +39,7 @@
   font-weight: 500;
   color: rgb(31 41 55);
   padding-right: 1.5rem;
-  border-right: 0.0625rem solid rgb(211 213 216);
+  border-right: 0.0625rem solid rgb(211 213 216); /* 1px / 16 = 0.0625rem */
 }
 
 .weather-stats {
@@ -83,8 +83,8 @@
   background-color: white;
   padding: 0.75rem;
   border-radius: 0.375rem;
-  box-shadow: 0 0.0625rem 0.1875rem 0 rgb(0 0 0 / 0.1);
-  border: 0.0625rem solid rgb(229 231 235);
+  box-shadow: 0 0.0625rem 0.1875rem 0 rgb(0 0 0 / 0.1); /* Assuming original px values were small, kept rem */
+  border: 0.0625rem solid rgb(229 231 235); /* 1px / 16 = 0.0625rem */
 }
 
 .tooltip-label {
@@ -113,17 +113,17 @@
   display: flex;
   flex-wrap: wrap; /* Allow items to wrap */
   justify-content: center; /* Center items */
-  gap: 10px 20px; /* Row gap and column gap */
-  padding-top: 15px; /* Space above legend */
+  gap: 0.625rem 1.25rem; /* 10px -> 0.625rem, 20px -> 1.25rem */
+  padding-top: 0.9375rem; /* 15px -> 0.9375rem */
 }
 
 /* Style for multi-column layout */
 .custom-legend-container.multi-column {
     display: grid; /* Use grid for better column control */
     grid-template-columns: repeat(6, 1fr); /* 6 columns */
-    gap: 5px 15px; /* Row gap, Column gap */
-    padding-left: 10px; /* Add some padding */
-    padding-right: 10px;
+    gap: 0.3125rem 0.9375rem; /* 5px -> 0.3125rem, 15px -> 0.9375rem */
+    padding-left: 0.625rem; /* 10px -> 0.625rem */
+    padding-right: 0.625rem; /* 10px -> 0.625rem */
 }
 
 .legend-column {
@@ -145,16 +145,16 @@
 }
 
 .legend-icon {
-  width: 12px;
-  height: 12px;
-  border-radius: 2px; /* Slightly rounded square */
-  margin-right: 6px;
+  width: 0.75rem; /* 12px -> 0.75rem */
+  height: 0.75rem; /* 12px -> 0.75rem */
+  border-radius: 0.125rem; /* 2px -> 0.125rem */
+  margin-right: 0.375rem; /* 6px -> 0.375rem */
   display: inline-block; /* Needed for background color */
   flex-shrink: 0; /* Prevent icon from shrinking */
 }
 
 .legend-text {
-  margin-right: 6px;
+  margin-right: 0.375rem; /* 6px -> 0.375rem */
   color: #374151; /* Dark gray text */
   white-space: nowrap; /* Prevent text wrapping */
   overflow: hidden; /* Hide overflow */
@@ -166,14 +166,14 @@
   display: flex; /* Helps align the icon vertically */
   align-items: center;
   margin-left: auto; /* Push toggle icon to the right */
-  padding-left: 5px; /* Space before toggle */
+  padding-left: 0.3125rem; /* 5px -> 0.3125rem */
   flex-shrink: 0; /* Prevent icon from shrinking */
 }
 
 /* Adjust chart container slightly if needed */
 .chart-container.detailed-chart {
     height: auto; /* Let chart define height */
-    min-height: 400px; /* Ensure minimum height */
+    min-height: 25rem; /* 400px -> 25rem */
 }
 
 /* --- Model Selector Dropdown Styles --- */
@@ -191,8 +191,8 @@
 
 .model-selector-dropdown {
   padding: 0.25rem 0.5rem;
-  border: 1px solid #ccc;
-  border-radius: 4px;
+  border: 0.0625rem solid #ccc; /* 1px -> 0.0625rem */
+  border-radius: 0.25rem; /* 4px -> 0.25rem */
   background-color: white;
   color: #333;
   font-size: 0.875rem; /* Adjust as needed */
@@ -202,69 +202,83 @@
 
 /* --- NEW: Skeleton Loader Styles --- */
 .graphcast-container--loading {
-  /* Add styles if needed for the loading container itself */
-  /* Consider adding min-height to prevent layout shifts */
-   min-height: 550px; /* Example: Adjust based on loaded height */
-   background-color: white; /* Ensure background for skeleton */
-   border-radius: 0.5rem;
-   padding: 0.75rem 1rem;
-   margin-bottom: 1.5rem;
+  /* --- MODIFIED: Set fixed height --- */
+  height: 25rem; /* 400px -> 25rem (Matching the previous value) */
+  /* Remove or keep min-height if preferred, but height is more direct */
+  /* min-height: 34.375rem; /* 550px -> 34.375rem */ 
+  overflow:hidden; /* Hide anything that might overflow this fixed height */
+  background-color: white; /* Ensure background for skeleton */
+  border-radius: 0.5rem;
+  padding: 0.75rem 1rem;
+  margin-bottom: 1.5rem;
+  display: flex; /* Use flexbox for better control */
+  flex-direction: column; /* Stack header, chart, legend vertically */
+}
+
+/* Optional: Ensure skeleton children don't cause unexpected growth */
+.graphcast-container--loading > .graphcast-header,
+.graphcast-container--loading > .skeleton-chart,
+.graphcast-container--loading > .skeleton-legend {
+   flex-shrink: 0; /* Prevent children from shrinking */
+}
+
+/* Ensure the skeleton chart takes appropriate space within the fixed container */
+.graphcast-container--loading > .skeleton-chart {
+   /* Keep its fixed height or adjust if needed relative to container height */
+   height: 25rem; /* 400px -> 25rem */
 }
 
 .skeleton-line {
   background-color: #e2e8f0; /* Light grey background */
-  border-radius: 4px;
+  border-radius: 0.25rem; /* 4px -> 0.25rem */
   animation: pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
 
 /* Header Skeletons */
 .skeleton-line--location {
-  height: 20px;
-  width: 150px; /* Adjust width */
+  height: 1.25rem; /* 20px -> 1.25rem */
+  width: 9.375rem; /* 150px -> 9.375rem */
   margin-right: auto; /* Push other header items right */
 }
 
 .skeleton-line--selector {
-  height: 28px; /* Match dropdown height approx */
-  width: 120px; /* Adjust width */
+  height: 1.75rem; /* 28px -> 1.75rem */
+  width: 7.5rem; /* 120px -> 7.5rem */
 }
 
-/* Chart Skeleton */
+/* Chart Skeleton - Updated */
 .skeleton-chart {
-  height: 400px; /* Match ResponsiveContainer height */
+  height: 25rem; /* 400px -> 25rem */
   background-color: #f7fafc; /* Slightly different background */
-  border-radius: 4px;
+  border-radius: 0.25rem; /* 4px -> 0.25rem */
   margin-top: 1rem; /* Match spacing */
   position: relative;
   overflow: hidden;
-  display: flex;
-  /* Use pulse animation directly on the chart area */
+  /* Add borders to simulate axes */
+  border-left: 0.125rem solid #e2e8f0; /* 2px -> 0.125rem */
+  border-bottom: 0.125rem solid #e2e8f0; /* 2px -> 0.125rem */
+  /* Add faint grid lines using background */
+  background-image:
+    linear-gradient(#eaf0f6 0.0625rem, transparent 0.0625rem), /* 1px -> 0.0625rem */
+    linear-gradient(to right, #eaf0f6 0.0625rem, transparent 0.0625rem); /* 1px -> 0.0625rem */
+  background-size: 2.5rem 2.5rem; /* 40px -> 2.5rem */
+  /* Keep the pulse animation */
   animation: pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-}
-
-/* Optional: Placeholder for axes/grid if needed */
-.skeleton-chart-axes {
-    /* Example styling */
-    /* width: 40px; background-color: #e2e8f0; */
-}
-.skeleton-chart-grid {
-   /* Example styling */
-   /* flex-grow: 1; background-image: linear-gradient(#e2e8f0 1px, transparent 1px), linear-gradient(90deg, #e2e8f0 1px, transparent 1px); background-size: 30px 30px; */
 }
 
 /* Legend Skeleton */
 .skeleton-legend {
   display: grid; /* Use grid for consistency */
   grid-template-columns: repeat(6, 1fr); /* Match legend layout */
-  gap: 5px 15px; /* Match legend gap */
-  padding: 15px 10px 0 10px; /* Match legend padding */
+  gap: 0.3125rem 0.9375rem; /* 5px -> 0.3125rem, 15px -> 0.9375rem */
+  padding: 0.9375rem 0.625rem 0 0.625rem; /* 15px -> 0.9375rem, 10px -> 0.625rem */
   margin-top: 1rem; /* Space above legend */
 }
 
 .skeleton-line--legend-item {
-  height: 24px; /* Approx height of a legend item */
+  height: 1.5rem; /* 24px -> 1.5rem */
   width: 100%; /* Let grid handle width */
-  margin-bottom: 4px; /* Match legend item spacing approx */
+  margin-bottom: 0.25rem; /* 4px -> 0.25rem */
 }
 
 

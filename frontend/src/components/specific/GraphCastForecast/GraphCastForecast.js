@@ -316,23 +316,24 @@ const GraphCastForecast = ({ customLatitude = undefined, customLongitude = undef
 
   // --- Render Logic ---
   // *** MODIFIED Loading State ***
+  // *** MODIFIED Loading State ***
   if (loading) {
     // Skeleton Loader
     return (
       <div className="graphcast-container graphcast-container--loading">
-        {/* Skeleton Header */}
+        {/* Skeleton Header (Keep as is) */}
         <div className="graphcast-header simple">
           <div className="graphcast-location skeleton-line skeleton-line--location"></div>
           <div className="model-selector-container skeleton-line skeleton-line--selector"></div>
         </div>
-        {/* Skeleton Chart Area */}
+
+        {/* Skeleton Chart Area (Inner divs removed) */}
         <div className="chart-container detailed-chart skeleton-chart">
-           <div className="skeleton-chart-axes"></div>
-           <div className="skeleton-chart-grid"></div>
+           {/* Inner divs removed - styles applied via CSS */}
         </div>
-        {/* Skeleton Legend */}
+
+        {/* Skeleton Legend (Keep as is) */}
         <div className="custom-legend-container multi-column skeleton-legend">
-            {/* Render placeholder legend items - adjust count/columns as needed */}
             {Array.from({ length: 18 }).map((_, index) => (
                  <div key={`skel-leg-${index}`} className="custom-legend-item skeleton-line skeleton-line--legend-item"></div>
             ))}
