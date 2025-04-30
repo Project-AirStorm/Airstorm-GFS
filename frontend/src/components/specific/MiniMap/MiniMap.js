@@ -1,5 +1,6 @@
 // File: Airstorm-GFS/frontend/src/components/specific/MiniMap/MiniMap.js
-// CORRECTED: Fixed syntax error in loadGoogleMaps function
+// Includes Map/Satellite toggle and Precipitation overlay toggle
+// MODIFIED: Commented out most console.log statements
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import PropTypes from 'prop-types';
@@ -12,35 +13,39 @@ const REACT_APP_API_URL = process.env.REACT_APP_API_URL || 'http://localhost:500
 const MiniMap = ({ centerLat, centerLon, zoomLevel = 4, locations = [] }) => {
   const mapContainerRef = useRef(null);
   const mapRef = useRef(null);
+  const precipOverlayRef = useRef(null); // Ref to store the precipitation overlay instance
+
   const [mapInitialized, setMapInitialized] = useState(false);
   const [locationMarkers, setLocationMarkers] = useState([]); // Holds marker instances
   const [isLoading, setIsLoading] = useState(true); // Loading state for map initialization
+  // State to track current map type
+  const [mapTypeId, setMapTypeId] = useState('roadmap'); // Default to 'roadmap'
+  // State: Toggle for precipitation overlay
+  const [showPrecipOverlay, setShowPrecipOverlay] = useState(false);
 
-  // --- Map Initialization (Adapted from Maps.js) ---
+  // --- Map Initialization ---
   const initializeMap = useCallback(() => {
-    // Ensure cleanup happens before re-initializing
     if (mapRef.current) {
-      console.log('MiniMap: Cleaning up previous map instance before re-initializing.');
-      // Basic cleanup, more specific listener removal happens elsewhere if needed
+      // console.log('MiniMap: Cleaning up previous map instance before re-initializing.');
       mapRef.current = null;
     }
 
     if (!mapContainerRef.current || !window.google?.maps || mapInitialized) {
-        if (mapInitialized) {
-            // If it thinks it's initialized but mapRef is gone, reset state
-            console.warn("MiniMap: Resetting initialization state.");
-            setMapInitialized(false);
-        }
+      if (mapInitialized) {
+          console.warn("MiniMap: Resetting initialization state.");
+          setMapInitialized(false);
+      }
       return; // Skip if prerequisites not met
     }
 
-    console.log('MiniMap: Initializing Google Map...');
+    // console.log('MiniMap: Initializing Google Map...');
     setIsLoading(true); // Start loading indication
     try {
       const mapInstance = new window.google.maps.Map(mapContainerRef.current, {
         center: { lat: centerLat, lng: centerLon },
         zoom: zoomLevel,
-        mapTypeControl: false, // Disable map type toggle
+        mapTypeId: mapTypeId, // Set map type from state
+        mapTypeControl: false, // Disable default Map/Satellite toggle
         fullscreenControl: false, // Disable fullscreen
         streetViewControl: false, // Disable street view
         zoomControl: true, // Keep basic zoom control
@@ -53,16 +58,16 @@ const MiniMap = ({ centerLat, centerLon, zoomLevel = 4, locations = [] }) => {
       mapRef.current = mapInstance; // Store map instance
       setMapInitialized(true); // Mark map as initialized
       setIsLoading(false); // Stop loading indication
-      console.log("MiniMap: Google Map Initialized.");
+      // console.log("MiniMap: Google Map Initialized.");
 
     } catch (error) {
       console.error('Error initializing Google Map in MiniMap:', error);
       setIsLoading(false); // Stop loading on error
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [mapInitialized]); // Only depend on mapInitialized here, center/zoom handled by another effect
+  }, [mapInitialized, mapTypeId]); // Added mapTypeId dependency
 
-  // --- Google Maps Script Loading (Adapted from Maps.js - CORRECTED) ---
+  // --- Google Maps Script Loading (Corrected Version) ---
   const loadGoogleMaps = useCallback(async () => {
     if (window.google?.maps) {
       if (!mapInitialized) initializeMap();
@@ -70,13 +75,13 @@ const MiniMap = ({ centerLat, centerLon, zoomLevel = 4, locations = [] }) => {
     }
     // Check if another instance is already loading the script
     if (document.getElementById('google-maps-script')) {
-        console.log("MiniMap: Google Maps script tag already exists.");
+        // console.log("MiniMap: Google Maps script tag already exists.");
          // If script exists but map not initialized, set up a poller/listener
         if (!window.google?.maps) {
             const checkGoogleMaps = setInterval(() => {
                 if (window.google?.maps) {
                     clearInterval(checkGoogleMaps);
-                    console.log("MiniMap: Google Maps API ready (detected existing script).");
+                    // console.log("MiniMap: Google Maps API ready (detected existing script).");
                     if (!mapInitialized) initializeMap();
                 }
             }, 100);
@@ -86,20 +91,19 @@ const MiniMap = ({ centerLat, centerLon, zoomLevel = 4, locations = [] }) => {
         return;
     }
     if (window.googleMapsLoading) {
-      console.log("MiniMap: Google Maps script is already loading by another component.");
+      // console.log("MiniMap: Google Maps script is already loading by another component.");
       // Poll until loaded
       const checkGoogleMaps = setInterval(() => {
           if (window.google?.maps) {
               clearInterval(checkGoogleMaps);
-              console.log("MiniMap: Google Maps API ready (detected ongoing load).");
+              // console.log("MiniMap: Google Maps API ready (detected ongoing load).");
               if (!mapInitialized) initializeMap();
           }
       }, 100);
       return; // Prevent multiple loads
     }
 
-
-    console.log("MiniMap: Loading Google Maps API script...");
+    // console.log("MiniMap: Loading Google Maps API script...");
     window.googleMapsLoading = true; // Set flag
     setIsLoading(true);
 
@@ -111,7 +115,7 @@ const MiniMap = ({ centerLat, centerLon, zoomLevel = 4, locations = [] }) => {
 
       // Define the global callback
       window.initMap = () => {
-        console.log('MiniMap: initMap callback executed.');
+        // console.log('MiniMap: initMap callback executed.');
         delete window.googleMapsLoading;
         initializeMap();
       };
@@ -119,8 +123,7 @@ const MiniMap = ({ centerLat, centerLon, zoomLevel = 4, locations = [] }) => {
       // Create and append script
       const script = document.createElement('script');
       script.id = 'google-maps-script'; // Add an ID to check if script exists
-      // *** CORRECTED THIS LINE ***
-      script.src = `https://maps.googleapis.com/maps/api/js?key=${googleMapsKey}&callback=initMap&v=weekly&libraries=marker`; // Added 'weekly' and closing backtick
+      script.src = `https://maps.googleapis.com/maps/api/js?key=${googleMapsKey}&callback=initMap&v=weekly&libraries=marker`; // Corrected line
       script.async = true;
       script.defer = true;
       script.onerror = () => {
@@ -141,13 +144,14 @@ const MiniMap = ({ centerLat, centerLon, zoomLevel = 4, locations = [] }) => {
     }
   }, [initializeMap, mapInitialized]);
 
+
   // --- Effect to load Google Maps script on mount ---
   useEffect(() => {
     loadGoogleMaps();
 
     // Basic cleanup
     return () => {
-      console.log("MiniMap: Unmounting.");
+      // console.log("MiniMap: Unmounting.");
       // Attempt to clean up markers if the component unmounts
       locationMarkers.forEach(marker => {
           try {
@@ -156,8 +160,8 @@ const MiniMap = ({ centerLat, centerLon, zoomLevel = 4, locations = [] }) => {
               console.warn("Error cleaning up marker:", e);
           }
       });
-      // We might not want to nullify mapRef here if other cleanup relies on it.
-      // The map instance itself will be garbage collected if mapContainerRef.current is removed from DOM.
+       // Clean up precipitation overlay ref
+        precipOverlayRef.current = null;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [loadGoogleMaps]); // Run only once on mount
@@ -165,11 +169,11 @@ const MiniMap = ({ centerLat, centerLon, zoomLevel = 4, locations = [] }) => {
   // --- Effect to display location markers ---
   useEffect(() => {
     if (!mapInitialized || !mapRef.current || !window.google?.maps) {
-        console.log("MiniMap Marker Effect: Map not ready.");
+        // console.log("MiniMap Marker Effect: Map not ready.");
       return; // Ensure map is ready
     }
 
-    console.log(`MiniMap: Updating ${locations.length} markers.`);
+    // console.log(`MiniMap: Updating ${locations.length} markers.`);
 
     // Clear previous markers first
     locationMarkers.forEach(marker => {
@@ -227,7 +231,7 @@ const MiniMap = ({ centerLat, centerLon, zoomLevel = 4, locations = [] }) => {
 
     // Cleanup function for this effect
     return () => {
-        console.log("MiniMap: Cleaning up markers effect.");
+        // console.log("MiniMap: Cleaning up markers effect.");
         markers.forEach(marker => {
              // Remove listeners first
             if(marker?.listeners && Array.isArray(marker.listeners)) {
@@ -246,22 +250,98 @@ const MiniMap = ({ centerLat, centerLon, zoomLevel = 4, locations = [] }) => {
   // --- Effect to recenter map when center props change ---
   useEffect(() => {
       if (mapRef.current && mapInitialized) {
-          console.log(`MiniMap: Recenter requested to ${centerLat}, ${centerLon}`);
+          // console.log(`MiniMap: Recenter requested to ${centerLat}, ${centerLon}`);
           mapRef.current.setCenter({ lat: centerLat, lng: centerLon });
-          // Avoid setting zoom here unless the zoom prop *also* changes
       }
   }, [centerLat, centerLon, mapInitialized]); // Re-run only if center or init status changes
 
-    // --- Effect to update zoom when zoom prop changes ---
-    useEffect(() => {
-        if (mapRef.current && mapInitialized) {
-            const currentZoom = mapRef.current.getZoom();
-            if (currentZoom !== zoomLevel) {
-                 console.log(`MiniMap: Zoom update requested to ${zoomLevel}`);
-                 mapRef.current.setZoom(zoomLevel);
-            }
-        }
-    }, [zoomLevel, mapInitialized]); // Re-run only if zoom or init status changes
+  // --- Effect to update zoom when zoom prop changes ---
+  useEffect(() => {
+      if (mapRef.current && mapInitialized) {
+          const currentZoom = mapRef.current.getZoom();
+          if (currentZoom !== zoomLevel) {
+               // console.log(`MiniMap: Zoom update requested to ${zoomLevel}`);
+               mapRef.current.setZoom(zoomLevel);
+          }
+      }
+  }, [zoomLevel, mapInitialized]); // Re-run only if zoom or init status changes
+
+  // --- Function to toggle map type ---
+  const toggleMapType = () => {
+      if (mapRef.current) {
+          const newTypeId = mapTypeId === 'roadmap' ? 'satellite' : 'roadmap';
+          mapRef.current.setMapTypeId(newTypeId); // Tell Google Maps API
+          setMapTypeId(newTypeId); // Update React state
+      }
+  };
+
+  // --- Function to toggle precipitation overlay ---
+  const togglePrecipOverlay = () => {
+      setShowPrecipOverlay(prev => !prev);
+  };
+
+  // --- Effect to add/remove precipitation overlay ---
+  useEffect(() => {
+      if (!mapInitialized || !mapRef.current || !window.google?.maps) {
+          // Ensure cleanup happens if map becomes uninitialized while overlay is on
+          if(precipOverlayRef.current) {
+              // console.log("MiniMap: Cleaning up precip overlay due to map uninitialization.");
+              precipOverlayRef.current = null; // Just clear the ref, map instance might be gone
+          }
+          return; // Wait for map
+      }
+
+      const mapOverlays = mapRef.current.overlayMapTypes;
+
+      // --- Remove existing precip overlay if it's stored in ref ---
+      let overlayRemoved = false;
+      if (precipOverlayRef.current) {
+           try {
+               for (let i = 0; i < mapOverlays.getLength(); i++) {
+                   // Check if the overlay at index i is the one we stored
+                   if (mapOverlays.getAt(i) === precipOverlayRef.current) {
+                       mapOverlays.removeAt(i);
+                       overlayRemoved = true;
+                       // console.log("MiniMap: Removed existing precip overlay from map.");
+                       break; // Exit loop once removed
+                   }
+               }
+           } catch (error) {
+               console.error("Error removing overlay:", error);
+           } finally {
+                precipOverlayRef.current = null; // Clear the ref regardless of removal success
+           }
+      }
+
+      // --- Add new overlay if requested ---
+      if (showPrecipOverlay) {
+          // console.log("MiniMap: Adding precip overlay.");
+          // Using 'precipitation' which should work with the Meteosource endpoint
+          const tileUrl = `${REACT_APP_API_URL}/api/meteosource/tile?x={x}&y={y}&zoom={z}&variable=precipitation&datetime=now`;
+          const overlay = new window.google.maps.ImageMapType({
+              getTileUrl: (coord, zoom) => {
+                // Basic validation to prevent errors on invalid coords/zoom
+                if (!coord || typeof zoom === 'undefined') return null;
+                 return tileUrl.replace('{x}', coord.x).replace('{y}', coord.y).replace('{z}', zoom);
+              },
+              tileSize: new window.google.maps.Size(256, 256),
+              name: 'Precipitation',
+              isPng: true,
+              opacity: 0.6 // Adjust opacity
+          });
+          try {
+            mapOverlays.insertAt(0, overlay); // Insert at bottom (index 0)
+            precipOverlayRef.current = overlay; // Store ref to the added overlay
+            // console.log("MiniMap: Precipitation overlay added.");
+          } catch (error) {
+              console.error("Error adding overlay:", error);
+              precipOverlayRef.current = null; // Ensure ref is null if add failed
+          }
+      } else if (overlayRemoved) {
+           // console.log("MiniMap: Precipitation overlay toggled off.");
+      }
+
+  }, [showPrecipOverlay, mapInitialized]); // Rerun when toggle state or map readiness changes
 
 
   return (
@@ -273,6 +353,26 @@ const MiniMap = ({ centerLat, centerLon, zoomLevel = 4, locations = [] }) => {
       )}
       {/* The div where the map will be rendered */}
       <div ref={mapContainerRef} className="mini-map-container" />
+
+      {/* Map/Satellite Toggle Button */}
+      {mapInitialized && (
+          <button onClick={toggleMapType} className="mini-map-type-toggle" title="Toggle Map Type">
+              {/* Change button text based on current type */}
+              {mapTypeId === 'roadmap' ? 'Satellite' : 'Map'}
+          </button>
+      )}
+
+      {/* Precipitation Toggle Button */}
+      {mapInitialized && (
+          <button
+            onClick={togglePrecipOverlay}
+            className={`mini-map-precip-toggle ${showPrecipOverlay ? 'active' : ''}`} // Add 'active' class
+            title="Toggle Precipitation Overlay"
+          >
+            {/* Change text based on state */}
+            {showPrecipOverlay ? 'Hide Precip' : 'Show Precip'}
+          </button>
+      )}
     </div>
   );
 };

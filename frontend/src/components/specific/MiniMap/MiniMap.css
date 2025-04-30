@@ -3,7 +3,7 @@
 .mini-map-wrapper {
     height: 100%; /* Takes height from parent */
     width: 100%;
-    position: relative; /* For loader overlay */
+    position: relative; /* For loader overlay and buttons */
     border-radius: 0.5rem; /* Match dashboard card style */
     overflow: hidden; /* Clip map corners */
   }
@@ -24,7 +24,7 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    z-index: 10; /* Above map container */
+    z-index: 10; /* Above map container but below buttons */
     border-radius: 0.5rem; /* Match parent */
   }
   
@@ -36,4 +36,67 @@
     background-color: white;
     border: 1px solid #ccc;
     border-radius: 2px;
+  }
+  /* Make default zoom control slightly smaller */
+  .mini-map-container .gm-bundled-control .gmnoprint {
+      transform: scale(0.9);
+      transform-origin: bottom right;
+  }
+  
+  
+  /* --- Map Type Toggle Button --- */
+  .mini-map-type-toggle {
+    position: absolute;
+    top: 10px;        /* Position from top */
+    right: 10px;       /* Position from right */
+    z-index: 11;       /* Ensure it's above map tiles and loader overlay */
+    background-color: white;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    padding: 4px 8px;
+    font-size: 0.75rem; /* Small font size */
+    font-weight: 500;
+    color: #333;
+    cursor: pointer;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+    transition: background-color 0.2s ease;
+  }
+  
+  .mini-map-type-toggle:hover {
+    background-color: #f4f4f4; /* Slight hover effect */
+  }
+  
+  /* --- Precipitation Toggle Button --- */
+  .mini-map-precip-toggle {
+    position: absolute;
+    top: 10px;
+    left: 10px;        /* Position top-left */
+    z-index: 11;       /* Ensure it's above map tiles and loader overlay */
+    background-color: white;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    padding: 4px 8px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: #333;
+    cursor: pointer;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+    transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+  }
+  
+  .mini-map-precip-toggle:hover {
+    background-color: #f4f4f4;
+  }
+  
+  /* Style for when the overlay is active */
+  .mini-map-precip-toggle.active {
+     background-color: #d1eaff; /* Light blue background */
+     border-color: #a6cfff;
+     color: #0056b3; /* Darker blue text */
+  }
+  
+  
+  /* Ensure default Google controls don't overlap if somehow enabled */
+  .mini-map-container .gm-style-mtc {
+      display: none !important;
   }
