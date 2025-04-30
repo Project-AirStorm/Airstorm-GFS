@@ -36,7 +36,7 @@ const WeatherCard = ({
             params: { lat: latitude, lon: longitude },
           }
         );
-        setWeatherData(weatherResponse.data);
+        setWeatherData(weatherResponse.data); //
 
         const locationResponse = await axios.get(
           `${REACT_APP_API_URL}/api/geocode`,
@@ -44,7 +44,7 @@ const WeatherCard = ({
             params: { lat: latitude, lon: longitude },
           }
         );
-        setLocationInfo(locationResponse.data);
+        setLocationInfo(locationResponse.data); //
 
         setLoading(false);
       } catch (err) {
@@ -55,7 +55,7 @@ const WeatherCard = ({
           error: err.message,
         });
         setError(
-          `Unable to load weather data for ${city} (${latitude}, ${longitude})`
+          `Unable to load weather data for ${city} (${latitude}, ${longitude})` //
         );
         setLoading(false);
       }
@@ -74,10 +74,10 @@ const WeatherCard = ({
     };
     try {
       const savedLocations =
-        JSON.parse(localStorage.getItem('savedLocations') || '[]');
+        JSON.parse(localStorage.getItem('savedLocations') || '[]'); //
       const idx = savedLocations.findIndex(
         loc => loc.latitude === latitude && loc.longitude === longitude
-      );
+      ); //
       if (!isFavorite) {
         if (idx === -1) savedLocations.push(currentLocation);
         else savedLocations[idx] = currentLocation;
@@ -87,7 +87,7 @@ const WeatherCard = ({
       localStorage.setItem(
         'savedLocations',
         JSON.stringify(savedLocations)
-      );
+      ); //
     } catch (error) {
       console.error('Error saving location to localStorage:', error);
     }
@@ -98,28 +98,28 @@ const WeatherCard = ({
   if (loading) {
     return (
       <div
-        className="weather-card weather-card--loading"
+        className="weather-card weather-card--loading" //
         style={{ backgroundColor }}
         aria-busy="true"
       >
-        <div className="card-header">
-          <div className="location-info">
-            <div className="loading-line loading-line--title"></div>
-            <div className="loading-line loading-line--subtitle"></div>
-            <div className="loading-line loading-line--text"></div>
+        <div className="card-header"> {/* */}
+          <div className="location-info"> {/* */}
+            <div className="loading-line loading-line--title"></div> {/* */}
+            <div className="loading-line loading-line--subtitle"></div> {/* */}
+            <div className="loading-line loading-line--text"></div> {/* */}
           </div>
-          <div className="weather-card-actions">
+          <div className="weather-card-actions"> {/* */}
             {/* Empty placeholder for buttons */}
           </div>
         </div>
         
-        <div className="loading-line loading-line--full"></div>
+        <div className="loading-line loading-line--full"></div> {/* */}
 
-        <div className="weather-stats-grid">
+        <div className="weather-stats-grid"> {/* */}
           {[1, 2, 3].map((index) => (
-            <div key={index} className="stat-box stat-box--loading">
-              <div className="loading-line loading-line--stat-label"></div>
-              <div className="loading-line loading-line--stat-value"></div>
+            <div key={index} className="stat-box stat-box--loading"> {/* */}
+              <div className="loading-line loading-line--stat-label"></div> {/* */}
+              <div className="loading-line loading-line--stat-value"></div> {/* */}
             </div>
           ))}
         </div>
@@ -130,10 +130,10 @@ const WeatherCard = ({
   // Error state with details
   if (error) {
     return (
-      <div className="weather-card" style={{ backgroundColor }} role="alert">
-        <div className="error-container">
-          <p className="error-title">Unable to Load Weather</p>
-          <p className="error-message">{error}</p>
+      <div className="weather-card" style={{ backgroundColor }} role="alert"> {/* */}
+        <div className="error-container"> {/* */}
+          <p className="error-title">Unable to Load Weather</p> {/* */}
+          <p className="error-message">{error}</p> {/* */}
         </div>
       </div>
     );
@@ -141,80 +141,87 @@ const WeatherCard = ({
 
   return (
     <div
-      className="weather-card"
+      className="weather-card" //
       style={{ backgroundColor }}
       role="region"
       aria-label={`Weather information for ${city}`}
     >
-      <div className="card-header">
-        <div className="location-info">
-          <h3 className="location-primary">{city}</h3>
+      <div className="card-header"> {/* */}
+        <div className="location-info"> {/* */}
+          <h3 className="location-primary">{city}</h3> {/* */}
           {locationInfo?.components && (
             <>
-              <div className="location-secondary">
-                <IoLocationOutline className="inline-icon" />
+              <div className="location-secondary"> {/* */}
+                <IoLocationOutline className="inline-icon" /> {/* */}
                 <span>
                   {locationInfo.components.city},{' '}
                   {locationInfo.components.state_code}
-                </span>
+                </span> {/* */}
               </div>
-              <div className="location-details">
+              <div className="location-details"> {/* */}
                 <span>
-                  {locationInfo.components.county}
-                  <span className="location-details-separator">•</span>
-                  {locationInfo.components.state}
+                  {locationInfo.components.county} {/* */}
+                  <span className="location-details-separator">•</span> {/* */}
+                  {locationInfo.components.state} {/* */}
                 </span>
               </div>
             </>
           )}
         </div>
-        <div className="weather-card-actions">
+        <div className="weather-card-actions"> {/* */}
           <button
             onClick={onToggleFavorite}
-            className="action-button"
+            className="action-button" //
             title={
               isFavorite
-                ? 'Remove from monitored locations'
-                : 'Add to monitored locations'
+                ? 'Remove from monitored locations' //
+                : 'Add to monitored locations' //
             }
             aria-label={
               isFavorite
-                ? 'Remove from monitored locations'
-                : 'Add to monitored locations'
+                ? 'Remove from monitored locations' //
+                : 'Add to monitored locations' //
             }
           >
             {isFavorite ? (
-              <IoStarSharp className="action-icon" />
+              <IoStarSharp className="action-icon" /> //
             ) : (
-              <IoStarOutline className="action-icon" />
+              <IoStarOutline className="action-icon" /> //
             )}
           </button>
           <button
             onClick={onDelete}
-            className="action-button"
-            title="Remove this location"
-            aria-label="Remove this location"
+            className="action-button" //
+            title="Remove this location" //
+            aria-label="Remove this location" //
           >
-            <IoTrashOutline className="action-icon" />
+            <IoTrashOutline className="action-icon" /> {/* */}
           </button>
         </div>
       </div>
 
-      <p className="weather-description">
-        It's {weatherData.current_temperature.toFixed(0)}° and{' '}
-        {weatherData.condition}.
+      <p className="weather-description"> {/* */}
+        It's {weatherData.current_temperature.toFixed(0)}° and{' '} {/* */}
+        {weatherData.condition}. {/* */}
       </p>
 
-      <div className="weather-stats-grid">
-        <WeatherStat label="Rain" value={weatherData.rain} unit="inches" />
+      <div className="weather-stats-grid"> {/* */}
+        <WeatherStat 
+          label="Rain" //
+          value={
+            typeof weatherData.rain === 'number' //
+              ? (weatherData.rain > 0 ? weatherData.rain.toFixed(2) : '0') // MODIFIED LINE: Format based on value
+              : weatherData.rain // Handle non-numeric cases
+          }
+          unit="inches" /> {/* */}
         <WeatherStat
-          label="Wind"
-          value={weatherData.wind_speed.toFixed(0)}
-          unit=" mph"
+          label="Wind" //
+          value={weatherData.wind_speed.toFixed(1)} //
+          unit="mph" //
         />
         <WeatherStat
-          label="Wind Direction"
-          value={weatherData.wind_direction}
+          label="Wind Direction" //
+          value={weatherData.wind_direction} //
         />
       </div>
     </div>
@@ -222,12 +229,12 @@ const WeatherCard = ({
 };
 
 const WeatherStat = ({ label, value, unit, description }) => (
-  <div className="stat-box" role="group" aria-label={label}>
-    <p className="stat-label">{label}</p>
-    <p className="stat-value">
+  <div className="stat-box" role="group" aria-label={label}> {/* */}
+    <p className="stat-label">{label}</p> {/* */}
+    <p className="stat-value"> {/* */}
       {value}
-      {unit && <span className="stat-unit">{unit}</span>}
-      {description && <span className="stat-description">{description}</span>}
+      {unit && <span className="stat-unit">{unit}</span>} {/* */}
+      {description && <span className="stat-description">{description}</span>} {/* */}
     </p>
   </div>
 );
@@ -237,7 +244,7 @@ WeatherStat.propTypes = {
   value: PropTypes.oneOfType([PropTypes.number, PropTypes.string]).isRequired,
   unit: PropTypes.string,
   description: PropTypes.string,
-};
+}; //
 
 WeatherCard.propTypes = {
   city: PropTypes.string.isRequired,
@@ -248,6 +255,6 @@ WeatherCard.propTypes = {
   isFavorite: PropTypes.bool.isRequired,
   onDelete: PropTypes.func.isRequired,
   onToggleFavorite: PropTypes.func.isRequired,
-};
+}; //
 
-export default WeatherCard;
+export default WeatherCard; //

@@ -488,6 +488,193 @@ def get_forecast():
         return jsonify({"error": f"Server error: {str(e)}"}), 500
 
 
+@external_api_bp.route("/api/forecast/detailed", methods=["GET"])
+@protect_api_keys
+def get_detailed_forecast():
+    """Proxy endpoint for Open-Meteo forecast API with expanded detailed daily parameters"""
+    try:
+        api_key = os.getenv('BACKEND_OPENMETEO_API_KEY')
+        lat = request.args.get("latitude", type=float)
+        lon = request.args.get("longitude", type=float)
+
+        if lat is None or lon is None:
+            return jsonify({"error": "Latitude and longitude are required"}), 400
+
+        # *** Define the NEW, EXPANDED detailed daily parameters ***
+        detailed_daily_params = [
+            "weather_code", "temperature_2m_max", "apparent_temperature_max",
+            "apparent_temperature_min", "wind_speed_10m_max", "wind_gusts_10m_max",
+            "wind_direction_10m_dominant", "uv_index_max", "uv_index_clear_sky_max",
+            "precipitation_hours", "precipitation_probability_max", "precipitation_sum",
+            "snowfall_sum", "showers_sum", "rain_sum", "sunshine_duration",
+            "daylight_duration", "sunset", "sunrise", "temperature_2m_mean",
+            "temperature_2m_min", "visibility_mean", "relative_humidity_2m_mean",
+            "wind_speed_10m_mean", "cape_mean", "cape_max", "cape_min",
+            "cloud_cover_mean", "cloud_cover_min", "cloud_cover_max",
+            "dew_point_2m_mean", "precipitation_probability_mean", "updraft_max",
+            "winddirection_10m_dominant", "wind_gusts_10m_mean", "wind_gusts_10m_min",
+            "wind_speed_10m_min",
+            # Added parameters from the new URL:
+            "dew_point_2m_max", "dew_point_2m_min", "precipitation_probability_min",
+            "relative_humidity_2m_min", "relative_humidity_2m_max",
+            "snowfall_water_equivalent_sum", "visibility_max", "visibility_min"
+        ]
+
+        # Set up parameters for Open-Meteo API
+        params = {
+            "latitude": lat,
+            "longitude": lon,
+            "daily": detailed_daily_params, # Use the new expanded list
+            "models": "best_match",
+            "timezone": "GMT",
+            "forecast_days": 16,
+            "temperature_unit": "fahrenheit", # Keep existing units
+            "precipitation_unit": "inch",     # Keep existing units
+        }
+
+        # Determine URL based on API key availability
+        if api_key:
+            url = "https://customer-api.open-meteo.com/v1/forecast"
+            params["apikey"] = api_key
+        else:
+            # The new example URL uses the free API base
+            url = "https://api.open-meteo.com/v1/forecast"
+
+        # Make the request to Open-Meteo
+        try:
+            logger.info(f"Fetching detailed forecast (expanded) for {lat}, {lon} from {url}")
+            response = requests.get(url, params=params, timeout=15) # Increased timeout slightly
+            response.raise_for_status()
+            logger.info(f"Successfully fetched detailed forecast (expanded) for {lat}, {lon}")
+            return jsonify(response.json())
+
+        except requests.exceptions.RequestException as e:
+            logger.error(f"Error fetching detailed forecast (expanded) from Open-Meteo: {str(e)}")
+
+            # Fall back to free API if we get an error with the customer API
+            # Note: The new example URL already uses the free API base, so fallback might be less relevant
+            # unless you were intending to primarily use the customer API.
+            if api_key and "customer-api" in url:
+                logger.info(f"Falling back to free API for detailed forecast (expanded) for {lat}, {lon}")
+                try:
+                    fallback_url = "https://api.open-meteo.com/v1/forecast"
+                    fallback_params = params.copy()
+                    fallback_params.pop("apikey", None)
+                    response = requests.get(fallback_url, params=fallback_params, timeout=15) # Increased timeout
+                    response.raise_for_status()
+                    logger.info(f"Successfully fetched detailed forecast (expanded) using fallback API for {lat}, {lon}")
+                    return jsonify(response.json())
+                except requests.exceptions.RequestException as e2:
+                    logger.error(f"Error with fallback API for detailed forecast (expanded): {str(e2)}")
+                    return jsonify({"error": f"API service unavailable: {str(e2)}"}), 503
+
+            # If not using customer API or fallback failed
+            return jsonify({"error": f"Weather service error: {str(e)}"}), 503
+
+    except Exception as e:
+        logger.error(f"Error in detailed forecast (expanded) endpoint: {str(e)}")
+        return jsonify({"error": f"Server error: {str(e)}"}), 500
+
+# Add this function inside Airstorm-GFS/backend/src/api/external_api.py
+# Ensure necessary imports are present at the top of the file:
+# import os
+# import requests
+# from flask import Blueprint, request, jsonify
+# from middleware.api_key_protection import protect_api_keys # Assuming this decorator exists
+# import logging # Assuming logger is configured
+
+# logger = logging.getLogger(__name__) # Assuming logger is set up
+
+@external_api_bp.route("/api/forecast/daily_extended", methods=["GET"])
+@protect_api_keys # Assuming you want to protect this like the other endpoint
+def get_graphcast_extended_forecast():
+    """Proxy endpoint for Open-Meteo forecast API with a specific set of daily parameters."""
+    try:
+        api_key = os.getenv('BACKEND_OPENMETEO_API_KEY')
+        lat = request.args.get("latitude", type=float)
+        lon = request.args.get("longitude", type=float)
+
+        if lat is None or lon is None:
+            logger.warning("Missing latitude or longitude for /api/forecast/daily_extended request.")
+            return jsonify({"error": "Latitude and longitude are required"}), 400
+
+        # Define the daily parameters based EXACTLY on the user's example URL
+        daily_params = [
+            "weather_code", "temperature_2m_max", "apparent_temperature_max",
+            "apparent_temperature_min", "wind_speed_10m_max", "wind_gusts_10m_max",
+            "wind_direction_10m_dominant", "uv_index_max", "uv_index_clear_sky_max",
+            "precipitation_hours", "precipitation_probability_max", "precipitation_sum",
+            "snowfall_sum", "showers_sum", "rain_sum", "sunshine_duration",
+            "daylight_duration", "sunset", "sunrise", "temperature_2m_mean",
+            "temperature_2m_min", "visibility_mean", "relative_humidity_2m_mean",
+            "wind_speed_10m_mean", "cape_mean", "cape_max", "cape_min",
+            "cloud_cover_mean", "cloud_cover_min", "cloud_cover_max",
+            "dew_point_2m_mean", "precipitation_probability_mean", "updraft_max",
+            "winddirection_10m_dominant", "wind_gusts_10m_mean", "wind_gusts_10m_min",
+            "wind_speed_10m_min"
+        ]
+
+        # Set up parameters for Open-Meteo API
+        params = {
+            "latitude": lat,
+            "longitude": lon,
+            "daily": ",".join(daily_params), # Join the list into a comma-separated string
+            "models": "best_match",         # As per user's example URL
+            "timezone": "GMT",              # As per user's example URL
+            "forecast_days": 16,            # As per user's example URL
+            # Adding units for consistency with other backend endpoints (modify if needed)
+            "temperature_unit": "fahrenheit",
+            "precipitation_unit": "inch",
+            "wind_speed_unit": "mph", # Added based on other endpoints, adjust if needed
+            # Note: The example JSON had km/h, mm etc. because units weren't specified in the URL
+            # Requesting specific units here will make the response use those units.
+        }
+
+        # Determine URL based on API key availability (prioritize customer API as per example URL)
+        if api_key:
+            url = "https://customer-api.open-meteo.com/v1/forecast"
+            params["apikey"] = api_key
+            logger.info(f"Using Customer API Key for daily_extended forecast.")
+        else:
+            url = "https://api.open-meteo.com/v1/forecast" # Fallback to free API
+            logger.warning("No Customer API Key found, using free API for daily_extended forecast.")
+
+
+        # Make the request to Open-Meteo
+        try:
+            logger.info(f"Fetching daily_extended forecast for {lat}, {lon} from {url}")
+            response = requests.get(url, params=params, timeout=15)
+            response.raise_for_status() # Raise HTTPError for bad responses (4xx or 5xx)
+            logger.info(f"Successfully fetched daily_extended forecast for {lat}, {lon}")
+            return jsonify(response.json())
+
+        except requests.exceptions.RequestException as e:
+            logger.error(f"Error fetching daily_extended forecast from {url}: {str(e)}")
+
+            # Optional: Fallback logic if customer API failed (if you started with customer API)
+            if api_key and "customer-api" in url:
+                logger.info(f"Falling back to free API for daily_extended forecast for {lat}, {lon}")
+                try:
+                    fallback_url = "https://api.open-meteo.com/v1/forecast"
+                    fallback_params = params.copy()
+                    fallback_params.pop("apikey", None)
+                    response = requests.get(fallback_url, params=fallback_params, timeout=15)
+                    response.raise_for_status()
+                    logger.info(f"Successfully fetched daily_extended forecast using fallback API for {lat}, {lon}")
+                    return jsonify(response.json())
+                except requests.exceptions.RequestException as e2:
+                    logger.error(f"Error with fallback API for daily_extended forecast: {str(e2)}")
+                    # Avoid returning specific error details from external service to client if possible
+                    return jsonify({"error": "Weather service currently unavailable after fallback."}), 503
+
+            # If not using customer API initially or fallback failed
+            return jsonify({"error": "Weather service error."}), 503 # Generic error
+
+    except Exception as e:
+        # Log the full error internally, but return a generic error to the client
+        logger.exception(f"Unexpected error in daily_extended forecast endpoint: {str(e)}") # Use logger.exception to include stack trace
+        return jsonify({"error": "An unexpected server error occurred."}), 500
+    
 # ====== GitHub Issues API ======
 github_service = GitHubService()
 
