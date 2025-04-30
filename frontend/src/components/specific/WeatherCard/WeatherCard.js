@@ -206,11 +206,14 @@ const WeatherCard = ({
       </p>
 
       <div className="weather-stats-grid">
-        <WeatherStat label="Rain" value={weatherData.rain} unit="inches" />
+        <WeatherStat 
+          label="Rain" 
+          value={typeof weatherData.rain === 'number' ? weatherData.rain.toFixed(2) : weatherData.rain} 
+          unit="inches" />
         <WeatherStat
           label="Wind"
-          value={weatherData.wind_speed.toFixed(0)}
-          unit=" mph"
+          value={weatherData.wind_speed.toFixed(1)}
+          unit="mph"
         />
         <WeatherStat
           label="Wind Direction"

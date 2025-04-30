@@ -56,7 +56,7 @@
   justify-content: center;
   padding: 0; /* Remove fixed padding */
   margin-right: 1.5rem; /* Space after icon */
-  color: #60a5fa; /* UPDATED: Lighter Sky Blue */
+  color: #3182CE; /* UPDATED: Lighter Sky Blue */
 }
 /* Ensure icons inside have consistent size */
 .weatherIcon svg {
@@ -81,11 +81,11 @@
 }
 
 .minTemp {
-  color: #60a5fa; /* UPDATED: Lighter Sky Blue */
+  color: #3182CE; /* UPDATED: Lighter Sky Blue */
 }
 
 .maxTemp {
-  color: #f87171; /* UPDATED: Complementary Red */
+  color: #000000; /* UPDATED: Complementary Red */
 }
 
 .tempFormatting > div:nth-child(2) { /* Style the slash */

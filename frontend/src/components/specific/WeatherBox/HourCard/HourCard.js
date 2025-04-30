@@ -223,7 +223,7 @@ const HourCard = ({
                      {`${hourData.windDirection} ${hourData.windSpeed}`}
                  </div>
 
-                 {/* Surface Pressure */}
+                 {/* Surface Pressure 
                  <div className='hour-data-point hour-pressure' title="Surface Pressure">
                      <Gauge size={14} style={{ marginRight: '3px', color: '#f97316' }} />
                      {hourData.pressure}

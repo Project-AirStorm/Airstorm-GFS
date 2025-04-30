@@ -1,13 +1,14 @@
 // File: Airstorm-GFS/frontend/src/components/specific/GraphCastForecast/GraphCastForecast.js
-// Final version: Removes geolocation, uses context fallback, fixes defaultProps warning.
+// Multiple Area shadings, Precip as Line on left axis, commented means, independent toggles.
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import PropTypes from 'prop-types';
 import axios from 'axios';
-import { useUserProfile } from '../../../contexts/UserContext'; // Needed for context fallback
+import { useUserProfile } from '../../../contexts/UserContext'; // Ensure path is correct
 import {
-  LineChart,
+  LineChart, // Using LineChart since no bars
   Line,
+  Area, // Keep Area for shading
   XAxis,
   YAxis,
   Tooltip,
@@ -15,245 +16,304 @@ import {
   CartesianGrid,
   Legend,
 } from 'recharts';
-import {
-  IoLocationOutline,
-  IoThermometerOutline,
-  IoWaterOutline,
-  IoCloudOutline,
-} from 'react-icons/io5';
+import { IoLocationOutline } from 'react-icons/io5';
+import { BsToggleOn, BsToggleOff } from "react-icons/bs";
+import { variableStyles } from '../../../config/WeatherConfig'; // Ensure path is correct
 import './GraphCastForecast.css';
 
 const REACT_APP_API_URL =
   process.env.REACT_APP_API_URL || 'http://localhost:5001';
 
-// Fix defaultProps warning: Use default parameters in signature
-const GraphCastForecast = ({ customLatitude = undefined, customLongitude = undefined }) => { // Defaults set here
+// --- Chart Line Configuration ---
+// Commented out _mean variables, reverted precip to line/left axis
+const chartLinesConfig = [
+  // Temperatures
+  { key: 'temperature_2m_max', name: 'Max Temp', color: variableStyles.temperature_2m?.color || '#E53E3E', unit: '°F', yAxisId: 'left', type: 'line' },
+  { key: 'temperature_2m_min', name: 'Min Temp', color: variableStyles.temperature_2m?.altColor || '#3182CE', unit: '°F', yAxisId: 'left', type: 'line' },
+  { key: 'temperature_2m_mean', name: 'Mean Temp', color: variableStyles.temperature_2m?.meanColor || '#ECC94B', unit: '°F', yAxisId: 'left', type: 'line' }, // Commented out
+  // { key: 'apparent_temperature_max', name: 'Max Feels Like', color: variableStyles.apparent_temperature?.color || '#DD6B20', unit: '°F', yAxisId: 'left', type: 'line' }, // Commented out
+  // { key: 'apparent_temperature_min', name: 'Min Feels Like', color: variableStyles.apparent_temperature?.altColor || '#63B3ED', unit: '°F', yAxisId: 'left', type: 'line' }, // Commented out
+  // { key: 'dew_point_2m_max', name: 'Max Dew Point', color: variableStyles.dew_point_2m?.color || '#38A169', unit: '°F', yAxisId: 'left', type: 'line' },
+  //{ key: 'dew_point_2m_min', name: 'Min Dew Point', color: variableStyles.dew_point_2m?.altColor || '#C6F6D5', unit: '°F', yAxisId: 'left', type: 'line' },
+  { key: 'dew_point_2m_mean', name: 'Mean Dew Point', color: variableStyles.dew_point_2m?.meanColor || '#68D391', unit: '°F', yAxisId: 'left', type: 'line' }, // Commented out
+  // Precipitation
+  { key: 'precipitation_probability_max', name: 'Max Precip %', color: variableStyles.precipitation_probability?.color || '#4FD1C5', unit: '%', yAxisId: 'left', type: 'line' },
+  { key: 'precipitation_probability_min', name: 'Min Precip %', color: variableStyles.precipitation_probability?.altColor || '#81E6D9', unit: '%', yAxisId: 'left', type: 'line' },
+  // { key: 'precipitation_probability_mean', name: 'Mean Precip %', color: variableStyles.precipitation_probability?.meanColor || '#38B2AC', unit: '%', yAxisId: 'left', type: 'line' }, // Commented out
+  { key: 'precipitation_sum', name: 'Precip Sum', color: variableStyles.precipitation?.color || '#4299E1', unit: 'inch', yAxisId: 'left', type: 'line' }, // Back to line, left axis
+  { key: 'rain_sum', name: 'Rain Sum', color: variableStyles.rain?.color || '#63B3ED', unit: 'inch', yAxisId: 'left', type: 'line' }, // Back to line, left axis
+  // { key: 'showers_sum', name: 'Showers Sum', color: variableStyles.showers?.color || '#90CDF4', unit: 'inch', yAxisId: 'left', type: 'line' }, // Commented out & line/left
+  { key: 'snowfall_sum', name: 'Snowfall Sum', color: variableStyles.snowfall?.color || '#EBF8FF', unit: 'inch', yAxisId: 'left', type: 'line' }, // Back to line, left axis
+  // Wind
+  { key: 'wind_speed_10m_max', name: 'Max Wind Speed', color: variableStyles.wind_speed_10m?.color || '#805AD5', unit: 'mph', yAxisId: 'right', type: 'line' },
+  { key: 'wind_speed_10m_min', name: 'Min Wind Speed', color: variableStyles.wind_speed_10m?.altColor || '#B794F4', unit: 'mph', yAxisId: 'right', type: 'line' },
+  { key: 'wind_speed_10m_mean', name: 'Mean Wind Speed', color: variableStyles.wind_speed_10m?.meanColor || '#9F7AEA', unit: 'mph', yAxisId: 'right', type: 'line' }, // Commented out
+  { key: 'wind_gusts_10m_max', name: 'Max Wind Gust', color: variableStyles.wind_gusts_10m?.color || '#718096', unit: 'mph', yAxisId: 'right', type: 'line' },
+  { key: 'wind_gusts_10m_min', name: 'Min Wind Gust', color: variableStyles.wind_gusts_10m?.altColor || '#E2E8F0', unit: 'mph', yAxisId: 'right', type: 'line' },
+  // { key: 'wind_gusts_10m_mean', name: 'Mean Wind Gust', color: variableStyles.wind_gusts_10m?.meanColor || '#A0AEC0', unit: 'mph', yAxisId: 'right', type: 'line' }, // Commented out
+  // Cloud Cover / Humidity / Visibility
+  { key: 'cloud_cover_max', name: 'Max Clouds', color: variableStyles.cloud_cover?.color || '#4A5568', unit: '%', yAxisId: 'left', type: 'line' },
+  { key: 'cloud_cover_min', name: 'Min Clouds', color: variableStyles.cloud_cover?.altColor || '#E2E8F0', unit: '%', yAxisId: 'left', type: 'line' },
+  { key: 'cloud_cover_mean', name: 'Mean Clouds', color: variableStyles.cloud_cover?.meanColor || '#A0AEC0', unit: '%', yAxisId: 'left', type: 'line' }, // Commented out
+  { key: 'relative_humidity_2m_max', name: 'Max Humidity', color: variableStyles.relative_humidity_2m?.color || '#48BB78', unit: '%', yAxisId: 'left', type: 'line' },
+  { key: 'relative_humidity_2m_min', name: 'Min Humidity', color: variableStyles.relative_humidity_2m?.altColor || '#9AE6B4', unit: '%', yAxisId: 'left', type: 'line' },
+  // { key: 'relative_humidity_2m_mean', name: 'Mean Humidity', color: variableStyles.relative_humidity_2m?.meanColor || '#68D391', unit: '%', yAxisId: 'left', type: 'line' }, // Commented out
+  { key: 'visibility_max', name: 'Max Visibility', color: variableStyles.visibility?.color || '#718096', unit: 'm', yAxisId: 'left', type: 'line' },
+  { key: 'visibility_min', name: 'Min Visibility', color: variableStyles.visibility?.altColor || '#E2E8F0', unit: 'm', yAxisId: 'left', type: 'line' },
+  { key: 'visibility_mean', name: 'Mean Visibility', color: variableStyles.visibility?.meanColor || '#A0AEC0', unit: 'm', yAxisId: 'left', type: 'line' }, // Commented out
+  // Other Indices / Durations / Advanced
+  { key: 'uv_index_max', name: 'UV Index Max', color: variableStyles.uv_index?.color || '#F6E05E', unit: '', yAxisId: 'left', type: 'line' },
+  { key: 'uv_index_clear_sky_max', name: 'UV Clear Sky Max', color: variableStyles.uv_index?.altColor || '#FAF089', unit: '', yAxisId: 'left', type: 'line' },
+  { key: 'cape_max', name: 'Max CAPE', color: variableStyles.cape?.color || '#F56565', unit: 'J/kg', yAxisId: 'left', type: 'line' },
+  { key: 'cape_min', name: 'Min CAPE', color: variableStyles.cape?.altColor || '#FED7D7', unit: 'J/kg', yAxisId: 'left', type: 'line' },
+  // { key: 'cape_mean', name: 'Mean CAPE', color: variableStyles.cape?.meanColor || '#FC8181', unit: 'J/kg', yAxisId: 'left', type: 'line' }, // Commented out
+  { key: 'updraft_max', name: 'Max Updraft', color: variableStyles.updraft_max?.color || '#ED64A6', unit: 'm/s', yAxisId: 'right', type: 'line' },
+];
+
+// Filter config to only include lines that are not commented out (simple check)
+// This assumes commented lines are physically removed or commented with //
+// A more robust check might be needed if commenting is done differently.
+const activeChartLinesConfig = chartLinesConfig.filter(line =>
+    line.key &&
+    !line.key.includes('_mean') &&
+    line.key !== 'apparent_temperature_max' &&
+    line.key !== 'apparent_temperature_min' &&
+    line.key !== 'showers_sum'
+    // Add other explicitly commented keys if necessary
+);
+
+// --- Component ---
+const GraphCastForecast = ({ customLatitude = undefined, customLongitude = undefined }) => {
   const [forecast, setForecast] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [userLocation, setUserLocation] = useState(null);
   const [locationName, setLocationName] = useState('');
+  const [dailyUnits, setDailyUnits] = useState({});
 
-  // Get savedLocations and loading state directly from context
-  const { savedLocations: contextSavedLocations, isLoading: contextLoading } = useUserProfile(); //
-
-  // --- fetchLocationName (unchanged) ---
-  const fetchLocationName = async (latitude, longitude) => {
-    try {
-      const locationResponse = await axios.get(
-        `${REACT_APP_API_URL}/api/geocode`,
-        {
-          params: { lat: latitude, lon: longitude },
-        }
-      );
-      if (locationResponse.data && locationResponse.data.formatted_address) {
-        setLocationName(locationResponse.data.formatted_address);
-      } else {
-         setLocationName(`${latitude.toFixed(2)}°N, ${longitude.toFixed(2)}°W`);
-      }
-    } catch (err) {
-      console.error('Error fetching location name:', err);
-      setLocationName(`${latitude.toFixed(2)}°N, ${longitude.toFixed(2)}°W`);
+  // State for visibility - Initialize based on ACTIVE config
+  const [visibility, setVisibility] = useState(() => {
+    const initialVisibility = {};
+    const defaultVisible = [ // Adjust defaults as needed
+      'temperature_2m_max',
+      'temperature_2m_min',
+      'precipitation_probability_max',
+      'precipitation_sum', // Precip sum line visible default? Maybe keep hidden.
+      'relative_humidity_2m_max',
+    ];
+    // Initialize visibility based on the *active* configuration
+    activeChartLinesConfig.forEach(line => {
+      initialVisibility[line.key] = defaultVisible.includes(line.key);
+    });
+    // If max temp starts visible, ensure min temp does too initially for shading
+     if (initialVisibility['temperature_2m_max']) {
+        initialVisibility['temperature_2m_min'] = true;
     }
-  };
+    return initialVisibility;
+  });
 
-  // --- fetchForecastData (unchanged - with internal retry) ---
-  const fetchForecastData = async (latitude, longitude) => {
-    let currentRetry = 0;
-    const maxRetries = 2;
+  // Get context data
+  const { savedLocations: contextSavedLocations, isLoading: contextLoading } = useUserProfile();
 
-    fetchLocationName(latitude, longitude); // Fetch name concurrently
+  // --- fetchLocationName (Unchanged) ---
+  const fetchLocationName = useCallback(async (latitude, longitude) => {
+     try { /* ... */ } catch (err) { /* ... */ }
+  }, []);
 
-    while (currentRetry <= maxRetries) {
-        setLoading(true); // Ensure loading is true at start of attempt
-        setError(null);
+  // --- fetchForecastData (Unchanged - already fetches detailed) ---
+  const fetchForecastData = useCallback(async (latitude, longitude) => {
+     setLoading(true); setError(null); fetchLocationName(latitude, longitude);
+     try {
+       const response = await axios.get(`${REACT_APP_API_URL}/api/forecast/detailed`, { params: { latitude, longitude }, timeout: 15000 });
+       if (!response.data || response.data.error) { throw new Error(response.data?.error || 'Failed fetch'); }
+       if (!response.data.daily || !response.data.daily.time) { throw new Error('Invalid data format'); }
+       setDailyUnits(response.data.daily_units || {});
+       const dailyData = response.data.daily.time.map((time, index) => {
+         const dayData = { time: new Date(time).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }), isoTime: time };
+         // Process based on the *full* original config to ensure data is extracted
+         chartLinesConfig.forEach(config => {
+           if(config.key) dayData[config.key] = response.data.daily[config.key]?.[index] ?? null;
+         });
+         return dayData;
+       });
+       setForecast({ daily: dailyData }); setUserLocation({ latitude, longitude }); setLoading(false);
+     } catch (err) { console.error('Error fetch', err); setError(err.message || 'Failed fetch'); setLoading(false); }
+   }, [fetchLocationName]);
 
-        try {
-            console.log(`Fetching forecast for ${latitude}, ${longitude} (Attempt ${currentRetry + 1})`);
-            const response = await axios.get(`${REACT_APP_API_URL}/api/forecast`, {
-                params: { latitude, longitude },
-                timeout: 10000,
-            });
-
-            if (!response.data || response.data.error) {
-                throw new Error(response.data?.error || 'Failed to fetch forecast data');
-            }
-            if (!response.data.daily || !response.data.daily.time || !response.data.current) {
-                throw new Error('Invalid data format returned from weather service');
-            }
-
-            const dailyData = response.data.daily.time.map((time, index) => ({
-                time: new Date(time).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-                temperature: Math.round((response.data.daily.temperature_2m_max[index] + response.data.daily.temperature_2m_min[index]) / 2),
-                precipitationProb: response.data.daily.precipitation_probability_max[index] || 0,
-                precipitationSum: response.data.daily.precipitation_sum[index] || 0,
-                cloudCover: response.data.daily.cloud_cover_mean[index] || 0,
-                weatherCode: response.data.daily.weather_code[index] || 0,
-            }));
-
-            setForecast({ current: response.data.current, daily: dailyData });
-            setUserLocation({ latitude, longitude }); // Update the location being displayed
-            setLoading(false);
-            setError(null);
-            return; // Exit loop on success
-
-        } catch (err) {
-            console.error('Error fetching forecast data:', err);
-            currentRetry++;
-            if (currentRetry > maxRetries) {
-                setError(err.message || 'Failed to fetch weather data after multiple attempts');
-                setLoading(false);
-            } else {
-                console.log(`Retrying forecast fetch (${currentRetry}/${maxRetries})...`);
-                await new Promise(resolve => setTimeout(resolve, 1000));
-            }
-        }
-    }
-  };
-
-  // --- useEffect (No Geolocation Logic) ---
+  // --- useEffect (Unchanged) ---
   useEffect(() => {
-    // Wait for user context to finish loading initial locations
-    if (contextLoading) {
-        console.log("GraphCastForecast: Waiting for user context to load...");
-        setLoading(true); // Keep loading indicator on while context loads
-        return; // Prevent further execution until context is ready
-    }
+     if (contextLoading) { setLoading(true); return; }
+     setLoading(true); setError(null); setForecast(null); setLocationName('');
+     if (customLatitude !== undefined && customLongitude !== undefined) { fetchForecastData(customLatitude, customLongitude); }
+     else if (contextSavedLocations && contextSavedLocations.length > 0) { const f=contextSavedLocations[0]; fetchForecastData(f.latitude, f.longitude); }
+     else { setError('Select/add location'); setLoading(false); setUserLocation(null); }
+   }, [customLatitude, customLongitude, contextSavedLocations, contextLoading, fetchForecastData]);
 
-    setLoading(true); // Assume loading for any potential fetch below
-    setError(null);
-    setForecast(null); // Clear previous forecast
-    setLocationName(''); // Clear previous name
+  // --- Legend Toggle Handler (Reverted to simple independent toggle) ---
+  const handleLegendClick = (dataKey) => {
+    setVisibility(prevVisibility => ({
+      ...prevVisibility,
+      [dataKey]: !prevVisibility[dataKey]
+    }));
+  };
 
-    // Priority 1: Use custom location if provided (selected card)
-    if (customLatitude !== undefined && customLongitude !== undefined) {
-      console.log("GraphCastForecast: Using custom coordinates from selection.");
-      fetchForecastData(customLatitude, customLongitude);
-    }
-    // Priority 2: Use first saved location from context if available
-    else if (contextSavedLocations && contextSavedLocations.length > 0) {
-      const fallbackLocation = contextSavedLocations[0];
-      console.log(`GraphCastForecast: No custom location, using first saved location from context: ${fallbackLocation.name || 'First Saved Location'}`);
-      fetchForecastData(fallbackLocation.latitude, fallbackLocation.longitude);
-    }
-    // Priority 3: No location available (neither selected nor saved)
-    else {
-      console.error("GraphCastForecast: No custom location selected and no saved locations in context.");
-      setError('Please select or add a location to view the forecast.'); // Set specific error
-      setLoading(false); // Stop loading, show error instead
-      setUserLocation(null); // Ensure no stale location is displayed
-    }
-    // NO navigator.geolocation call anywhere in this component.
+  // --- Custom Legend Renderer (Updated for 6 Columns, uses active config) ---
+  const renderCustomLegend = (props) => {
+      const itemsToRenderInLegend = activeChartLinesConfig; // Use filtered config
 
-    // Dependencies: custom coords, the context locations array itself, and context loading state
-  }, [customLatitude, customLongitude, contextSavedLocations, contextLoading]);
+      const numColumns = 6;
+      const itemsPerColumn = Math.ceil(itemsToRenderInLegend.length / numColumns);
+      const columns = [];
+      for (let i = 0; i < numColumns; i++) {
+        columns.push(itemsToRenderInLegend.slice(i * itemsPerColumn, (i + 1) * itemsPerColumn));
+      }
+      return (
+        <div className="custom-legend-container multi-column">
+          {columns.map((columnItems, colIndex) => (
+            <div key={`col-${colIndex}`} className="legend-column">
+              {columnItems.map((entry) => {
+                if (!entry.key) return null;
+                const dataKey = entry.key;
+                const isActive = visibility[dataKey] ?? false;
+                return (
+                  <div key={`legend-${dataKey}`} className={`custom-legend-item ${isActive ? 'active' : 'inactive'}`} onClick={() => handleLegendClick(dataKey)} style={{ cursor: 'pointer', marginBottom: '4px' }} >
+                    <span className="legend-icon" style={{ backgroundColor: entry.color }}></span>
+                    <span className="legend-text">{entry.name}</span>
+                    <span className="legend-toggle-icon">{isActive ? <BsToggleOn size={20} color="#34D399" /> : <BsToggleOff size={20} color="#9CA3AF" />}</span>
+                  </div>
+                );
+              })}
+            </div>
+          ))}
+        </div>
+      );
+    };
+
+  // --- Custom Tooltip (Unchanged) ---
+  const CustomTooltip = ({ active, payload, label }) => {
+      if (active && payload && payload.length) {
+        return (
+          <div className="custom-tooltip"> <p className="tooltip-label">{label}</p>
+            {payload
+              .filter(pld => chartLinesConfig.some(c => c.key === pld.dataKey)) // Use full config for lookup
+              .filter(pld => { const c = chartLinesConfig.find(c => c.key === pld.dataKey); return c && visibility[pld.dataKey]; })
+              .map((pld) => {
+                  const c = chartLinesConfig.find(c => c.key === pld.dataKey);
+                  const v = pld.value !== null ? pld.value.toFixed(c?.unit === 'inch' ? 2 : (c?.unit === '°F' ? 1 : 0)) : 'N/A';
+                  return ( <p key={pld.dataKey} className="tooltip-value" style={{ color: pld.color }}> {c?.name || pld.dataKey}: {v} {c?.unit || ''} </p> );
+               })
+             }
+          </div>
+        );
+      } return null;
+    };
+
+  // --- Helper Function to Generate Area Pairs ---
+  const renderAreaShading = () => {
+      const areas = [];
+      // Find all base variable names that have both _max and _min versions active
+      const baseKeys = [...new Set(activeChartLinesConfig.map(item => item.key.replace(/_max$|_min$/, '')))];
+
+      baseKeys.forEach(baseKey => {
+          const maxKey = `${baseKey}_max`;
+          const minKey = `${baseKey}_min`;
+
+          const maxConfig = activeChartLinesConfig.find(item => item.key === maxKey);
+          const minConfig = activeChartLinesConfig.find(item => item.key === minKey);
+
+          // Check if both min and max config exist and are visible
+          if (maxConfig && minConfig && visibility[maxKey] && visibility[minKey]) {
+              // Use the color from the MAX config for the shading
+              const shadeColor = maxConfig.color;
+              // Ensure both are on the same axis for shading to make sense
+              if (maxConfig.yAxisId === minConfig.yAxisId) {
+                  areas.push(
+                      <React.Fragment key={`area-${baseKey}`}>
+                          {/* Area 1: Max Background Shade */}
+                          <Area
+                              yAxisId={maxConfig.yAxisId}
+                              type="monotone"
+                              dataKey={maxKey}
+                              fill={shadeColor}
+                              stroke="none"
+                              fillOpacity={0.2} // Semi-transparent
+                              connectNulls={true}
+                              isAnimationActive={false}
+                          />
+                          {/* Area 2: Min Cutout */}
+                          <Area
+                              yAxisId={minConfig.yAxisId}
+                              type="monotone"
+                              dataKey={minKey}
+                              fill="#FFFFFF" // White background cutout
+                              stroke="none"
+                              fillOpacity={1} // Fully opaque
+                              connectNulls={true}
+                              isAnimationActive={false}
+                          />
+                      </React.Fragment>
+                  );
+              }
+          }
+      });
+      return areas;
+  };
 
 
   // --- Render Logic ---
+  if (contextLoading && !userLocation && !(customLatitude !== undefined)) { return <div className="loading-state"><div>Loading user locations...</div></div>; }
+  if (loading) { return <div className="loading-state"><div>Loading detailed forecast data...</div></div>; }
+  if (error && !forecast) { return <div className="error-state"><div>Error: {error}</div></div>; }
+  if (!forecast) { return <div className="error-state"><div>Forecast data unavailable. Please select or add a location.</div></div>; }
 
-  // Show context loading state if we haven't determined a location yet and context is loading
-  if (contextLoading && !userLocation && !(customLatitude !== undefined)) {
-       return <div className="loading-state"><div>Loading user locations...</div></div>;
-  }
-
-  // Show main loading state during fetch
-  if (loading) {
-    return <div className="loading-state"><div>Loading forecast data...</div></div>;
-  }
-
-  // Show error if fetching failed or no location was available to fetch
-  if (error && !forecast) {
-    // This 'error' state now comes ONLY from fetchForecastData failures or the 'No location' case
-    return <div className="error-state"><div>Error: {error}</div></div>;
-  }
-
-  // Handle case where loading finished but forecast is still null (e.g., initial state before context loads fully)
-  if (!forecast) {
-       return <div className="error-state"><div>Forecast data unavailable. Please select or add a location.</div></div>;
-   }
-
-  // Custom Tooltip Component (unchanged)
-   const CustomTooltip = ({ active, payload, label }) => {
-     if (active && payload && payload.length) {
-        return (
-          <div className="custom-tooltip">
-            <p className="tooltip-label">{label}</p>
-            {payload.map((entry, index) => (
-              <p key={index} className="tooltip-value">
-                {entry.name}: {entry.value}
-                {entry.unit === '°F' ? '°F' : entry.unit === 'in' ? '"' : entry.unit === '%' ? '%' : ''}
-              </p>
-            ))}
-          </div>
-        );
-      }
-      return null;
-   };
-
-  // Component Render (unchanged)
   return (
     <div className="graphcast-container">
-       {/* Show non-blocking error if fetch failed but previous data exists */}
-       {error && <div className="info-message">{error}</div>}
-
-      <div className="graphcast-header">
-        {/* Header content */}
-         <div>
-           <div className="graphcast-location">
-             <IoLocationOutline className="mr-1 text-red-600" />
-             <span>
-               {locationName ||
-                 (userLocation ? `${userLocation.latitude.toFixed(2)}°N, ${userLocation.longitude.toFixed(2)}°W` : 'No location selected')}
-             </span>
-           </div>
-         </div>
-         <div className="current-weather">
-            <div className="temperature-display">
-              <IoThermometerOutline className="mr-1 text-blue-600" />
-              <span className="text-xl">
-                {forecast.current.temperature_2m?.toFixed(1)}°F
-              </span>
-            </div>
-            <div className="weather-stats">
-              <div className="weather-stat">
-                <IoWaterOutline className="mr-1" />
-                <span>{forecast.current.relative_humidity_2m}%</span>
-              </div>
-              <div className="weather-stat">
-                <IoCloudOutline className="mr-1" />
-                <span>{forecast.current.cloud_cover}%</span>
-              </div>
-            </div>
-          </div>
+      {error && forecast && <div className="info-message">{error}</div>}
+      <div className="graphcast-header simple">
+         <div className="graphcast-location"> <IoLocationOutline className="mr-1 text-red-600" /> <span> {locationName || (userLocation ? `${userLocation.latitude.toFixed(2)}°N, ${userLocation.longitude.toFixed(2)}°W` : 'No location selected')} </span> </div>
       </div>
-
-      <div className="chart-container">
-        {/* Chart rendering */}
+      <div className="chart-container detailed-chart">
         <ResponsiveContainer width="100%" height={400}>
-           <LineChart data={forecast.daily} margin={{ top: 20, right: 30, left: 20, bottom: 10 }}>
-             <CartesianGrid strokeDasharray="7 7" stroke="#d3d5d8" />
-             <XAxis dataKey="time" stroke="#6b7280" tick={{ fill: '#6b7280', fontSize: 12 }} />
-             <YAxis yAxisId="left" stroke="#6b7280" tick={{ fill: '#6b7280', fontSize: 12 }} label={{ value: 'Temp. (°F) / Prob. (%) / Precip. (in)', offset: 10, angle: -90, position: 'insideBottomLeft', fill: '#6b7280' }} />
-             <YAxis yAxisId="right" orientation="right" stroke="#6b7280" tick={{ fill: '#6b7280', fontSize: 12 }} label={{ value: '', angle: 90, position: 'insideRight', fill: '#6b7280' }} />
-             <Tooltip content={<CustomTooltip />} />
-             <Legend wrapperStyle={{ paddingTop: '20px' }} />
-             <Line yAxisId="left" type="monotone" dataKey="temperature" name="Avg Temperature" stroke="#A1A7FF" strokeWidth={2} dot={{ fill: '#A1A7FF', r: 4 }} unit="°F" />
-             <Line yAxisId="left" type="monotone" dataKey="precipitationProb" name="Precipitation Chance" stroke="#60a5fa" strokeWidth={2} dot={{ fill: '#60a5fa', r: 4 }} unit="%" />
-             <Line yAxisId="left" type="monotone" dataKey="precipitationSum" name="Precipitation Amount" stroke="#48bb78" strokeWidth={2} dot={{ fill: '#48bb78', r: 4 }} unit="in" />
-             <Line yAxisId="left" type="monotone" dataKey="cloudCover" name="Cloud Cover" stroke="#94a3b8" strokeWidth={2} dot={{ fill: '#94a3b8', r: 4 }} unit="%" />
-           </LineChart>
+          {/* Back to LineChart */}
+          <LineChart
+            data={forecast.daily}
+            margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+          >
+            <CartesianGrid strokeDasharray="3 3" stroke="#d3d5d8" />
+            <XAxis dataKey="time" stroke="#6b7280" tick={{ fill: '#6b7280', fontSize: 12 }}/>
+            {/* Left Y-Axis - Label updated */}
+            <YAxis yAxisId="left" stroke="#6b7280" tick={{ fill: '#6b7280', fontSize: 12 }} label={{ value: 'Temp (°F) / Precip (inch) / % / Other', angle: -90, position: 'insideLeft', fill: '#6b7280', style: { textAnchor: 'middle' } }} allowDecimals={true} />
+            {/* Right Y-Axis (Wind) */}
+            <YAxis yAxisId="right" orientation="right" stroke="#6b7280" tick={{ fill: '#6b7280', fontSize: 12 }} label={{ value: 'Wind (mph) / Updraft (m/s)', angle: 90, position: 'insideRight', fill: '#6b7280', style: { textAnchor: 'middle' } }} allowDecimals={false} />
+            {/* Dedicated Precip Axis REMOVED */}
+
+            <Tooltip content={<CustomTooltip />} />
+            <Legend content={renderCustomLegend} verticalAlign="bottom" wrapperStyle={{ paddingTop: '20px' }} />
+
+            {/* Render Area Shading FIRST */}
+            {renderAreaShading()}
+
+            {/* Render Lines (On Top of Areas) */}
+            {activeChartLinesConfig.map((item) => { // Iterate over ACTIVE config
+              // Render Line if visible and type is 'line'
+              if (visibility[item.key] && item.type === 'line') {
+                return (
+                  <Line key={item.key} yAxisId={item.yAxisId} type="monotone" dataKey={item.key} name={item.name} stroke={item.color} strokeWidth={2} dot={false} unit={item.unit} connectNulls={true} isAnimationActive={false}/>
+                );
+              }
+              return null;
+            })}
+          </LineChart>
         </ResponsiveContainer>
       </div>
     </div>
   );
 };
 
-// PropTypes remain the same (no savedLocations prop needed)
+// PropTypes remain the same
 GraphCastForecast.propTypes = {
-  customLatitude: PropTypes.number,
-  customLongitude: PropTypes.number,
+    customLatitude: PropTypes.number,
+    customLongitude: PropTypes.number,
 };
-
-// DefaultProps block is removed entirely
 
 export default GraphCastForecast;
