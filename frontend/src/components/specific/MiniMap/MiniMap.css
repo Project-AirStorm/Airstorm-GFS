@@ -1,0 +1,39 @@
+/* File: Airstorm-GFS/frontend/src/components/specific/MiniMap/MiniMap.css */
+
+.mini-map-wrapper {
+    height: 100%; /* Takes height from parent */
+    width: 100%;
+    position: relative; /* For loader overlay */
+    border-radius: 0.5rem; /* Match dashboard card style */
+    overflow: hidden; /* Clip map corners */
+  }
+  
+  .mini-map-container {
+    height: 100%;
+    width: 100%;
+    background-color: #e0e0e0; /* Placeholder background */
+  }
+  
+  .mini-map-loader-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(255, 255, 255, 0.8); /* Semi-transparent white */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 10; /* Above map container */
+    border-radius: 0.5rem; /* Match parent */
+  }
+  
+  /* Ensure map controls look okay */
+  .mini-map-container .gm-style-cc { /* Hide terms of use/report error */
+    display: none;
+  }
+  .mini-map-container .gmnoprint .gm-control-active { /* Basic styling for zoom */
+    background-color: white;
+    border: 1px solid #ccc;
+    border-radius: 2px;
+  }

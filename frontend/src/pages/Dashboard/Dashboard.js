@@ -1,7 +1,7 @@
 // File: Airstorm-GFS/frontend/src/pages/Dashboard/Dashboard.js
-// Relevant sections modified for Optimistic UI
+// MODIFIED: Replaced Quick Stats card content with MiniMap
 
-import React, { useState, useEffect } from 'react'; // Added useEffect
+import React, { useState, useEffect } from 'react';
 import { useUserProfile } from '../../contexts/UserContext';
 import axios from 'axios';
 import WeatherCard from '../../components/specific/WeatherCard/WeatherCard';
@@ -9,6 +9,10 @@ import GraphCastForecast from '../../components/specific/GraphCastForecast/Graph
 import ActionButtons from '../../components/specific/ActionButtons/ActionButtons';
 import OverviewSwitch from '../../components/specific/OverviewSwitch/OverviewSwitch';
 import Loader from '../../components/common/loader';
+
+// *** IMPORT the new MiniMap component and its CSS ***
+import MiniMap from '../../components/specific/MiniMap/MiniMap';
+import '../../components/specific/MiniMap/MiniMap.css'; // Import MiniMap CSS
 
 import './Dashboard.css';
 
@@ -24,18 +28,13 @@ const Dashboard = ({ setCurrentPage }) => {
   } = useUserProfile();
 
   // --- Optimistic UI State ---
-  // Local state to hold the locations we actually render.
-  // Initialized from context, updated optimistically, and synced back on context changes.
   const [displayLocations, setDisplayLocations] = useState([]);
-
   const [activeView, setActiveView] = useState('overview');
   const [error, setError] = useState(null);
   const [selectedLocation, setSelectedLocation] = useState(null);
 
   // --- Optimistic UI Effect ---
-  // Effect to synchronize local displayLocations with contextSavedLocations
   useEffect(() => {
-    // Apply background colors locally for display if needed
     const backgroundColors = ['#A1A7FF', '#C4D0BA', '#94B0DA'];
     const locationsToDisplay = (Array.isArray(contextSavedLocations) ? contextSavedLocations : []).map((loc, index) => ({
       ...loc,
@@ -44,165 +43,80 @@ const Dashboard = ({ setCurrentPage }) => {
       backgroundColor: backgroundColors[index % 3],
     }));
     setDisplayLocations(locationsToDisplay);
-  }, [contextSavedLocations]); // Re-run whenever context locations change
-  // --- End Optimistic UI Effect ---
 
-
-  const handleTimeframeChange = () => {
-    console.log('Timeframe changed');
-  };
-
-  const handleAddBase = () => {
-    console.log('Add base clicked');
-  };
-
-  const handleLocationAdded = () => {
-    console.log("Dashboard: Location added, refreshing context.");
-    refreshAlerts(); // Context refresh is still correct here
-  };
-
-
-  const handleDeleteLocation = async (latitude, longitude) => {
-    if (!userProfile?.userId) {
-        console.error("Cannot delete: User ID not available.");
-        setError('User session not found. Cannot delete location.');
-        return;
-    }
-    // OPTIMISTIC DELETE (Optional but similar pattern):
-    // 1. Store the original list: const originalLocations = [...displayLocations];
-    // 2. Update displayLocations immediately:
-    //    setDisplayLocations(originalLocations.filter(loc => !(loc.latitude === latitude && loc.longitude === longitude)));
-    // 3. Make API call...
-    // 4. On success: call refreshAlerts();
-    // 5. On failure: setDisplayLocations(originalLocations); setError(...);
-
-    // Current non-optimistic delete:
-    try {
-      console.log(`Dashboard: Deleting location ${latitude}, ${longitude} for user ${userProfile.userId}`);
-      await axios.delete(`${REACT_APP_API_URL}/api/locations`, {
-        data: {
-          userId: userProfile.userId,
-          latitude,
-          longitude,
-        },
-      });
-
-      if (selectedLocation &&
-          selectedLocation.latitude === latitude &&
-          selectedLocation.longitude === longitude) {
-        console.log("Dashboard: Resetting selected location after deletion.");
+    // Update selectedLocation logic (as before)
+    if (selectedLocation && !locationsToDisplay.some(loc => loc.latitude === selectedLocation.latitude && loc.longitude === selectedLocation.longitude)) {
         setSelectedLocation(null);
-      }
-
-      console.log("Dashboard: Location deleted, refreshing context.");
-      refreshAlerts(); // Let context handle the refresh
-    } catch (err) {
-      console.error('Error deleting location:', err);
-      setError(`Failed to delete location: ${err.response?.data?.error || err.message}`);
-      // If optimistic delete was implemented, revert here: setDisplayLocations(originalLocations);
     }
-  };
-
-  // --- MODIFIED handleToggleFavorite with Optimistic UI ---
-  const handleToggleFavorite = async (latitude, longitude) => {
-    if (!userProfile?.userId) {
-      console.error("Cannot toggle favorite: User ID not available.");
-      setError('User session not found. Cannot toggle favorite.');
-      return;
+    if (!selectedLocation && locationsToDisplay.length > 0) {
+         setSelectedLocation(locationsToDisplay[0]);
+    } else if (locationsToDisplay.length === 0) {
+        setSelectedLocation(null);
     }
+  }, [contextSavedLocations, selectedLocation]); // Added selectedLocation dependency based on logic inside
 
-    // 1. Store the original list and find the original status
-    const originalLocations = [...displayLocations]; // Important: create a copy
-    let originalIsFavorite = false;
-    const locationIndex = originalLocations.findIndex(
-        loc => loc.latitude === latitude && loc.longitude === longitude
-    );
-    if (locationIndex === -1) {
-        console.error("Cannot toggle favorite: Location not found in display list.");
-        setError("An error occurred. Location not found.");
-        return;
-    }
-    originalIsFavorite = originalLocations[locationIndex].isFavorite;
-
-    // 2. Optimistically update the UI immediately
-    const optimisticLocations = originalLocations.map((loc, index) => {
-      if (index === locationIndex) {
-        return { ...loc, isFavorite: !loc.isFavorite }; // Flip the favorite status
-      }
-      return loc;
-    });
-    setDisplayLocations(optimisticLocations); // Update local state to re-render
-    setError(null); // Clear previous errors
-
-    // 3. Make the API call
+  // --- Keep existing handlers ---
+  const handleTimeframeChange = () => { console.log('Timeframe changed'); };
+  const handleAddBase = () => { console.log('Add base clicked'); };
+  const handleLocationAdded = () => { console.log("Dashboard: Location added, refreshing context."); refreshAlerts(); };
+  const handleDeleteLocation = async (latitude, longitude) => {
+    if (!userProfile?.userId) { setError('User session not found.'); return; }
     try {
-      console.log(`Dashboard: Toggling favorite for ${latitude}, ${longitude} for user ${userProfile.userId}`);
-      await axios.post(`${REACT_APP_API_URL}/api/locations/favorite`, {
-        userId: userProfile.userId,
-        latitude,
-        longitude,
-      });
-
-      // 4. On Success: Refresh context data in the background.
-      // The useEffect hook watching contextSavedLocations will eventually sync our
-      // displayLocations if needed, but the UI change was already instant.
-      console.log("Dashboard: Favorite toggled (API success), refreshing context in background.");
+      await axios.delete(`${REACT_APP_API_URL}/api/locations`, { data: { userId: userProfile.userId, latitude, longitude } });
+      if (selectedLocation?.latitude === latitude && selectedLocation?.longitude === longitude) { setSelectedLocation(null); }
       refreshAlerts();
-
-    } catch (err) {
-      // 5. On Failure: Revert the UI change and show error
-      console.error('Error toggling favorite:', err);
-      setError(`Failed to toggle favorite: ${err.response?.data?.error || err.message}`);
-      // Revert back to the original state
-      setDisplayLocations(originalLocations);
-    }
+    } catch (err) { console.error('Error deleting location:', err); setError(`Failed to delete: ${err.response?.data?.error || err.message}`); }
   };
+  const handleToggleFavorite = async (latitude, longitude) => {
+     if (!userProfile?.userId) { setError('User session not found.'); return; }
+     const originalLocations = [...displayLocations];
+     const locationIndex = originalLocations.findIndex(loc => loc.latitude === latitude && loc.longitude === longitude);
+     if (locationIndex === -1) { setError("Location not found."); return; }
+     const optimisticLocations = originalLocations.map((loc, index) => index === locationIndex ? { ...loc, isFavorite: !loc.isFavorite } : loc);
+     setDisplayLocations(optimisticLocations);
+     setError(null);
+     try {
+       await axios.post(`${REACT_APP_API_URL}/api/locations/favorite`, { userId: userProfile.userId, latitude, longitude });
+       refreshAlerts();
+     } catch (err) { console.error('Error toggling favorite:', err); setError(`Failed to toggle favorite: ${err.response?.data?.error || err.message}`); setDisplayLocations(originalLocations); }
+   };
+  const handleWeatherCardClick = (location) => { console.log(`Dashboard: WeatherCard clicked - ${location.name}`); setSelectedLocation({ latitude: location.latitude, longitude: location.longitude, name: location.name }); };
 
-  const handleWeatherCardClick = (location) => {
-    console.log(`Dashboard: WeatherCard clicked - ${location.name}`);
-    setSelectedLocation({
-        latitude: location.latitude,
-        longitude: location.longitude,
-        name: location.name
-    });
-  };
+  // Derive monitoredLocations from context
+  const monitoredLocations = Array.isArray(contextSavedLocations) ? contextSavedLocations.filter((loc) => loc.isFavorite) : [];
 
-  // Use derived state from CONTEXT for monitored count (quick stats)
-  const monitoredLocations = Array.isArray(contextSavedLocations)
-     ? contextSavedLocations.filter((loc) => loc.isFavorite)
-     : [];
+  // --- Determine map center and zoom ---
+  const initialMapCenter = selectedLocation
+    ? [selectedLocation.latitude, selectedLocation.longitude]
+    : displayLocations.length > 0
+      ? [displayLocations[0].latitude, displayLocations[0].longitude]
+      : [32.5252, -93.7502]; // Default fallback
 
-  if (contextLoading || (isLocationLoading && displayLocations.length === 0)) { // Only show main loader if displayLocations isn't populated yet during location load
+  const initialMapZoom = selectedLocation ? 8 : 4; // Zoom closer if selected
+
+
+  // --- Loading State ---
+  if (contextLoading || (isLocationLoading && displayLocations.length === 0)) {
     return <Loader size="medium" message={contextLoading ? "Loading user data..." : "Loading locations..."} />;
   }
 
+  // --- Render ---
   return (
     <div className="dashboard-container">
       <div className="main-content">
-        {/* View Toggle and Action Buttons */}
+        {/* Controls Container */}
         <div className="controls-container">
-          <OverviewSwitch
-            activeView={activeView}
-            onViewChange={setActiveView}
-          />
-          <ActionButtons
-            onTimeframeChange={handleTimeframeChange}
-            onAddBase={handleAddBase}
-            timeframe="Week"
-            onLocationAdded={handleLocationAdded}
-          />
+          <OverviewSwitch activeView={activeView} onViewChange={setActiveView} />
+          <ActionButtons onTimeframeChange={handleTimeframeChange} onAddBase={handleAddBase} timeframe="Week" onLocationAdded={handleLocationAdded} />
         </div>
 
         {error && <div className="dashboard-error-message" role="alert">{error}</div>}
 
+        {/* Original Weather Grid (Weather Cards) */}
         <div className="weather-grid">
-          {/* Use the local displayLocations state for rendering */}
           {displayLocations.length > 0 ? displayLocations.map((location) => (
             <div
-              className={`weather-card-wrapper ${
-                selectedLocation?.latitude === location.latitude &&
-                selectedLocation?.longitude === location.longitude ? 'selected' : ''
-              }`}
+              className={`weather-card-wrapper ${selectedLocation?.latitude === location.latitude && selectedLocation?.longitude === location.longitude ? 'selected' : ''}`}
               key={`${location.name}-${location.latitude}-${location.longitude}`}
               onClick={() => handleWeatherCardClick(location)}
               style={{ cursor: 'pointer' }}
@@ -211,66 +125,54 @@ const Dashboard = ({ setCurrentPage }) => {
               <WeatherCard
                 city={location.name}
                 state=""
-                latitude={location.latitude} // Already numbers from useEffect
-                longitude={location.longitude} // Already numbers from useEffect
+                latitude={location.latitude}
+                longitude={location.longitude}
                 backgroundColor={location.backgroundColor}
-                onDelete={(e) => {
-                  e.stopPropagation();
-                  handleDeleteLocation(location.latitude, location.longitude);
-                }}
-                onToggleFavorite={(e) => {
-                  e.stopPropagation();
-                  // Call the *modified* handler
-                  handleToggleFavorite(location.latitude, location.longitude);
-                }}
-                isFavorite={location.isFavorite} // Use the value from displayLocations
+                onDelete={(e) => { e.stopPropagation(); handleDeleteLocation(location.latitude, location.longitude); }}
+                onToggleFavorite={(e) => { e.stopPropagation(); handleToggleFavorite(location.latitude, location.longitude); }}
+                isFavorite={location.isFavorite}
               />
             </div>
           )) : (
             <div className="no-locations-message">
-                <p>No locations saved yet. Add a location using the button above.</p>
+              <p>No locations saved yet. Add a location using the button above.</p>
             </div>
           )}
         </div>
 
         {/* Chart Section */}
-         <div className="chart-section">
-           <h3 className="chart-title">
-             {selectedLocation
-               ? `${selectedLocation.name} Weather Forecast (16 Days)`
-               : 'Local Weather Forecast (16 Days)'}
-           </h3>
-           <GraphCastForecast
-             customLatitude={selectedLocation?.latitude}
-             customLongitude={selectedLocation?.longitude}
-           />
-         </div>
+        <div className="chart-section">
+          <h3 className="chart-title">
+            {selectedLocation ? `${selectedLocation.name} Weather Forecast (16 Days)` : 'Local Weather Forecast (16 Days)'}
+          </h3>
+          <GraphCastForecast
+            customLatitude={selectedLocation?.latitude}
+            customLongitude={selectedLocation?.longitude}
+          />
+        </div>
 
-        {/* Bottom Grid */}
-         <div className="bottom-grid">
-           <div className="bottom-card">
-             <h3 className="card-title">Weather Alerts</h3>
-             <div className="stats-text">
-               {/* Use monitoredLocations count from context for accurate stats */}
-               {monitoredLocations.length > 0
-                 ? `Monitoring alerts for ${monitoredLocations.length} favorite location(s).`
-                 : 'No favorite locations currently being monitored for alerts.'}
-             </div>
-           </div>
-           <div className="bottom-card">
-             <h3 className="card-title">Quick Stats</h3>
-             <div className="stats-list">
-               <div className="stats-text">
-                 {/* Use displayLocations length for total shown */}
-                 Total Locations: {displayLocations.length}
-               </div>
-               <div className="stats-text">
-                 {/* Use monitoredLocations count from context */}
-                 Favorite Locations: {monitoredLocations.length}
-               </div>
-             </div>
-           </div>
-         </div>
+        {/* Bottom Grid - MODIFIED */}
+        <div className="bottom-grid">
+          {/* Weather Alerts Card (Unchanged) */}
+          <div className="bottom-card">
+            <h3 className="card-title">Weather Alerts</h3>
+            <div className="stats-text">
+              {monitoredLocations.length > 0 ? `Monitoring alerts for ${monitoredLocations.length} favorite location(s).` : 'No favorite locations currently being monitored for alerts.'}
+            </div>
+          </div>
+
+          {/* Quick Stats Card - REPLACED with MiniMap */}
+          {/* Add a specific class 'bottom-card--map' for styling */}
+          <div className="bottom-card bottom-card--map">
+            {/* Removed H3 and stats-list */}
+            <MiniMap
+                 centerLat={initialMapCenter[0]}
+                 centerLon={initialMapCenter[1]}
+                 zoomLevel={initialMapZoom}
+                 locations={displayLocations} // Pass locations for markers
+            />
+          </div>
+        </div>
 
       </div>
     </div>

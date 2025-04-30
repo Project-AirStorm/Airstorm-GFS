@@ -1,7 +1,25 @@
 /* Dashboard.css */
 
 /* Controls Container */
+.controls-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap; /* Allow wrapping on smaller screens */
+  gap: 1rem; /* Add gap for wrapping */
+}
 
+/* Error Message */
+.dashboard-error-message {
+    background-color: #fee2e2; /* Light red */
+    color: #b91c1c; /* Darker red */
+    padding: 0.75rem 1rem;
+    border-radius: 0.375rem; /* 6px */
+    margin-bottom: 1.5rem;
+    border: 1px solid #fecaca; /* Red border */
+    text-align: center;
+}
 
 /* Weather Grid Layout */
 .weather-grid {
@@ -37,7 +55,7 @@
 
 /* Make weather cards maintain width */
 .weather-grid > * {
-  min-width: calc((100% - 3rem) / 3);
+  min-width: calc((100% - 3rem) / 3); /* Adjust calculation based on desired visible cards */
   max-width: calc((100% - 3rem) / 3);
   flex: 0 0 auto;
   position: relative;
@@ -53,6 +71,7 @@
   position: relative;
 }
 
+/* Style for the selected card indicator (optional triangle) */
 .weather-card-wrapper.selected::after {
   content: '';
   position: absolute;
@@ -63,7 +82,16 @@
   height: 0;
   border-style: solid;
   border-width: 0.625rem 0.625rem 0 0.625rem;
-  border-color: #4f46e5 transparent transparent transparent;
+  border-color: #4f46e5 transparent transparent transparent; /* Example color */
+}
+.no-locations-message {
+  /* Style for the message when no locations are added */
+  text-align: center;
+  padding: 2rem;
+  background-color: #f9fafb; /* Example background */
+  border-radius: 0.5rem;
+  color: #6b7280;
+  width: 100%; /* Span full width */
 }
 
 /* Chart Section Styles */
@@ -71,7 +99,7 @@
   background-color: white;
   padding: 1.5rem;
   border-radius: 0.5rem;
-  border: 1px solid var(--border-color);
+  /* border: 1px solid var(--border-color); */ /* Removed border based on original */
   margin-bottom: 1.5rem;
   width: 100%;
   box-shadow: 0 0.125rem 0.625rem rgba(0, 0, 0, 0.05);
@@ -80,35 +108,36 @@
 .chart-title {
   font-size: 1.125rem;
   font-weight: 600;
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.5rem; /* Reduced margin from original */
+  color: #1f2937; /* Added color */
 }
 
-.chart-description {
-  font-size: 0.875rem;
-  color: rgb(75 85 99);
-  margin-bottom: 1rem;
-}
+/* Removed .chart-description as it wasn't in the JS */
 
 /* Bottom Grid Layout */
 .bottom-grid {
   display: grid;
-  grid-template-columns: 2fr 1fr;
+  grid-template-columns: 2fr 1fr; /* Keep 2/3 and 1/3 split */
   gap: 1.5rem;
   width: 100%;
+  margin-top: 1.5rem; /* Add margin-top based on original example */
 }
 
 .bottom-card {
   background-color: white;
   padding: 1.5rem;
   border-radius: 0.5rem;
-  border: 1px solid var(--border-color);
+  /* border: 1px solid var(--border-color); */ /* Removed border based on original */
   box-shadow: 0 0.125rem 0.625rem rgba(0, 0, 0, 0.05);
+  display: flex; /* Added for potential vertical alignment */
+  flex-direction: column; /* Added for potential vertical alignment */
 }
 
 .card-title {
   font-size: 1.125rem;
   font-weight: 600;
   margin-bottom: 1rem;
+  color: #1f2937; /* Added color */
 }
 
 .stats-list {
@@ -122,14 +151,27 @@
   color: rgb(75 85 99);
 }
 
+/* --- Styles for the MiniMap within the bottom card --- */
+.bottom-card--map {
+  /* Remove default padding if map should fill the card */
+  padding: 0;
+  /* Define a height for the map card */
+  height: 250px; /* Adjust height as desired */
+  /* Ensure map rounds correctly if parent has border-radius */
+  overflow: hidden;
+  position: relative; /* Good practice if map adds overlays/loaders */
+}
+
+
 /* Loading and Error States */
+/* Keep existing styles from original file if needed */
 .loading-state,
 .error-state {
   text-align: center;
   padding: 2rem;
   background-color: white;
   border-radius: 0.5rem;
-  border: 1px solid var(--border-color);
+  /* border: 1px solid var(--border-color); */ /* Removed border based on original */
   margin-bottom: 1.5rem;
 }
 
@@ -140,17 +182,25 @@
 /* Responsive adjustments */
 @media screen and (max-width: 1200px) {
   .weather-grid > * {
+    /* Adjust card widths for medium screens */
+    min-width: calc(50% - 0.75rem);
     max-width: calc(50% - 0.75rem);
   }
 }
 
 @media screen and (max-width: 768px) {
+   .controls-container {
+        flex-direction: column;
+        align-items: stretch; /* Stack controls */
+    }
   .weather-grid > * {
-    max-width: 100%;
+    /* Weather cards take full width on smaller screens */
+    min-width: 90%; /* Adjust slightly less than 100% if needed */
+    max-width: 90%;
   }
 
   .bottom-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: 1fr; /* Stack bottom cards */
   }
 
   .chart-section {
@@ -158,6 +208,11 @@
   }
 
   .bottom-card {
-    padding: 1rem;
+    padding: 1rem; /* Adjust padding for smaller screens */
+  }
+  /* Ensure map card still respects height */
+   .bottom-card--map {
+    padding: 0; /* Override padding for map card */
+    height: 300px; /* Potentially adjust height for mobile */
   }
 }
