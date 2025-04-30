@@ -7,6 +7,7 @@
   border-right: 0.0625rem solid rgb(229 231 235);
   z-index: 20;
   overflow-y: auto;
+  scrollbar-width: thin;
 }
 
 .header {

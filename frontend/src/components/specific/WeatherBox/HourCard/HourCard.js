@@ -88,7 +88,7 @@ const HourCard = ({
               wind_speed_unit: 'mph',
               // *** ADD VISIBILITY UNIT ***
               visibility_unit: 'mile',
-              timezone: 'auto',
+              timezone: 'GMT', // <--- MODIFIED FROM 'auto'
               models: 'gfs_seamless'
           };
 
@@ -101,7 +101,13 @@ const HourCard = ({
           if (response.data && response.data.hourly && response.data.hourly.time) {
               const hourlyData = response.data.hourly.time.map((time, index) => {
                   const localDate = new Date(time);
-                  const formattedTime = localDate.toLocaleTimeString('en-US', { hour: 'numeric', hour12: true });
+                  // const formattedTime = localDate.toLocaleTimeString('en-US', { hour: 'numeric', hour12: true }); // <-- ORIGINAL LINE
+                  // --- New lines for Zulu time (HH:MMZ format) --- START
+                  const utcHours = String(localDate.getUTCHours()).padStart(2, '0');
+                  const utcMinutes = String(localDate.getUTCMinutes()).padStart(2, '0');
+                  const formattedTime = `${utcHours}:${utcMinutes}Z`;
+                  // --- New lines for Zulu time (HH:MMZ format) --- END
+
                   const getData = (key) => response.data.hourly[key]?.[index] ?? null;
 
                   const rawCode = getData('weather_code');
@@ -109,7 +115,7 @@ const HourCard = ({
 
                   // *** EXTRACT AND FORMAT ALL DATA POINTS ***
                   return {
-                      time: formattedTime,
+                      time: formattedTime, // <-- Use the new formattedTime
                       temperature: getData('temperature_2m') !== null ? Math.round(getData('temperature_2m')) : 'N/A',
                       humidity: getData('relative_humidity_2m') !== null ? `${Math.round(getData('relative_humidity_2m'))}%` : 'N/A',
                       precipProbabilityString: numericPrecipProbability !== null ? `${Math.round(numericPrecipProbability)}%` : 'N/A',
@@ -186,7 +192,7 @@ const HourCard = ({
         {hourlyForecastData.map((hourData, index) => (
             <div className='hour-card' key={index} role="region" aria-label={`Forecast for ${hourData.time}`}>
                 {/* Time */}
-                <div className='hour'>{hourData.time}</div>
+                <div className='hour'>{hourData.time}</div> {/* Will now display Zulu time */}
                 {/* Weather Icon */}
                 <div className='hour-icon' title={`Weather code: ${hourData.rawWeatherCode ?? 'N/A'}`}>
                     {hourData.weatherCodeIcon}
@@ -223,13 +229,13 @@ const HourCard = ({
                      {`${hourData.windDirection} ${hourData.windSpeed}`}
                  </div>
 
-                 {/* Surface Pressure */}
+                 {/* Surface Pressure
                  <div className='hour-data-point hour-pressure' title="Surface Pressure">
                      <Gauge size={14} style={{ marginRight: '3px', color: '#f97316' }} />
                      {hourData.pressure}
                  </div>
 
-                 {/* Visibility 
+                 {/* Visibility
                  <div className='hour-data-point hour-visibility' title="Visibility">
                      <Eye size={14} style={{ marginRight: '3px', color: '#a855f7' }} />
                      {hourData.visibility}
@@ -242,4 +248,3 @@ const HourCard = ({
 };
 
 export default HourCard;
-
