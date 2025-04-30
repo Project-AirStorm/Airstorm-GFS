@@ -15,7 +15,7 @@ const PreferencesSection = ({ showFeedback }) => {
    * Handle preference change and show feedback
    * @param {string} preference - Preference type
    * @param {string} value - New value
-
+   */
   const handlePreferenceChange = (preference, value) => {
     switch (preference) {
       case 'temperature':
@@ -35,7 +35,7 @@ const PreferencesSection = ({ showFeedback }) => {
    * Get readable label for wind speed unit
    * @param {string} unit - Wind speed unit code
    * @returns {string} Human-readable label
-
+   */
   const getWindSpeedUnitLabel = (unit) => {
     switch (unit) {
       case 'mph':
@@ -47,16 +47,50 @@ const PreferencesSection = ({ showFeedback }) => {
       default:
         return unit;
     }
-  };   */
+  };
 
   return (
-    <div className="team-section">
+    <div className="preferences-section">
       <div className="settings-form">
-        <div className="placeholder-content">
-          <h3 className="section-title">Coming Soon</h3>
-          <p className="section-description">
-            Application preference features are not available yet. Coming soon!
-          </p>
+        <h3 className="section-title">Application Preferences</h3>
+        
+        <div className="preference-option">
+          <div className="preference-option-info">
+            <h4 className="preference-option-title">Temperature Unit</h4>
+            <p className="preference-option-description">
+              Choose your preferred temperature unit for weather displays.
+            </p>
+          </div>
+          <div className="preference-controls">
+            <select 
+              className="preference-select"
+              value={temperatureUnit}
+              onChange={(e) => handlePreferenceChange('temperature', e.target.value)}
+            >
+              <option value="fahrenheit">Fahrenheit (°F)</option>
+              <option value="celsius">Celsius (°C)</option>
+            </select>
+          </div>
+        </div>
+        
+        <div className="preference-option">
+          <div className="preference-option-info">
+            <h4 className="preference-option-title">Wind Speed Unit</h4>
+            <p className="preference-option-description">
+              Choose your preferred unit for wind speed measurements.
+            </p>
+          </div>
+          <div className="preference-controls">
+            <select 
+              className="preference-select"
+              value={windSpeedUnit}
+              onChange={(e) => handlePreferenceChange('windSpeed', e.target.value)}
+            >
+              <option value="mph">Miles per hour (mph)</option>
+              <option value="kmh">Kilometers per hour (km/h)</option>
+              <option value="knots">Knots (kn)</option>
+            </select>
+          </div>
         </div>
       </div>
     </div>

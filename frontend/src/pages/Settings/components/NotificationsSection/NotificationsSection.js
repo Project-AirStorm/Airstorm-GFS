@@ -15,7 +15,7 @@ const NotificationsSection = ({ showFeedback }) => {
    * Toggle notification setting
    * @param {string} type - Notification type
    * @param {boolean} value - New value
-
+   */
   const toggleNotification = (type, value) => {
     switch (type) {
       case 'email':
@@ -29,16 +29,45 @@ const NotificationsSection = ({ showFeedback }) => {
       default:
         break;
     }
-  };   */
+  };
 
   return (
-    <div className="team-section">
+    <div className="notifications-section">
       <div className="settings-form">
-        <div className="placeholder-content">
-          <h3 className="section-title">Coming Soon</h3>
-          <p className="section-description">
-            Email notification features are not available yet. Coming soon!
-          </p>
+        <h3 className="section-title">Notification Preferences</h3>
+        
+        <div className="notification-option">
+          <div className="notification-option-info">
+            <h4 className="notification-option-title">Email Notifications</h4>
+            <p className="notification-option-description">
+              Receive notifications about account activity and updates via email.
+            </p>
+          </div>
+          <label className="toggle-switch">
+            <input 
+              type="checkbox" 
+              checked={emailNotifications}
+              onChange={(e) => toggleNotification('email', e.target.checked)}
+            />
+            <span className="toggle-slider"></span>
+          </label>
+        </div>
+        
+        <div className="notification-option">
+          <div className="notification-option-info">
+            <h4 className="notification-option-title">Weather Alerts</h4>
+            <p className="notification-option-description">
+              Receive notifications about severe weather conditions in your saved locations.
+            </p>
+          </div>
+          <label className="toggle-switch">
+            <input 
+              type="checkbox" 
+              checked={weatherAlerts}
+              onChange={(e) => toggleNotification('weather', e.target.checked)}
+            />
+            <span className="toggle-slider"></span>
+          </label>
         </div>
       </div>
     </div>

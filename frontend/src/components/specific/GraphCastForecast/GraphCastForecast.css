@@ -25,7 +25,7 @@
   color: rgb(31 41 55);
 }
 
-/* Weather Stats Group (If used - might be removed by .simple class) */
+/* Weather Stats Group */
 .current-weather {
   display: flex;
   align-items: center;
@@ -57,11 +57,11 @@
 
 /* Chart Section */
 .chart-container {
-  height: 24rem; /* Original height */
+  height: 24rem;
 }
 
 /* States */
-.loading-state, /* Original text-based loading */
+.loading-state,
 .error-state {
   background-color: white;
   border-radius: 0.5rem;
@@ -96,197 +96,4 @@
 .tooltip-value {
   font-size: 0.875rem;
   color: rgb(75 85 99);
-}
-
-/* Simplified Header style */
-.graphcast-header.simple {
-  border-bottom: none; /* Remove border if current weather is gone */
-  margin-bottom: 0.5rem;
-  /* Added flex properties for dropdown alignment */
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-/* Custom Legend Styling */
-.custom-legend-container {
-  display: flex;
-  flex-wrap: wrap; /* Allow items to wrap */
-  justify-content: center; /* Center items */
-  gap: 10px 20px; /* Row gap and column gap */
-  padding-top: 15px; /* Space above legend */
-}
-
-/* Style for multi-column layout */
-.custom-legend-container.multi-column {
-    display: grid; /* Use grid for better column control */
-    grid-template-columns: repeat(6, 1fr); /* 6 columns */
-    gap: 5px 15px; /* Row gap, Column gap */
-    padding-left: 10px; /* Add some padding */
-    padding-right: 10px;
-}
-
-.legend-column {
-    display: flex;
-    flex-direction: column;
-}
-
-
-.custom-legend-item {
-  display: flex;
-  align-items: center;
-  font-size: 0.8rem; /* Smaller font for legend */
-  opacity: 0.7; /* Dim inactive items slightly */
-  transition: opacity 0.2s ease-in-out;
-}
-
-.custom-legend-item.active {
-  opacity: 1;
-}
-
-.legend-icon {
-  width: 12px;
-  height: 12px;
-  border-radius: 2px; /* Slightly rounded square */
-  margin-right: 6px;
-  display: inline-block; /* Needed for background color */
-  flex-shrink: 0; /* Prevent icon from shrinking */
-}
-
-.legend-text {
-  margin-right: 6px;
-  color: #374151; /* Dark gray text */
-  white-space: nowrap; /* Prevent text wrapping */
-  overflow: hidden; /* Hide overflow */
-  text-overflow: ellipsis; /* Add ellipsis if text is too long */
-  flex-grow: 1; /* Allow text to take available space */
-}
-
-.legend-toggle-icon {
-  display: flex; /* Helps align the icon vertically */
-  align-items: center;
-  margin-left: auto; /* Push toggle icon to the right */
-  padding-left: 5px; /* Space before toggle */
-  flex-shrink: 0; /* Prevent icon from shrinking */
-}
-
-/* Adjust chart container slightly if needed */
-.chart-container.detailed-chart {
-    height: auto; /* Let chart define height */
-    min-height: 400px; /* Ensure minimum height */
-}
-
-/* --- Model Selector Dropdown Styles --- */
-.model-selector-container {
-  display: flex;
-  align-items: center;
-}
-
-.model-selector-label {
-  margin-right: 0.5rem;
-  font-size: 0.875rem; /* Adjust as needed */
-  color: #4a5568; /* Adjust color */
-  white-space: nowrap;
-}
-
-.model-selector-dropdown {
-  padding: 0.25rem 0.5rem;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  background-color: white;
-  color: #333;
-  font-size: 0.875rem; /* Adjust as needed */
-  cursor: pointer;
-}
-
-
-/* --- NEW: Skeleton Loader Styles --- */
-.graphcast-container--loading {
-  /* Add styles if needed for the loading container itself */
-  /* Consider adding min-height to prevent layout shifts */
-   min-height: 550px; /* Example: Adjust based on loaded height */
-   background-color: white; /* Ensure background for skeleton */
-   border-radius: 0.5rem;
-   padding: 0.75rem 1rem;
-   margin-bottom: 1.5rem;
-}
-
-.skeleton-line {
-  background-color: #e2e8f0; /* Light grey background */
-  border-radius: 4px;
-  animation: pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-}
-
-/* Header Skeletons */
-.skeleton-line--location {
-  height: 20px;
-  width: 150px; /* Adjust width */
-  margin-right: auto; /* Push other header items right */
-}
-
-.skeleton-line--selector {
-  height: 28px; /* Match dropdown height approx */
-  width: 120px; /* Adjust width */
-}
-
-/* Chart Skeleton */
-.skeleton-chart {
-  height: 400px; /* Match ResponsiveContainer height */
-  background-color: #f7fafc; /* Slightly different background */
-  border-radius: 4px;
-  margin-top: 1rem; /* Match spacing */
-  position: relative;
-  overflow: hidden;
-  display: flex;
-  /* Use pulse animation directly on the chart area */
-  animation: pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-}
-
-/* Optional: Placeholder for axes/grid if needed */
-.skeleton-chart-axes {
-    /* Example styling */
-    /* width: 40px; background-color: #e2e8f0; */
-}
-.skeleton-chart-grid {
-   /* Example styling */
-   /* flex-grow: 1; background-image: linear-gradient(#e2e8f0 1px, transparent 1px), linear-gradient(90deg, #e2e8f0 1px, transparent 1px); background-size: 30px 30px; */
-}
-
-/* Legend Skeleton */
-.skeleton-legend {
-  display: grid; /* Use grid for consistency */
-  grid-template-columns: repeat(6, 1fr); /* Match legend layout */
-  gap: 5px 15px; /* Match legend gap */
-  padding: 15px 10px 0 10px; /* Match legend padding */
-  margin-top: 1rem; /* Space above legend */
-}
-
-.skeleton-line--legend-item {
-  height: 24px; /* Approx height of a legend item */
-  width: 100%; /* Let grid handle width */
-  margin-bottom: 4px; /* Match legend item spacing approx */
-}
-
-
-/* --- NEW: Disabled Legend Item Styles --- */
-.custom-legend-item.disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-  /* Optional: Add other styles like filter: grayscale(1); */
-}
-
-/* Optional: Style the disabled text differently if needed */
-.custom-legend-item.disabled .legend-text {
-  /* text-decoration: line-through; */
-  color: #a0aec0; /* Lighter text color */
-}
-
-/* --- Animation --- */
-@keyframes pulse {
-  0%, 100% {
-      opacity: 1;
-  }
-  50% {
-      opacity: .6; /* Adjust opacity */
-  }
 }

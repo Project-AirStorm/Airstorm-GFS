@@ -18,7 +18,7 @@
   background-color: white; /* Use white background */
   border-radius: 0.5rem; /* Standard radius */
   border: 1px solid var(--border-color, rgb(229 231 235)); /* Use variable */
-  box-shadow: 0 0.0625rem 0.1875rem rgba(0, 0, 0, 0.05); /* Subtle shadow */
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05); /* Subtle shadow */
   transition: box-shadow 0.2s ease;
 }
 
@@ -30,7 +30,7 @@
 .dayOfWeek {
   /* Removed fixed padding */
   text-align: center;
-  min-width: 3.75rem; /* Give it a minimum width */
+  min-width: 60px; /* Give it a minimum width */
   margin-right: 1.5rem; /* Space after date */
 }
 
@@ -56,12 +56,12 @@
   justify-content: center;
   padding: 0; /* Remove fixed padding */
   margin-right: 1.5rem; /* Space after icon */
-  color: #3182CE; /* UPDATED: Lighter Sky Blue */
+  color: #60a5fa; /* UPDATED: Lighter Sky Blue */
 }
 /* Ensure icons inside have consistent size */
 .weatherIcon svg {
-  width: 3.125rem;
-  height: 3.125rem;
+    width: 50px;
+    height: 50px;
 }
 
 /* Temperature Section */
@@ -81,11 +81,11 @@
 }
 
 .minTemp {
-  color: #3182CE; /* UPDATED: Lighter Sky Blue */
+  color: #60a5fa; /* UPDATED: Lighter Sky Blue */
 }
 
 .maxTemp {
-  color: #000000; /* UPDATED: Complementary Red */
+  color: #f87171; /* UPDATED: Complementary Red */
 }
 
 .tempFormatting > div:nth-child(2) { /* Style the slash */
@@ -120,9 +120,9 @@
 }
 
 .openButton button svg {
-  width: 1.5rem; /* Consistent icon size */
-  height: 1.5rem;
-  transition: transform 0.3s ease-out; /* Match animation */
+    width: 24px; /* Consistent icon size */
+    height: 24px;
+    transition: transform 0.3s ease-out; /* Match animation */
 }
 
 /* Expanded Content Area */
@@ -138,12 +138,13 @@
 .weatherIcon .sun-icon {
   color: #facc15; /* Tailwind yellow-400 */
 }
+
 /* Keep the existing smooth expansion animation */
 @keyframes expandDown {
   from {
     max-height: 0;
     opacity: 0;
-    transform: translateY(-0.625rem); /* Optional: slight slide down */
+    transform: translateY(-10px); /* Optional: slight slide down */
   }
   to {
     max-height: 40rem; /* Adjust if needed, ensure large enough */
@@ -177,9 +178,9 @@
 }
 /* Adjust specific containers */
 .weather-box--loading .dayOfWeek.loading-placeholder-container {
-  min-width: 3.75rem;
-  margin-right: 1.5rem;
-  gap: 0.25rem; /* Space between weekday and daynum */
+    min-width: 60px;
+    margin-right: 1.5rem;
+    gap: 0.25rem; /* Space between weekday and daynum */
 }
 .weather-box--loading .weatherIcon.loading-placeholder-container {
     margin-right: 1.5rem;
@@ -204,9 +205,10 @@
   height: 1rem; /* Match font size */
   width: 50%;
 }
+
 .weather-box--loading .loading-placeholder-icon-circle {
-  height: 3.125rem; /* Match icon size */
-  width: 3.125rem; /* Match icon size */
+  height: 50px; /* Match icon size */
+  width: 50px; /* Match icon size */
   background-color: rgba(107, 114, 128, 0.3);
   border-radius: 50%;
 }
@@ -221,8 +223,8 @@
 }
 
 .weather-box--loading .loading-placeholder-button-circle {
-  height: 1.875rem; /* Approx button size */
-  width: 1.875rem;
+  height: 30px; /* Approx button size */
+  width: 30px;
   background-color: rgba(107, 114, 128, 0.3);
   border-radius: 50%;
   margin: 0.5rem; /* Match button padding */
