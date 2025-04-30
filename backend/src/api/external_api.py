@@ -488,6 +488,7 @@ def get_forecast():
         return jsonify({"error": f"Server error: {str(e)}"}), 500
 
 
+
 # ====== GitHub Issues API ======
 github_service = GitHubService()
 
