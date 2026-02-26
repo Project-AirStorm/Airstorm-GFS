@@ -4,86 +4,96 @@ Authors: Jadyn Falls, Joshua Francis, Christopher Kouba
 """
 
 import os
+import secrets
 import pyodbc
 import bcrypt
 from functools import wraps
-from datetime import datetime
-from flask import Flask, request, jsonify, session
+from flask import Flask, request, jsonify, g
 from flask_cors import CORS
 from dotenv import load_dotenv
 
 load_dotenv()
 
 app = Flask(__name__)
-app.secret_key = os.getenv("SECRET_KEY", "dev-secret-key-change-in-prod")
-CORS(app, supports_credentials=True, origins=["http://127.0.0.1:5500", "http://localhost:5500", "http://localhost:3000"])
+
+CORS(app,
+     supports_credentials=True,
+     origins=["http://127.0.0.1:5500", "http://localhost:5500",
+               "http://127.0.0.1:3000", "http://localhost:3000",
+               "null"],
+     allow_headers=["Content-Type", "X-Auth-Token"],
+     methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"])
+
+# In-memory token store: { token: { user_id, full_name, role, email } }
+sessions = {}
 
 # ===========================================================
-# DATABASE CONNECTION
+# DATABASE
 # ===========================================================
 
 def get_db():
-    """Return a fresh pyodbc connection."""
-    server = os.getenv("DB_SERVER", "localhost")
+    server   = os.getenv("DB_SERVER", "localhost")
     database = os.getenv("DB_NAME", "LSUSClubManager")
-    trusted = os.getenv("DB_TRUSTED_CONNECTION", "yes").lower() == "yes"
+    trusted  = os.getenv("DB_TRUSTED_CONNECTION", "yes").lower() == "yes"
 
     if trusted:
         conn_str = (
             f"DRIVER={{ODBC Driver 17 for SQL Server}};"
-            f"SERVER={server};"
-            f"DATABASE={database};"
-            f"Trusted_Connection=yes;"
+            f"SERVER={server};DATABASE={database};Trusted_Connection=yes;"
         )
     else:
-        user = os.getenv("DB_USER", "sa")
+        user     = os.getenv("DB_USER", "sa")
         password = os.getenv("DB_PASSWORD", "")
         conn_str = (
             f"DRIVER={{ODBC Driver 17 for SQL Server}};"
-            f"SERVER={server};"
-            f"DATABASE={database};"
-            f"UID={user};PWD={password};"
+            f"SERVER={server};DATABASE={database};UID={user};PWD={password};"
         )
     return pyodbc.connect(conn_str)
 
 
 def set_session_ctx(cursor, user_id):
-    """Set SQL Server session context for audit triggers."""
     cursor.execute("EXEC sp_set_session_context @key=N'UserID', @value=?", user_id)
 
 
 def row_to_dict(cursor, row):
-    """Convert a pyodbc row to a dictionary."""
-    columns = [column[0] for column in cursor.description]
+    columns = [col[0] for col in cursor.description]
     return dict(zip(columns, row))
 
 
 def rows_to_list(cursor, rows):
-    columns = [column[0] for column in cursor.description]
+    columns = [col[0] for col in cursor.description]
     return [dict(zip(columns, row)) for row in rows]
 
 # ===========================================================
-# AUTH DECORATORS
+# AUTH HELPERS
 # ===========================================================
+
+def get_current_user():
+    token = request.headers.get("X-Auth-Token")
+    return sessions.get(token)
+
 
 def login_required(f):
     @wraps(f)
     def decorated(*args, **kwargs):
-        if "user_id" not in session:
+        user = get_current_user()
+        if not user:
             return jsonify({"error": "Unauthorized. Please log in."}), 401
+        g.user = user
         return f(*args, **kwargs)
     return decorated
 
 
 def role_required(*roles):
-    """roles: 'Student', 'ClubAdmin', 'Admin'"""
     def decorator(f):
         @wraps(f)
         def decorated(*args, **kwargs):
-            if "user_id" not in session:
+            user = get_current_user()
+            if not user:
                 return jsonify({"error": "Unauthorized."}), 401
-            if session.get("role") not in roles:
+            if user.get("role") not in roles:
                 return jsonify({"error": f"Forbidden. Requires role: {roles}"}), 403
+            g.user = user
             return f(*args, **kwargs)
         return decorated
     return decorator
@@ -94,7 +104,7 @@ def role_required(*roles):
 
 @app.route("/api/register", methods=["POST"])
 def register():
-    data = request.get_json()
+    data      = request.get_json()
     full_name = data.get("full_name", "").strip()
     email     = data.get("email", "").strip().lower()
     password  = data.get("password", "")
@@ -107,7 +117,6 @@ def register():
     try:
         conn = get_db()
         cur  = conn.cursor()
-        # Role 1 = Student (default for new registrations)
         cur.execute(
             "INSERT INTO Users (FullName, Email, PasswordHash, RoleID) VALUES (?, ?, ?, 1)",
             full_name, email, pw_hash
@@ -132,8 +141,8 @@ def login():
         cur  = conn.cursor()
         cur.execute(
             "SELECT u.UserID, u.FullName, u.PasswordHash, r.RoleName "
-            "FROM Users u JOIN Roles r ON u.RoleID = r.RoleID "
-            "WHERE u.Email = ?", email
+            "FROM Users u JOIN Roles r ON u.RoleID = r.RoleID WHERE u.Email = ?",
+            email
         )
         row = cur.fetchone()
         conn.close()
@@ -142,47 +151,58 @@ def login():
             return jsonify({"error": "Invalid credentials."}), 401
 
         user_id, full_name, pw_hash, role = row
+
         if not bcrypt.checkpw(password.encode(), pw_hash.encode()):
             return jsonify({"error": "Invalid credentials."}), 401
 
-        session["user_id"]   = user_id
-        session["full_name"] = full_name
-        session["role"]      = role
-        session["email"]     = email
+        token = secrets.token_hex(32)
+        sessions[token] = {
+            "user_id":   user_id,
+            "full_name": full_name,
+            "role":      role,
+            "email":     email
+        }
 
-        return jsonify({"message": "Logged in.", "user": {"id": user_id, "name": full_name, "role": role}})
+        return jsonify({
+            "message": "Logged in.",
+            "token":   token,
+            "user":    {"id": user_id, "name": full_name, "role": role}
+        })
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
 
 @app.route("/api/logout", methods=["POST"])
 def logout():
-    session.clear()
+    token = request.headers.get("X-Auth-Token")
+    if token and token in sessions:
+        del sessions[token]
     return jsonify({"message": "Logged out."})
 
 
 @app.route("/api/me", methods=["GET"])
-@login_required
 def me():
+    user = get_current_user()
+    if not user:
+        return jsonify({"error": "Not logged in."}), 401
     return jsonify({
-        "id":   session["user_id"],
-        "name": session["full_name"],
-        "role": session["role"],
-        "email": session["email"]
+        "id":    user["user_id"],
+        "name":  user["full_name"],
+        "role":  user["role"],
+        "email": user["email"]
     })
 
 # ===========================================================
-# CLUBS ROUTES
+# CLUBS
 # ===========================================================
 
 @app.route("/api/clubs", methods=["GET"])
 @login_required
 def get_clubs():
-    """All users see approved clubs. Admins see all."""
     try:
         conn = get_db()
         cur  = conn.cursor()
-        if session["role"] == "Admin":
+        if g.user["role"] == "Admin":
             cur.execute(
                 "SELECT c.ClubID, c.ClubName, c.Description, c.ApprovalStatus, "
                 "u.FullName AS CreatedBy, c.CreatedAt "
@@ -212,8 +232,8 @@ def get_club(club_id):
         cur.execute(
             "SELECT c.ClubID, c.ClubName, c.Description, c.ApprovalStatus, "
             "u.FullName AS CreatedBy, c.CreatedAt "
-            "FROM Clubs c JOIN Users u ON c.CreatedBy = u.UserID "
-            "WHERE c.ClubID = ?", club_id
+            "FROM Clubs c JOIN Users u ON c.CreatedBy = u.UserID WHERE c.ClubID = ?",
+            club_id
         )
         row = cur.fetchone()
         conn.close()
@@ -236,7 +256,7 @@ def submit_club():
         conn = get_db()
         cur  = conn.cursor()
         cur.execute("EXEC SubmitClub @ClubName=?, @Description=?, @CreatedBy=?",
-                    name, desc, session["user_id"])
+                    name, desc, g.user["user_id"])
         row = cur.fetchone()
         conn.commit()
         conn.close()
@@ -251,7 +271,7 @@ def approve_club(club_id):
     try:
         conn = get_db()
         cur  = conn.cursor()
-        cur.execute("EXEC ApproveClub @ClubID=?, @AdminID=?", club_id, session["user_id"])
+        cur.execute("EXEC ApproveClub @ClubID=?, @AdminID=?", club_id, g.user["user_id"])
         conn.commit()
         conn.close()
         return jsonify({"message": "Club approved."})
@@ -265,7 +285,7 @@ def reject_club(club_id):
     try:
         conn = get_db()
         cur  = conn.cursor()
-        cur.execute("EXEC RejectClub @ClubID=?, @AdminID=?", club_id, session["user_id"])
+        cur.execute("EXEC RejectClub @ClubID=?, @AdminID=?", club_id, g.user["user_id"])
         conn.commit()
         conn.close()
         return jsonify({"message": "Club rejected."})
@@ -304,7 +324,7 @@ def add_member(club_id):
         conn = get_db()
         cur  = conn.cursor()
         cur.execute("EXEC AddStudentToClub @UserID=?, @ClubID=?, @PerformedBy=?",
-                    user_id, club_id, session["user_id"])
+                    user_id, club_id, g.user["user_id"])
         conn.commit()
         conn.close()
         return jsonify({"message": "Student added to club."})
@@ -319,7 +339,7 @@ def remove_member(club_id, user_id):
         conn = get_db()
         cur  = conn.cursor()
         cur.execute("EXEC RemoveStudentFromClub @UserID=?, @ClubID=?, @PerformedBy=?",
-                    user_id, club_id, session["user_id"])
+                    user_id, club_id, g.user["user_id"])
         conn.commit()
         conn.close()
         return jsonify({"message": "Student removed from club."})
@@ -333,11 +353,11 @@ def join_club(club_id):
     try:
         conn = get_db()
         cur  = conn.cursor()
-        set_session_ctx(cur, session["user_id"])
+        set_session_ctx(cur, g.user["user_id"])
         cur.execute(
             "IF NOT EXISTS (SELECT 1 FROM ClubMemberships WHERE UserID=? AND ClubID=?) "
             "INSERT INTO ClubMemberships (UserID, ClubID) VALUES (?, ?)",
-            session["user_id"], club_id, session["user_id"], club_id
+            g.user["user_id"], club_id, g.user["user_id"], club_id
         )
         conn.commit()
         conn.close()
@@ -352,9 +372,9 @@ def leave_club(club_id):
     try:
         conn = get_db()
         cur  = conn.cursor()
-        set_session_ctx(cur, session["user_id"])
+        set_session_ctx(cur, g.user["user_id"])
         cur.execute("DELETE FROM ClubMemberships WHERE UserID=? AND ClubID=?",
-                    session["user_id"], club_id)
+                    g.user["user_id"], club_id)
         conn.commit()
         conn.close()
         return jsonify({"message": "Left club."})
@@ -362,23 +382,21 @@ def leave_club(club_id):
         return jsonify({"error": str(e)}), 500
 
 # ===========================================================
-# EVENTS ROUTES
+# EVENTS
 # ===========================================================
 
 @app.route("/api/events", methods=["GET"])
 @login_required
 def get_events():
-    """Return events for clubs the user belongs to (or all for admin)."""
     try:
         conn = get_db()
         cur  = conn.cursor()
-        if session["role"] == "Admin":
+        if g.user["role"] == "Admin":
             cur.execute(
                 "SELECT e.EventID, e.EventName, e.Description, e.EventDate, e.Location, "
                 "c.ClubName, c.ClubID, "
                 "(SELECT COUNT(*) FROM Registrations r WHERE r.EventID = e.EventID) AS AttendeeCount "
-                "FROM Events e JOIN Clubs c ON e.ClubID = c.ClubID "
-                "ORDER BY e.EventDate DESC"
+                "FROM Events e JOIN Clubs c ON e.ClubID = c.ClubID ORDER BY e.EventDate DESC"
             )
         else:
             cur.execute(
@@ -388,9 +406,8 @@ def get_events():
                 "FROM Events e "
                 "JOIN Clubs c ON e.ClubID = c.ClubID "
                 "JOIN ClubMemberships cm ON cm.ClubID = c.ClubID AND cm.UserID = ? "
-                "WHERE c.ApprovalStatus = 'Approved' "
-                "ORDER BY e.EventDate DESC",
-                session["user_id"]
+                "WHERE c.ApprovalStatus = 'Approved' ORDER BY e.EventDate DESC",
+                g.user["user_id"]
             )
         events = rows_to_list(cur, cur.fetchall())
         conn.close()
@@ -421,18 +438,20 @@ def get_club_events(club_id):
 @app.route("/api/clubs/<int:club_id>/events", methods=["POST"])
 @role_required("ClubAdmin", "Admin")
 def add_event(club_id):
-    data  = request.get_json()
-    name  = data.get("event_name", "").strip()
-    desc  = data.get("description", "").strip()
-    date  = data.get("event_date")
-    loc   = data.get("location", "").strip()
+    data = request.get_json()
+    name = data.get("event_name", "").strip()
+    desc = data.get("description", "").strip()
+    date = data.get("event_date")
+    loc  = data.get("location", "").strip()
     if not name or not date:
         return jsonify({"error": "event_name and event_date are required."}), 400
     try:
         conn = get_db()
         cur  = conn.cursor()
-        cur.execute("EXEC AddEvent @ClubID=?, @EventName=?, @Description=?, @EventDate=?, @Location=?, @UserID=?",
-                    club_id, name, desc, date, loc, session["user_id"])
+        cur.execute(
+            "EXEC AddEvent @ClubID=?, @EventName=?, @Description=?, @EventDate=?, @Location=?, @UserID=?",
+            club_id, name, desc, date, loc, g.user["user_id"]
+        )
         row = cur.fetchone()
         conn.commit()
         conn.close()
@@ -452,8 +471,10 @@ def edit_event(event_id):
     try:
         conn = get_db()
         cur  = conn.cursor()
-        cur.execute("EXEC EditEvent @EventID=?, @EventName=?, @Description=?, @EventDate=?, @Location=?, @UserID=?",
-                    event_id, name, desc, date, loc, session["user_id"])
+        cur.execute(
+            "EXEC EditEvent @EventID=?, @EventName=?, @Description=?, @EventDate=?, @Location=?, @UserID=?",
+            event_id, name, desc, date, loc, g.user["user_id"]
+        )
         conn.commit()
         conn.close()
         return jsonify({"message": "Event updated."})
@@ -467,7 +488,7 @@ def delete_event(event_id):
     try:
         conn = get_db()
         cur  = conn.cursor()
-        cur.execute("EXEC DeleteEvent @EventID=?, @UserID=?", event_id, session["user_id"])
+        cur.execute("EXEC DeleteEvent @EventID=?, @UserID=?", event_id, g.user["user_id"])
         conn.commit()
         conn.close()
         return jsonify({"message": "Event deleted."})
@@ -481,7 +502,7 @@ def register_event(event_id):
     try:
         conn = get_db()
         cur  = conn.cursor()
-        cur.execute("EXEC RegisterForEvent @EventID=?, @UserID=?", event_id, session["user_id"])
+        cur.execute("EXEC RegisterForEvent @EventID=?, @UserID=?", event_id, g.user["user_id"])
         conn.commit()
         conn.close()
         return jsonify({"message": "Registered for event."})
@@ -495,7 +516,7 @@ def unregister_event(event_id):
     try:
         conn = get_db()
         cur  = conn.cursor()
-        cur.execute("EXEC UnregisterFromEvent @EventID=?, @UserID=?", event_id, session["user_id"])
+        cur.execute("EXEC UnregisterFromEvent @EventID=?, @UserID=?", event_id, g.user["user_id"])
         conn.commit()
         conn.close()
         return jsonify({"message": "Unregistered from event."})
@@ -522,7 +543,7 @@ def get_event_attendees(event_id):
         return jsonify({"error": str(e)}), 500
 
 # ===========================================================
-# USERS / ADMIN ROUTES
+# USERS / ADMIN
 # ===========================================================
 
 @app.route("/api/users", methods=["GET"])
@@ -548,7 +569,7 @@ def assign_club_admin(user_id):
     try:
         conn = get_db()
         cur  = conn.cursor()
-        cur.execute("EXEC AssignClubAdmin @TargetUserID=?, @AdminID=?", user_id, session["user_id"])
+        cur.execute("EXEC AssignClubAdmin @TargetUserID=?, @AdminID=?", user_id, g.user["user_id"])
         conn.commit()
         conn.close()
         return jsonify({"message": "Club Admin role assigned."})
@@ -562,7 +583,7 @@ def revoke_club_admin(user_id):
     try:
         conn = get_db()
         cur  = conn.cursor()
-        cur.execute("EXEC RevokeClubAdmin @TargetUserID=?, @AdminID=?", user_id, session["user_id"])
+        cur.execute("EXEC RevokeClubAdmin @TargetUserID=?, @AdminID=?", user_id, g.user["user_id"])
         conn.commit()
         conn.close()
         return jsonify({"message": "Club Admin role revoked."})
@@ -582,8 +603,7 @@ def get_audit_log():
         cur.execute(
             "SELECT a.LogID, a.TableName, a.ActionType, a.RecordID, "
             "u.FullName AS ActionBy, a.ActionDate "
-            "FROM AuditLog a "
-            "LEFT JOIN Users u ON a.ActionBy = u.UserID "
+            "FROM AuditLog a LEFT JOIN Users u ON a.ActionBy = u.UserID "
             "ORDER BY a.ActionDate DESC"
         )
         logs = rows_to_list(cur, cur.fetchall())

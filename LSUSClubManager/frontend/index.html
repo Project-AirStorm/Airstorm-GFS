@@ -6,19 +6,18 @@
 <title>LSUS Campus Event & Club Manager</title>
 <style>
   :root {
-    --gold:    #C8A951;
-    --gold-lt: #f0d98a;
-    --purple:  #4B1B6F;
+    --gold:      #C8A951;
+    --gold-lt:   #f0d98a;
+    --purple:    #4B1B6F;
     --purple-dk: #2e0f47;
     --purple-lt: #7a3ca8;
-    --white:   #FFFFFF;
-    --offwhite:#f8f5ff;
-    --gray:    #e2daea;
-    --dark:    #1a0a2e;
-    --text:    #2d2040;
-    --danger:  #c0392b;
-    --success: #1e8449;
-    --card-shadow: 0 4px 18px rgba(75,27,111,0.12);
+    --white:     #FFFFFF;
+    --offwhite:  #f8f5ff;
+    --gray:      #e2daea;
+    --text:      #2d2040;
+    --danger:    #c0392b;
+    --success:   #1e8449;
+    --shadow:    0 4px 18px rgba(75,27,111,0.12);
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--offwhite); color: var(--text); min-height: 100vh; }
@@ -26,58 +25,44 @@
   /* NAV */
   nav {
     background: linear-gradient(135deg, var(--purple-dk) 0%, var(--purple) 100%);
-    padding: 0 2rem;
-    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 2rem; display: flex; align-items: center; justify-content: space-between;
     height: 62px; position: sticky; top: 0; z-index: 100;
     box-shadow: 0 2px 12px rgba(0,0,0,0.3);
   }
-  .nav-brand { color: var(--gold); font-size: 1.2rem; font-weight: 800; letter-spacing: 0.5px; display: flex; align-items: center; gap: 10px; }
-  .nav-brand .dot { width:10px; height:10px; border-radius:50%; background:var(--gold); }
-  .nav-links { display: flex; gap: 6px; }
+  .nav-brand { color: var(--gold); font-size: 1.2rem; font-weight: 800; display: flex; align-items: center; gap: 10px; }
+  .nav-brand .dot { width: 10px; height: 10px; border-radius: 50%; background: var(--gold); }
+  .nav-links { display: flex; gap: 4px; }
   .nav-links button {
     background: transparent; border: none; color: rgba(255,255,255,0.8);
-    padding: 8px 14px; border-radius: 8px; cursor: pointer; font-size: 0.9rem;
-    transition: all 0.2s;
+    padding: 8px 14px; border-radius: 8px; cursor: pointer; font-size: 0.9rem; transition: all 0.2s;
   }
-  .nav-links button:hover, .nav-links button.active { background: rgba(200,169,81,0.2); color: var(--gold); }
+  .nav-links button:hover { background: rgba(200,169,81,0.2); color: var(--gold); }
   .nav-user { color: var(--gold-lt); font-size: 0.85rem; display: flex; align-items: center; gap: 10px; }
-  .nav-user .role-badge {
-    background: var(--gold); color: var(--purple-dk);
-    padding: 2px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 700;
-  }
-  .btn-logout {
-    background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2);
-    color: white; padding: 5px 12px; border-radius: 6px; cursor: pointer; font-size: 0.8rem;
-    transition: background 0.2s;
-  }
-  .btn-logout:hover { background: rgba(192,57,43,0.4); }
+  .role-badge { background: var(--gold); color: var(--purple-dk); padding: 2px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 700; }
+  .btn-logout { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: white; padding: 5px 12px; border-radius: 6px; cursor: pointer; font-size: 0.8rem; transition: background 0.2s; }
+  .btn-logout:hover { background: rgba(192,57,43,0.5); }
 
-  /* LAYOUT */
+  /* PAGES */
   .page { display: none; padding: 2rem; max-width: 1200px; margin: 0 auto; }
   .page.active { display: block; }
 
-  /* AUTH PAGE */
-  .auth-wrap { min-height: calc(100vh - 62px); display: flex; align-items: center; justify-content: center; background: linear-gradient(160deg, var(--purple-dk) 0%, var(--purple) 60%, #7a3ca8 100%); }
+  /* AUTH */
+  .auth-wrap { min-height: 100vh; display: flex; align-items: center; justify-content: center; background: linear-gradient(160deg, var(--purple-dk) 0%, var(--purple) 60%, var(--purple-lt) 100%); }
   .auth-card { background: white; border-radius: 20px; padding: 2.5rem; width: 100%; max-width: 420px; box-shadow: 0 20px 60px rgba(0,0,0,0.4); }
   .auth-logo { text-align: center; margin-bottom: 1.5rem; }
-  .auth-logo .logo-circle { width: 70px; height: 70px; border-radius: 50%; background: linear-gradient(135deg, var(--purple), var(--gold)); display: inline-flex; align-items: center; justify-content: center; font-size: 2rem; }
+  .auth-logo .circle { width: 70px; height: 70px; border-radius: 50%; background: linear-gradient(135deg, var(--purple), var(--gold)); display: inline-flex; align-items: center; justify-content: center; font-size: 2rem; }
   .auth-logo h2 { margin-top: 0.8rem; color: var(--purple); font-size: 1.4rem; }
   .auth-logo p { color: #888; font-size: 0.85rem; }
   .tab-switch { display: flex; border-radius: 10px; overflow: hidden; margin-bottom: 1.5rem; border: 1px solid var(--gray); }
   .tab-switch button { flex: 1; padding: 10px; background: white; border: none; cursor: pointer; font-size: 0.9rem; font-weight: 600; color: #888; transition: all 0.2s; }
   .tab-switch button.active { background: var(--purple); color: white; }
+
+  /* FORMS */
   .form-group { margin-bottom: 1rem; }
   label { display: block; font-size: 0.82rem; font-weight: 600; color: var(--purple); margin-bottom: 5px; }
-  input, textarea, select {
-    width: 100%; padding: 10px 14px; border: 1.5px solid var(--gray); border-radius: 10px;
-    font-size: 0.9rem; transition: border 0.2s; background: var(--offwhite); color: var(--text);
-  }
+  input, textarea, select { width: 100%; padding: 10px 14px; border: 1.5px solid var(--gray); border-radius: 10px; font-size: 0.9rem; transition: border 0.2s; background: var(--offwhite); color: var(--text); }
   input:focus, textarea:focus, select:focus { outline: none; border-color: var(--purple-lt); background: white; }
-  .btn-primary {
-    width: 100%; padding: 12px; background: linear-gradient(135deg, var(--purple), var(--purple-lt));
-    color: white; border: none; border-radius: 10px; font-size: 1rem; font-weight: 700;
-    cursor: pointer; transition: opacity 0.2s; margin-top: 0.5rem;
-  }
+  .btn-primary { width: 100%; padding: 12px; background: linear-gradient(135deg, var(--purple), var(--purple-lt)); color: white; border: none; border-radius: 10px; font-size: 1rem; font-weight: 700; cursor: pointer; transition: opacity 0.2s; margin-top: 0.5rem; }
   .btn-primary:hover { opacity: 0.9; }
 
   /* HEADINGS */
@@ -85,17 +70,13 @@
   .page-title { font-size: 1.6rem; font-weight: 800; color: var(--purple); }
   .page-title span { color: var(--gold); }
 
-  /* CARDS GRID */
+  /* CARDS */
   .cards-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1.2rem; }
-  .card {
-    background: white; border-radius: 14px; padding: 1.4rem;
-    box-shadow: var(--card-shadow); transition: transform 0.2s, box-shadow 0.2s;
-    border-left: 4px solid var(--purple);
-  }
+  .card { background: white; border-radius: 14px; padding: 1.4rem; box-shadow: var(--shadow); transition: transform 0.2s, box-shadow 0.2s; border-left: 4px solid var(--purple); }
   .card:hover { transform: translateY(-3px); box-shadow: 0 8px 28px rgba(75,27,111,0.18); }
   .card-title { font-size: 1.05rem; font-weight: 700; color: var(--purple); margin-bottom: 0.4rem; }
-  .card-desc { font-size: 0.86rem; color: #666; margin-bottom: 0.9rem; line-height: 1.5; }
-  .card-meta { font-size: 0.78rem; color: #999; margin-bottom: 1rem; }
+  .card-desc  { font-size: 0.86rem; color: #666; margin-bottom: 0.9rem; line-height: 1.5; }
+  .card-meta  { font-size: 0.78rem; color: #999; margin-bottom: 1rem; line-height: 1.8; }
   .card-meta strong { color: var(--purple); }
   .card-actions { display: flex; gap: 8px; flex-wrap: wrap; }
 
@@ -108,8 +89,8 @@
   .badge-gold     { background: var(--gold); color: var(--purple-dk); }
 
   /* BUTTONS */
-  .btn { padding: 7px 14px; border-radius: 8px; border: none; cursor: pointer; font-size: 0.82rem; font-weight: 600; transition: all 0.2s; }
-  .btn-sm { padding: 5px 11px; font-size: 0.78rem; }
+  .btn         { padding: 7px 14px; border-radius: 8px; border: none; cursor: pointer; font-size: 0.82rem; font-weight: 600; transition: all 0.2s; }
+  .btn-sm      { padding: 5px 11px; font-size: 0.78rem; }
   .btn-purple  { background: var(--purple); color: white; }
   .btn-purple:hover  { background: var(--purple-lt); }
   .btn-gold    { background: var(--gold); color: var(--purple-dk); }
@@ -122,7 +103,7 @@
   .btn-success:hover { background: #196f3d; }
 
   /* TABLE */
-  .table-wrap { overflow-x: auto; background: white; border-radius: 14px; box-shadow: var(--card-shadow); }
+  .table-wrap { overflow-x: auto; background: white; border-radius: 14px; box-shadow: var(--shadow); }
   table { width: 100%; border-collapse: collapse; }
   th { background: var(--purple); color: white; padding: 12px 16px; font-size: 0.85rem; text-align: left; }
   th:first-child { border-radius: 14px 0 0 0; }
@@ -142,8 +123,8 @@
 
   /* STATS */
   .stats-row { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 1rem; margin-bottom: 2rem; }
-  .stat-card { background: white; border-radius: 14px; padding: 1.2rem; box-shadow: var(--card-shadow); text-align: center; }
-  .stat-num { font-size: 2rem; font-weight: 900; color: var(--purple); }
+  .stat-card { background: white; border-radius: 14px; padding: 1.2rem; box-shadow: var(--shadow); text-align: center; }
+  .stat-num   { font-size: 2rem; font-weight: 900; color: var(--purple); }
   .stat-label { font-size: 0.78rem; color: #888; margin-top: 2px; }
 
   /* TABS */
@@ -156,10 +137,9 @@
   .msg-success { background: #d4efdf; color: var(--success); }
   .msg-error   { background: #fadbd8; color: var(--danger); }
 
-  /* EMPTY STATE */
+  /* EMPTY */
   .empty-state { text-align: center; padding: 3rem; color: #aaa; }
   .empty-state .empty-icon { font-size: 3rem; margin-bottom: 0.8rem; }
-  .empty-state p { font-size: 0.95rem; }
 
   /* SEARCH */
   .search-bar { position: relative; max-width: 300px; }
@@ -167,7 +147,7 @@
   .search-bar::before { content: '🔍'; position: absolute; left: 10px; top: 50%; transform: translateY(-50%); font-size: 0.9rem; }
 
   /* SECTION */
-  .section { background: white; border-radius: 14px; padding: 1.5rem; box-shadow: var(--card-shadow); margin-bottom: 1.5rem; }
+  .section { background: white; border-radius: 14px; padding: 1.5rem; box-shadow: var(--shadow); margin-bottom: 1.5rem; }
   .section-title { font-size: 1.05rem; font-weight: 700; color: var(--purple); margin-bottom: 1.2rem; padding-bottom: 0.7rem; border-bottom: 2px solid var(--gray); }
 
   /* DETAIL HEADER */
@@ -178,14 +158,13 @@
   @media (max-width: 640px) {
     nav { padding: 0 1rem; }
     .page { padding: 1rem; }
-    .nav-links { gap: 2px; }
     .nav-links button { padding: 6px 8px; font-size: 0.8rem; }
   }
 </style>
 </head>
 <body>
 
-<!-- ======================== NAVBAR ======================== -->
+<!-- NAVBAR -->
 <nav id="navbar" style="display:none">
   <div class="nav-brand"><div class="dot"></div>LSUS Club Manager</div>
   <div class="nav-links" id="navLinks"></div>
@@ -196,12 +175,12 @@
   </div>
 </nav>
 
-<!-- ======================== AUTH ======================== -->
+<!-- AUTH PAGE -->
 <div id="authPage">
   <div class="auth-wrap">
     <div class="auth-card">
       <div class="auth-logo">
-        <div class="logo-circle">🎓</div>
+        <div class="circle">🎓</div>
         <h2>LSUS Club Manager</h2>
         <p>Campus Event & Club Management System</p>
       </div>
@@ -211,43 +190,26 @@
       </div>
       <div id="authMsg"></div>
 
-      <!-- LOGIN FORM -->
       <div id="loginForm">
-        <div class="form-group">
-          <label>Email</label>
-          <input type="email" id="loginEmail" placeholder="your@lsus.edu"/>
-        </div>
-        <div class="form-group">
-          <label>Password</label>
-          <input type="password" id="loginPassword" placeholder="••••••••"/>
-        </div>
+        <div class="form-group"><label>Email</label><input type="email" id="loginEmail" placeholder="your@lsus.edu"/></div>
+        <div class="form-group"><label>Password</label><input type="password" id="loginPassword" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()"/></div>
         <button class="btn-primary" onclick="doLogin()">Sign In</button>
-        <p style="text-align:center;margin-top:1rem;font-size:0.8rem;color:#888;">
-          Demo accounts: john@lsus.edu / sarah@lsus.edu / mike@lsus.edu (pass: student123 / clubadmin123 / admin123)
+        <p style="text-align:center;margin-top:1rem;font-size:0.78rem;color:#999">
+          Demo — Student: john@lsus.edu / student123 &nbsp;|&nbsp; Admin: mike@lsus.edu / admin123
         </p>
       </div>
 
-      <!-- REGISTER FORM -->
       <div id="registerForm" style="display:none">
-        <div class="form-group">
-          <label>Full Name</label>
-          <input type="text" id="regName" placeholder="Jane Doe"/>
-        </div>
-        <div class="form-group">
-          <label>Email</label>
-          <input type="email" id="regEmail" placeholder="your@lsus.edu"/>
-        </div>
-        <div class="form-group">
-          <label>Password</label>
-          <input type="password" id="regPassword" placeholder="••••••••"/>
-        </div>
+        <div class="form-group"><label>Full Name</label><input type="text" id="regName" placeholder="Jane Doe"/></div>
+        <div class="form-group"><label>Email</label><input type="email" id="regEmail" placeholder="your@lsus.edu"/></div>
+        <div class="form-group"><label>Password</label><input type="password" id="regPassword" placeholder="••••••••"/></div>
         <button class="btn-primary" onclick="doRegister()">Create Account</button>
       </div>
     </div>
   </div>
 </div>
 
-<!-- ======================== DASHBOARD ======================== -->
+<!-- DASHBOARD -->
 <div class="page" id="dashboardPage">
   <div class="page-header">
     <div class="page-title">Welcome back, <span id="dashName">User</span> 👋</div>
@@ -258,12 +220,12 @@
     <div id="dashEvents"></div>
   </div>
   <div class="section">
-    <div class="section-title">🏛 Your Clubs</div>
+    <div class="section-title">🏛 Available Clubs</div>
     <div id="dashClubs"></div>
   </div>
 </div>
 
-<!-- ======================== CLUBS ======================== -->
+<!-- CLUBS PAGE -->
 <div class="page" id="clubsPage">
   <div class="page-header">
     <div class="page-title">🏛 <span>Clubs</span></div>
@@ -276,7 +238,7 @@
   <div class="cards-grid" id="clubsGrid"></div>
 </div>
 
-<!-- ======================== EVENTS ======================== -->
+<!-- EVENTS PAGE -->
 <div class="page" id="eventsPage">
   <div class="page-header">
     <div class="page-title">📅 <span>Events</span></div>
@@ -285,7 +247,7 @@
   <div class="cards-grid" id="eventsGrid"></div>
 </div>
 
-<!-- ======================== CLUB DETAIL ======================== -->
+<!-- CLUB DETAIL PAGE -->
 <div class="page" id="clubDetailPage">
   <button class="btn btn-outline btn-sm" onclick="showPage('clubsPage')" style="margin-bottom:1rem">← Back to Clubs</button>
   <div class="detail-header" id="clubDetailHeader"></div>
@@ -297,7 +259,7 @@
   <div id="clubDetailMembers" style="display:none"></div>
 </div>
 
-<!-- ======================== ADMIN PANEL ======================== -->
+<!-- ADMIN PAGE -->
 <div class="page" id="adminPage">
   <div class="page-title" style="margin-bottom:1.5rem">⚙️ <span>Admin Panel</span></div>
   <div class="section-tabs">
@@ -306,13 +268,11 @@
     <button onclick="switchAdminTab('audit')">Audit Log</button>
   </div>
   <div id="adminPendingClubs"></div>
-  <div id="adminUsers" style="display:none"></div>
-  <div id="adminAudit" style="display:none"></div>
+  <div id="adminUsers"  style="display:none"></div>
+  <div id="adminAudit"  style="display:none"></div>
 </div>
 
-<!-- ======================== MODALS ======================== -->
-
-<!-- Submit Club -->
+<!-- MODAL: Submit Club -->
 <div class="modal-overlay" id="submitClubModal">
   <div class="modal">
     <div class="modal-header">
@@ -326,7 +286,7 @@
   </div>
 </div>
 
-<!-- Add Event -->
+<!-- MODAL: Add Event -->
 <div class="modal-overlay" id="addEventModal">
   <div class="modal">
     <div class="modal-header">
@@ -343,7 +303,7 @@
   </div>
 </div>
 
-<!-- Edit Event -->
+<!-- MODAL: Edit Event -->
 <div class="modal-overlay" id="editEventModal">
   <div class="modal">
     <div class="modal-header">
@@ -360,7 +320,7 @@
   </div>
 </div>
 
-<!-- Attendees -->
+<!-- MODAL: Attendees -->
 <div class="modal-overlay" id="attendeesModal">
   <div class="modal" style="max-width:560px">
     <div class="modal-header">
@@ -371,7 +331,7 @@
   </div>
 </div>
 
-<!-- Add Member -->
+<!-- MODAL: Add Member -->
 <div class="modal-overlay" id="addMemberModal">
   <div class="modal">
     <div class="modal-header">
@@ -379,51 +339,59 @@
       <button class="modal-close" onclick="closeModal('addMemberModal')">×</button>
     </div>
     <div id="addMemberMsg"></div>
-    <div class="form-group">
-      <label>Select Student</label>
-      <select id="addMemberUserSelect"></select>
-    </div>
+    <div class="form-group"><label>Select Student</label><select id="addMemberUserSelect"></select></div>
     <input type="hidden" id="addMemberClubID"/>
     <button class="btn btn-purple" style="width:100%;padding:10px;margin-top:0.5rem" onclick="doAddMember()">Add to Club</button>
   </div>
 </div>
 
 <script>
-const API = 'http://localhost:5000/api';
+const API_BASE  = 'http://localhost:5000';
 let currentUser = null;
 let allClubs    = [];
 let allEvents   = [];
 let currentClubDetail = null;
 
-// ====================================================
-// UTILS
-// ====================================================
-function api(path, options = {}) {
-  return fetch(API + path, { credentials: 'include', headers: { 'Content-Type': 'application/json' }, ...options })
-    .then(r => r.json());
+// =============================================
+// CORE API
+// =============================================
+function getToken() {
+  return localStorage.getItem('auth_token');
 }
+
+function api(path, options = {}) {
+  const token   = getToken();
+  const headers = { 'Content-Type': 'application/json' };
+  if (token) headers['X-Auth-Token'] = token;
+  return fetch(API_BASE + path, { ...options, headers })
+    .then(r => r.json())
+    .catch(() => ({ error: 'Network error — is the Flask server running on port 5000?' }));
+}
+
+// =============================================
+// UTILS
+// =============================================
 function openModal(id)  { document.getElementById(id).classList.add('open'); }
 function closeModal(id) { document.getElementById(id).classList.remove('open'); }
-function showMsg(elId, text, type='success') {
+
+function showMsg(elId, text, type = 'success') {
   const el = document.getElementById(elId);
   if (!el) return;
   el.innerHTML = `<div class="msg msg-${type}">${text}</div>`;
-  setTimeout(() => { if(el) el.innerHTML = ''; }, 3500);
+  setTimeout(() => { if (el) el.innerHTML = ''; }, 3500);
 }
+
 function fmtDate(d) {
+  if (!d) return 'TBD';
   return new Date(d).toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' });
 }
-function capitalize(s) { return s ? s.charAt(0).toUpperCase() + s.slice(1) : ''; }
 
-// ====================================================
+// =============================================
 // NAVIGATION
-// ====================================================
-const pages = { dashboard:'dashboardPage', clubs:'clubsPage', events:'eventsPage', clubDetail:'clubDetailPage', admin:'adminPage' };
-
+// =============================================
 function showPage(pageId) {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-  const el = document.getElementById(pageId);
-  if (el) el.classList.add('active');
+  document.getElementById(pageId).classList.add('active');
   if (pageId === 'dashboardPage') loadDashboard();
   if (pageId === 'clubsPage')     loadClubs();
   if (pageId === 'eventsPage')    loadEvents();
@@ -431,35 +399,45 @@ function showPage(pageId) {
 }
 
 function buildNav() {
-  const nav   = document.getElementById('navbar');
-  const links = document.getElementById('navLinks');
-  nav.style.display = 'flex';
+  document.getElementById('navbar').style.display = 'flex';
   document.getElementById('navUserName').textContent = currentUser.name;
   document.getElementById('navUserRole').textContent = currentUser.role;
 
-  const items = [{ label:'Dashboard', page:'dashboardPage' }, { label:'Clubs', page:'clubsPage' }, { label:'Events', page:'eventsPage' }];
-  if (currentUser.role === 'Admin') items.push({ label:'Admin', page:'adminPage' });
+  const items = [
+    { label: '🏠 Dashboard', page: 'dashboardPage' },
+    { label: '🏛 Clubs',     page: 'clubsPage'     },
+    { label: '📅 Events',    page: 'eventsPage'    }
+  ];
+  if (currentUser.role === 'Admin') {
+    items.push({ label: '⚙️ Admin', page: 'adminPage' });
+  }
 
-  links.innerHTML = items.map(i =>
+  document.getElementById('navLinks').innerHTML = items.map(i =>
     `<button onclick="showPage('${i.page}')">${i.label}</button>`
   ).join('');
 }
 
-// ====================================================
+// =============================================
 // AUTH
-// ====================================================
+// =============================================
 function switchAuthTab(tab) {
   document.getElementById('loginForm').style.display    = tab === 'login'    ? 'block' : 'none';
   document.getElementById('registerForm').style.display = tab === 'register' ? 'block' : 'none';
-  document.querySelectorAll('.tab-switch button').forEach((b,i) => b.classList.toggle('active', (i===0&&tab==='login')||(i===1&&tab==='register')));
+  document.querySelectorAll('.tab-switch button').forEach((b, i) =>
+    b.classList.toggle('active', (i === 0 && tab === 'login') || (i === 1 && tab === 'register'))
+  );
   document.getElementById('authMsg').innerHTML = '';
 }
 
 async function doLogin() {
   const email    = document.getElementById('loginEmail').value.trim();
   const password = document.getElementById('loginPassword').value;
-  const res = await api('/login', { method:'POST', body: JSON.stringify({ email, password }) });
+  if (!email || !password) { showMsg('authMsg', 'Email and password are required.', 'error'); return; }
+
+  const res = await api('/api/login', { method: 'POST', body: JSON.stringify({ email, password }) });
   if (res.error) { showMsg('authMsg', res.error, 'error'); return; }
+
+  localStorage.setItem('auth_token', res.token);
   currentUser = res.user;
   document.getElementById('authPage').style.display = 'none';
   buildNav();
@@ -470,116 +448,132 @@ async function doRegister() {
   const full_name = document.getElementById('regName').value.trim();
   const email     = document.getElementById('regEmail').value.trim();
   const password  = document.getElementById('regPassword').value;
-  const res = await api('/register', { method:'POST', body: JSON.stringify({ full_name, email, password }) });
+  if (!full_name || !email || !password) { showMsg('authMsg', 'All fields are required.', 'error'); return; }
+
+  const res = await api('/api/register', { method: 'POST', body: JSON.stringify({ full_name, email, password }) });
   if (res.error) { showMsg('authMsg', res.error, 'error'); return; }
-  showMsg('authMsg', 'Registered! Please log in.', 'success');
+  showMsg('authMsg', 'Account created! Please log in.', 'success');
   switchAuthTab('login');
 }
 
 async function logout() {
-  await api('/logout', { method:'POST' });
+  await api('/api/logout', { method: 'POST' });
+  localStorage.removeItem('auth_token');
   currentUser = null;
   document.getElementById('navbar').style.display = 'none';
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.getElementById('authPage').style.display = 'block';
 }
 
-// Check session on load
+// Auto-login if token exists
 window.onload = async () => {
-  const res = await api('/me');
+  const token = getToken();
+  if (!token) return;
+  const res = await api('/api/me');
   if (!res.error) {
     currentUser = res;
     document.getElementById('authPage').style.display = 'none';
     buildNav();
     showPage('dashboardPage');
+  } else {
+    localStorage.removeItem('auth_token');
   }
 };
 
-// ====================================================
+// =============================================
 // DASHBOARD
-// ====================================================
+// =============================================
 async function loadDashboard() {
   document.getElementById('dashName').textContent = currentUser.name;
 
-  const [clubs, events] = await Promise.all([api('/clubs'), api('/events')]);
+  const [clubs, events] = await Promise.all([api('/api/clubs'), api('/api/events')]);
+  const clubArr  = Array.isArray(clubs)  ? clubs  : [];
+  const eventArr = Array.isArray(events) ? events : [];
 
-  const myClubs  = (clubs.filter ? clubs : []).filter(c => c.ApprovalStatus === 'Approved');
-  const upcoming = (events.filter ? events : []).filter(e => new Date(e.EventDate) > new Date()).slice(0, 5);
+  const approved = clubArr.filter(c => c.ApprovalStatus === 'Approved');
+  const upcoming = eventArr.filter(e => new Date(e.EventDate) > new Date()).slice(0, 5);
 
   document.getElementById('dashStats').innerHTML = `
-    <div class="stat-card"><div class="stat-num">${myClubs.length}</div><div class="stat-label">Clubs Available</div></div>
+    <div class="stat-card"><div class="stat-num">${approved.length}</div><div class="stat-label">Active Clubs</div></div>
     <div class="stat-card"><div class="stat-num">${upcoming.length}</div><div class="stat-label">Upcoming Events</div></div>
     <div class="stat-card"><div class="stat-num">${currentUser.role}</div><div class="stat-label">Your Role</div></div>
   `;
 
-  document.getElementById('dashEvents').innerHTML = upcoming.length ? upcoming.map(e => `
-    <div style="padding:0.8rem 0;border-bottom:1px solid var(--gray);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:0.5rem">
-      <div>
-        <strong>${e.EventName}</strong>
-        <div style="font-size:0.8rem;color:#888">${fmtDate(e.EventDate)} — ${e.Location || 'TBD'} <span class="badge badge-event">${e.ClubName}</span></div>
-      </div>
-      <button class="btn btn-sm btn-purple" onclick="registerForEvent(${e.EventID})">Register</button>
-    </div>
-  `).join('') : '<div class="empty-state"><div class="empty-icon">📭</div><p>No upcoming events.</p></div>';
+  document.getElementById('dashEvents').innerHTML = upcoming.length
+    ? upcoming.map(e => `
+        <div style="padding:0.8rem 0;border-bottom:1px solid var(--gray);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:0.5rem">
+          <div>
+            <strong>${e.EventName}</strong>
+            <div style="font-size:0.8rem;color:#888">${fmtDate(e.EventDate)} — ${e.Location || 'TBD'} <span class="badge badge-event">${e.ClubName}</span></div>
+          </div>
+          <button class="btn btn-sm btn-purple" onclick="registerForEvent(${e.EventID})">Register</button>
+        </div>`).join('')
+    : '<div class="empty-state"><div class="empty-icon">📭</div><p>No upcoming events. Join a club to see events!</p></div>';
 
-  document.getElementById('dashClubs').innerHTML = myClubs.slice(0,4).map(c => `
-    <div style="padding:0.6rem 0;border-bottom:1px solid var(--gray)">
-      <strong>${c.ClubName}</strong>
-      <span style="float:right"><button class="btn btn-sm btn-outline" onclick="openClubDetail(${c.ClubID})">View</button></span>
-      <div style="font-size:0.8rem;color:#888">${c.Description || ''}</div>
-    </div>
-  `).join('') || '<div class="empty-state"><div class="empty-icon">🏛</div><p>No clubs found.</p></div>';
+  document.getElementById('dashClubs').innerHTML = approved.slice(0, 4).map(c => `
+    <div style="padding:0.6rem 0;border-bottom:1px solid var(--gray);display:flex;justify-content:space-between;align-items:center">
+      <div>
+        <strong>${c.ClubName}</strong>
+        <div style="font-size:0.8rem;color:#888">${c.Description || ''}</div>
+      </div>
+      <div style="display:flex;gap:6px">
+        <button class="btn btn-sm btn-outline" onclick="openClubDetail(${c.ClubID})">View</button>
+        <button class="btn btn-sm btn-gold"    onclick="joinClub(${c.ClubID})">Join</button>
+      </div>
+    </div>`).join('') || '<div class="empty-state"><p>No clubs available yet.</p></div>';
 }
 
-// ====================================================
+// =============================================
 // CLUBS
-// ====================================================
+// =============================================
 async function loadClubs() {
-  const clubs = await api('/clubs');
+  const clubs = await api('/api/clubs');
   allClubs = Array.isArray(clubs) ? clubs : [];
 
   const tabs = document.getElementById('clubTabs');
   if (currentUser.role === 'Admin') {
     tabs.innerHTML = `
-      <button class="active" onclick="filterByStatus('all', this)">All</button>
-      <button onclick="filterByStatus('Approved', this)">Approved</button>
-      <button onclick="filterByStatus('Pending', this)">Pending</button>
-      <button onclick="filterByStatus('Rejected', this)">Rejected</button>
-    `;
-  } else { tabs.innerHTML = ''; }
-
+      <button class="active" onclick="filterByStatus('all',this)">All</button>
+      <button onclick="filterByStatus('Approved',this)">Approved</button>
+      <button onclick="filterByStatus('Pending',this)">Pending</button>
+      <button onclick="filterByStatus('Rejected',this)">Rejected</button>`;
+  } else {
+    tabs.innerHTML = '';
+  }
   renderClubs(allClubs);
 }
 
 function filterByStatus(status, btn) {
   document.querySelectorAll('#clubTabs button').forEach(b => b.classList.remove('active'));
   if (btn) btn.classList.add('active');
-  const filtered = status === 'all' ? allClubs : allClubs.filter(c => c.ApprovalStatus === status);
-  renderClubs(filtered);
+  renderClubs(status === 'all' ? allClubs : allClubs.filter(c => c.ApprovalStatus === status));
 }
 
 function filterClubs() {
   const q = document.getElementById('clubSearch').value.toLowerCase();
-  renderClubs(allClubs.filter(c => c.ClubName.toLowerCase().includes(q) || (c.Description||'').toLowerCase().includes(q)));
+  renderClubs(allClubs.filter(c => c.ClubName.toLowerCase().includes(q) || (c.Description || '').toLowerCase().includes(q)));
 }
 
 function renderClubs(clubs) {
   const grid = document.getElementById('clubsGrid');
-  if (!clubs.length) { grid.innerHTML = '<div class="empty-state" style="grid-column:1/-1"><div class="empty-icon">🏛</div><p>No clubs found.</p></div>'; return; }
+  if (!clubs.length) {
+    grid.innerHTML = '<div class="empty-state" style="grid-column:1/-1"><div class="empty-icon">🏛</div><p>No clubs found.</p></div>';
+    return;
+  }
   grid.innerHTML = clubs.map(c => {
-    const statusBadge = `<span class="badge badge-${c.ApprovalStatus.toLowerCase()}">${c.ApprovalStatus}</span>`;
+    const badge = `<span class="badge badge-${c.ApprovalStatus.toLowerCase()}">${c.ApprovalStatus}</span>`;
     const actions = [];
     if (c.ApprovalStatus === 'Approved') {
       actions.push(`<button class="btn btn-sm btn-purple" onclick="openClubDetail(${c.ClubID})">View Club</button>`);
-      actions.push(`<button class="btn btn-sm btn-gold" onclick="joinClub(${c.ClubID})">Join</button>`);
+      actions.push(`<button class="btn btn-sm btn-gold"   onclick="joinClub(${c.ClubID})">Join</button>`);
     }
     if (currentUser.role === 'Admin' && c.ApprovalStatus === 'Pending') {
       actions.push(`<button class="btn btn-sm btn-success" onclick="approveClub(${c.ClubID})">Approve</button>`);
-      actions.push(`<button class="btn btn-sm btn-danger" onclick="rejectClub(${c.ClubID})">Reject</button>`);
+      actions.push(`<button class="btn btn-sm btn-danger"  onclick="rejectClub(${c.ClubID})">Reject</button>`);
     }
     return `
       <div class="card">
-        <div class="card-title">${c.ClubName} ${statusBadge}</div>
+        <div class="card-title">${c.ClubName} ${badge}</div>
         <div class="card-desc">${c.Description || 'No description.'}</div>
         <div class="card-meta">Created by <strong>${c.CreatedBy}</strong></div>
         <div class="card-actions">${actions.join('')}</div>
@@ -590,80 +584,98 @@ function renderClubs(clubs) {
 async function submitClub() {
   const name = document.getElementById('newClubName').value.trim();
   const desc = document.getElementById('newClubDesc').value.trim();
-  if (!name) { showMsg('submitClubMsg','Club name is required.','error'); return; }
-  const res = await api('/clubs', { method:'POST', body: JSON.stringify({ club_name: name, description: desc }) });
+  if (!name) { showMsg('submitClubMsg', 'Club name is required.', 'error'); return; }
+
+  const res = await api('/api/clubs', { method: 'POST', body: JSON.stringify({ club_name: name, description: desc }) });
   if (res.error) { showMsg('submitClubMsg', res.error, 'error'); return; }
+
   showMsg('submitClubMsg', 'Club submitted for approval!', 'success');
   document.getElementById('newClubName').value = '';
   document.getElementById('newClubDesc').value = '';
-  setTimeout(() => { closeModal('submitClubModal'); loadClubs(); }, 1000);
+  setTimeout(() => { closeModal('submitClubModal'); loadClubs(); }, 1200);
 }
 
 async function joinClub(clubId) {
-  const res = await api(`/clubs/${clubId}/join`, { method:'POST' });
+  const res = await api(`/api/clubs/${clubId}/join`, { method: 'POST' });
   alert(res.message || res.error);
 }
 
 async function approveClub(clubId) {
-  const res = await api(`/clubs/${clubId}/approve`, { method:'PUT' });
+  const res = await api(`/api/clubs/${clubId}/approve`, { method: 'PUT' });
   alert(res.message || res.error);
   loadClubs();
 }
 
 async function rejectClub(clubId) {
   if (!confirm('Reject this club?')) return;
-  const res = await api(`/clubs/${clubId}/reject`, { method:'PUT' });
+  const res = await api(`/api/clubs/${clubId}/reject`, { method: 'PUT' });
   alert(res.message || res.error);
   loadClubs();
 }
 
-// ====================================================
+// =============================================
 // CLUB DETAIL
-// ====================================================
+// =============================================
 async function openClubDetail(clubId) {
   currentClubDetail = clubId;
   showPage('clubDetailPage');
-  const club = await api(`/clubs/${clubId}`);
+  const club = await api(`/api/clubs/${clubId}`);
 
+  const canManage = currentUser.role === 'ClubAdmin' || currentUser.role === 'Admin';
   document.getElementById('clubDetailHeader').innerHTML = `
     <h2>${club.ClubName}</h2>
-    <p>${club.Description || ''}</p>
+    <p>${club.Description || 'No description.'}</p>
     <p style="margin-top:0.5rem;font-size:0.82rem;opacity:0.7">Created by ${club.CreatedBy}</p>
-    ${(currentUser.role === 'ClubAdmin' || currentUser.role === 'Admin') ? `<button class="btn btn-gold btn-sm" style="margin-top:0.8rem" onclick="openAddEventModal(${clubId})">+ Add Event</button>` : ''}
+    ${canManage ? `<button class="btn btn-gold btn-sm" style="margin-top:0.8rem" onclick="openAddEventModal(${clubId})">+ Add Event</button>` : ''}
   `;
 
+  // Reset tab buttons
+  document.querySelectorAll('#clubDetailPage .section-tabs button').forEach((b, i) =>
+    b.classList.toggle('active', i === 0)
+  );
   switchClubDetailTab('events');
 }
 
 async function switchClubDetailTab(tab) {
-  document.querySelectorAll('#clubDetailPage .section-tabs button').forEach((b,i) => b.classList.toggle('active', (i===0&&tab==='events')||(i===1&&tab==='members')));
+  document.querySelectorAll('#clubDetailPage .section-tabs button').forEach((b, i) =>
+    b.classList.toggle('active', (i === 0 && tab === 'events') || (i === 1 && tab === 'members'))
+  );
   document.getElementById('clubDetailEvents').style.display  = tab === 'events'  ? 'block' : 'none';
   document.getElementById('clubDetailMembers').style.display = tab === 'members' ? 'block' : 'none';
 
   if (tab === 'events') {
-    const events = await api(`/clubs/${currentClubDetail}/events`);
-    const evArr = Array.isArray(events) ? events : [];
-    document.getElementById('clubDetailEvents').innerHTML = evArr.length ? `
-      <div class="cards-grid">${evArr.map(e => renderEventCard(e)).join('')}</div>
-    ` : '<div class="empty-state"><div class="empty-icon">📅</div><p>No events for this club.</p></div>';
+    const events = await api(`/api/clubs/${currentClubDetail}/events`);
+    const arr = Array.isArray(events) ? events : [];
+    document.getElementById('clubDetailEvents').innerHTML = arr.length
+      ? `<div class="cards-grid">${arr.map(e => renderEventCard(e)).join('')}</div>`
+      : '<div class="empty-state"><div class="empty-icon">📅</div><p>No events yet.</p></div>';
   }
+
   if (tab === 'members') {
-    const members = await api(`/clubs/${currentClubDetail}/members`);
-    const mArr = Array.isArray(members) ? members : [];
-    let addBtn = (currentUser.role === 'ClubAdmin' || currentUser.role === 'Admin')
-      ? `<button class="btn btn-sm btn-purple" onclick="openAddMemberModal(${currentClubDetail})" style="margin-bottom:1rem">+ Add Member</button>` : '';
-    document.getElementById('clubDetailMembers').innerHTML = addBtn + (mArr.length ? `
+    const canManage = currentUser.role === 'ClubAdmin' || currentUser.role === 'Admin';
+    const members   = await api(`/api/clubs/${currentClubDetail}/members`);
+    const arr = Array.isArray(members) ? members : [];
+
+    let html = canManage
+      ? `<button class="btn btn-sm btn-purple" onclick="openAddMemberModal(${currentClubDetail})" style="margin-bottom:1rem">+ Add Member</button>`
+      : '';
+
+    html += arr.length ? `
       <div class="table-wrap"><table>
-        <thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Joined</th>
-        ${(currentUser.role==='ClubAdmin'||currentUser.role==='Admin') ? '<th>Action</th>' : ''}</tr></thead>
-        <tbody>${mArr.map(m => `<tr>
-          <td>${m.FullName}</td><td>${m.Email}</td>
-          <td><span class="badge ${m.RoleName==='Admin'?'badge-gold':'badge-event'}">${m.RoleName}</span></td>
-          <td>${fmtDate(m.JoinedAt)}</td>
-          ${(currentUser.role==='ClubAdmin'||currentUser.role==='Admin') ? `<td><button class="btn btn-sm btn-danger" onclick="removeMember(${m.UserID},${currentClubDetail})">Remove</button></td>` : ''}
-        </tr>`).join('')}</tbody>
-      </table></div>
-    ` : '<div class="empty-state"><p>No members yet.</p></div>');
+        <thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Joined</th>${canManage ? '<th>Action</th>' : ''}</tr></thead>
+        <tbody>${arr.map(m => `
+          <tr>
+            <td>${m.FullName}</td>
+            <td>${m.Email}</td>
+            <td><span class="badge ${m.RoleName === 'Admin' ? 'badge-gold' : 'badge-event'}">${m.RoleName}</span></td>
+            <td>${fmtDate(m.JoinedAt)}</td>
+            ${canManage ? `<td><button class="btn btn-sm btn-danger" onclick="removeMember(${m.UserID},${currentClubDetail})">Remove</button></td>` : ''}
+          </tr>`).join('')}
+        </tbody>
+      </table></div>`
+      : '<div class="empty-state"><p>No members yet.</p></div>';
+
+    document.getElementById('clubDetailMembers').innerHTML = html;
   }
 }
 
@@ -671,7 +683,7 @@ function renderEventCard(e) {
   const canManage = currentUser.role === 'ClubAdmin' || currentUser.role === 'Admin';
   const past = new Date(e.EventDate) < new Date();
   return `
-    <div class="card" style="border-left-color:${past ? '#999' : 'var(--gold)'}">
+    <div class="card" style="border-left-color:${past ? '#bbb' : 'var(--gold)'}">
       <div class="card-title">${e.EventName}</div>
       <div class="card-desc">${e.Description || 'No description.'}</div>
       <div class="card-meta">
@@ -680,31 +692,36 @@ function renderEventCard(e) {
         👥 <strong>${e.AttendeeCount || 0}</strong> registered
       </div>
       <div class="card-actions">
-        ${!past ? `<button class="btn btn-sm btn-purple" onclick="registerForEvent(${e.EventID})">Register</button>` : ''}
+        ${!past ? `<button class="btn btn-sm btn-purple" onclick="registerForEvent(${e.EventID})">Register</button>` : '<span style="font-size:0.78rem;color:#aaa">Past event</span>'}
         <button class="btn btn-sm btn-outline" onclick="viewAttendees(${e.EventID})">Attendees</button>
-        ${canManage ? `<button class="btn btn-sm btn-gold" onclick="openEditEvent(${e.EventID},'${e.EventName.replace(/'/g,"\\'")}','${(e.Description||'').replace(/'/g,"\\'")}','${e.EventDate}','${(e.Location||'').replace(/'/g,"\\'")}')">Edit</button>` : ''}
+        ${canManage ? `<button class="btn btn-sm btn-gold" onclick="openEditEvent(${e.EventID}, \`${e.EventName}\`, \`${e.Description||''}\`, '${e.EventDate}', \`${e.Location||''}\`)">Edit</button>` : ''}
         ${canManage ? `<button class="btn btn-sm btn-danger" onclick="deleteEvent(${e.EventID})">Delete</button>` : ''}
       </div>
     </div>`;
 }
 
-// ====================================================
-// EVENTS
-// ====================================================
+// =============================================
+// EVENTS PAGE
+// =============================================
 async function loadEvents() {
-  const events = await api('/events');
+  const events = await api('/api/events');
   allEvents = Array.isArray(events) ? events : [];
   renderEvents(allEvents);
 }
 
 function filterEvents() {
   const q = document.getElementById('eventSearch').value.toLowerCase();
-  renderEvents(allEvents.filter(e => e.EventName.toLowerCase().includes(q) || (e.ClubName||'').toLowerCase().includes(q)));
+  renderEvents(allEvents.filter(e =>
+    e.EventName.toLowerCase().includes(q) || (e.ClubName || '').toLowerCase().includes(q)
+  ));
 }
 
 function renderEvents(events) {
   const grid = document.getElementById('eventsGrid');
-  if (!events.length) { grid.innerHTML = '<div class="empty-state" style="grid-column:1/-1"><div class="empty-icon">📅</div><p>No events found. Join a club to see events!</p></div>'; return; }
+  if (!events.length) {
+    grid.innerHTML = '<div class="empty-state" style="grid-column:1/-1"><div class="empty-icon">📅</div><p>No events found. Join a club to see its events!</p></div>';
+    return;
+  }
   grid.innerHTML = events.map(e => `
     <div class="card" style="border-left-color:var(--gold)">
       <div class="card-title">${e.EventName}</div>
@@ -720,8 +737,7 @@ function renderEvents(events) {
         <button class="btn btn-sm btn-danger" onclick="unregisterEvent(${e.EventID})">Unregister</button>
         <button class="btn btn-sm btn-outline" onclick="viewAttendees(${e.EventID})">Attendees</button>
       </div>
-    </div>`
-  ).join('');
+    </div>`).join('');
 }
 
 function openAddEventModal(clubId) {
@@ -737,20 +753,24 @@ async function addEvent() {
   const desc   = document.getElementById('newEventDesc').value.trim();
   const date   = document.getElementById('newEventDate').value;
   const loc    = document.getElementById('newEventLocation').value.trim();
-  if (!name || !date) { showMsg('addEventMsg','Event name and date are required.','error'); return; }
-  const res = await api(`/clubs/${clubId}/events`, { method:'POST', body: JSON.stringify({ event_name:name, description:desc, event_date:date, location:loc }) });
+  if (!name || !date) { showMsg('addEventMsg', 'Event name and date are required.', 'error'); return; }
+
+  const res = await api(`/api/clubs/${clubId}/events`, {
+    method: 'POST',
+    body: JSON.stringify({ event_name: name, description: desc, event_date: date, location: loc })
+  });
   if (res.error) { showMsg('addEventMsg', res.error, 'error'); return; }
-  showMsg('addEventMsg','Event created!','success');
+  showMsg('addEventMsg', 'Event created!', 'success');
   setTimeout(() => { closeModal('addEventModal'); switchClubDetailTab('events'); }, 1000);
 }
 
 function openEditEvent(id, name, desc, date, loc) {
-  document.getElementById('editEventID').value      = id;
-  document.getElementById('editEventName').value    = name;
-  document.getElementById('editEventDesc').value    = desc;
-  document.getElementById('editEventDate').value    = date ? date.substring(0,16) : '';
+  document.getElementById('editEventID').value       = id;
+  document.getElementById('editEventName').value     = name;
+  document.getElementById('editEventDesc').value     = desc;
+  document.getElementById('editEventDate').value     = date ? date.substring(0, 16) : '';
   document.getElementById('editEventLocation').value = loc;
-  document.getElementById('editEventMsg').innerHTML = '';
+  document.getElementById('editEventMsg').innerHTML  = '';
   openModal('editEventModal');
 }
 
@@ -760,159 +780,195 @@ async function saveEditEvent() {
   const desc = document.getElementById('editEventDesc').value.trim();
   const date = document.getElementById('editEventDate').value;
   const loc  = document.getElementById('editEventLocation').value.trim();
-  const res  = await api(`/events/${id}`, { method:'PUT', body: JSON.stringify({ event_name:name, description:desc, event_date:date, location:loc }) });
+
+  const res = await api(`/api/events/${id}`, {
+    method: 'PUT',
+    body: JSON.stringify({ event_name: name, description: desc, event_date: date, location: loc })
+  });
   if (res.error) { showMsg('editEventMsg', res.error, 'error'); return; }
-  showMsg('editEventMsg','Event updated!','success');
+  showMsg('editEventMsg', 'Event updated!', 'success');
   setTimeout(() => { closeModal('editEventModal'); switchClubDetailTab('events'); }, 1000);
 }
 
 async function deleteEvent(eventId) {
   if (!confirm('Delete this event? All registrations will also be removed.')) return;
-  const res = await api(`/events/${eventId}`, { method:'DELETE' });
+  const res = await api(`/api/events/${eventId}`, { method: 'DELETE' });
   alert(res.message || res.error);
   switchClubDetailTab('events');
 }
 
 async function registerForEvent(eventId) {
-  const res = await api(`/events/${eventId}/register`, { method:'POST' });
+  const res = await api(`/api/events/${eventId}/register`, { method: 'POST' });
   alert(res.message || res.error);
 }
 
 async function unregisterEvent(eventId) {
-  const res = await api(`/events/${eventId}/unregister`, { method:'DELETE' });
+  const res = await api(`/api/events/${eventId}/unregister`, { method: 'DELETE' });
   alert(res.message || res.error);
   loadEvents();
 }
 
 async function viewAttendees(eventId) {
-  const attendees = await api(`/events/${eventId}/attendees`);
+  const attendees = await api(`/api/events/${eventId}/attendees`);
   const arr = Array.isArray(attendees) ? attendees : [];
-  document.getElementById('attendeesList').innerHTML = arr.length ? `
-    <p style="color:#888;font-size:0.85rem;margin-bottom:0.8rem">${arr.length} registered attendee(s)</p>
-    <div class="table-wrap"><table>
-      <thead><tr><th>Name</th><th>Email</th><th>Registered</th></tr></thead>
-      <tbody>${arr.map(a => `<tr><td>${a.FullName}</td><td>${a.Email}</td><td>${fmtDate(a.RegistrationDate)}</td></tr>`).join('')}</tbody>
-    </table></div>
-  ` : '<div class="empty-state"><p>No attendees yet.</p></div>';
+  document.getElementById('attendeesList').innerHTML = arr.length
+    ? `<p style="color:#888;font-size:0.85rem;margin-bottom:0.8rem">${arr.length} registered attendee(s)</p>
+       <div class="table-wrap"><table>
+         <thead><tr><th>Name</th><th>Email</th><th>Registered</th></tr></thead>
+         <tbody>${arr.map(a => `<tr><td>${a.FullName}</td><td>${a.Email}</td><td>${fmtDate(a.RegistrationDate)}</td></tr>`).join('')}</tbody>
+       </table></div>`
+    : '<div class="empty-state"><p>No attendees yet.</p></div>';
   openModal('attendeesModal');
 }
 
-// ====================================================
+// =============================================
 // MEMBERS
-// ====================================================
+// =============================================
 async function openAddMemberModal(clubId) {
-  document.getElementById('addMemberClubID').value = clubId;
-  document.getElementById('addMemberMsg').innerHTML = '';
-  const users = await api('/users');
-  const arr = Array.isArray(users) ? users : [];
-  document.getElementById('addMemberUserSelect').innerHTML = arr.map(u => `<option value="${u.UserID}">${u.FullName} (${u.Email})</option>`).join('');
+  document.getElementById('addMemberClubID').value   = clubId;
+  document.getElementById('addMemberMsg').innerHTML  = '';
+  const users = await api('/api/users');
+  const arr   = Array.isArray(users) ? users : [];
+  document.getElementById('addMemberUserSelect').innerHTML =
+    arr.map(u => `<option value="${u.UserID}">${u.FullName} (${u.Email})</option>`).join('');
   openModal('addMemberModal');
 }
 
 async function doAddMember() {
   const clubId = document.getElementById('addMemberClubID').value;
   const userId = document.getElementById('addMemberUserSelect').value;
-  const res    = await api(`/clubs/${clubId}/members`, { method:'POST', body: JSON.stringify({ user_id: parseInt(userId) }) });
+  const res    = await api(`/api/clubs/${clubId}/members`, {
+    method: 'POST',
+    body: JSON.stringify({ user_id: parseInt(userId) })
+  });
   if (res.error) { showMsg('addMemberMsg', res.error, 'error'); return; }
-  showMsg('addMemberMsg','Member added!','success');
+  showMsg('addMemberMsg', 'Member added!', 'success');
   setTimeout(() => { closeModal('addMemberModal'); switchClubDetailTab('members'); }, 1000);
 }
 
 async function removeMember(userId, clubId) {
   if (!confirm('Remove this member from the club?')) return;
-  const res = await api(`/clubs/${clubId}/members/${userId}`, { method:'DELETE' });
+  const res = await api(`/api/clubs/${clubId}/members/${userId}`, { method: 'DELETE' });
   alert(res.message || res.error);
   switchClubDetailTab('members');
 }
 
-// ====================================================
+// =============================================
 // ADMIN PANEL
-// ====================================================
-let adminTab = 'pending';
+// =============================================
 function switchAdminTab(tab) {
-  adminTab = tab;
-  ['adminPendingClubs','adminUsers','adminAudit'].forEach(id => document.getElementById(id).style.display = 'none');
-  document.querySelectorAll('#adminPage .section-tabs button').forEach((b,i) => b.classList.toggle('active', (i===0&&tab==='pending')||(i===1&&tab==='users')||(i===2&&tab==='audit')));
+  ['adminPendingClubs','adminUsers','adminAudit'].forEach(id =>
+    document.getElementById(id).style.display = 'none'
+  );
+  document.querySelectorAll('#adminPage .section-tabs button').forEach((b, i) =>
+    b.classList.toggle('active', (i===0&&tab==='pending')||(i===1&&tab==='users')||(i===2&&tab==='audit'))
+  );
   if (tab === 'pending') loadAdminPending();
   if (tab === 'users')   loadAdminUsers();
   if (tab === 'audit')   loadAudit();
 }
 
 async function loadAdminPending() {
-  document.getElementById('adminPendingClubs').style.display = 'block';
-  const clubs = await api('/clubs');
+  const el    = document.getElementById('adminPendingClubs');
+  el.style.display = 'block';
+  const clubs = await api('/api/clubs');
   const pending = (Array.isArray(clubs) ? clubs : []).filter(c => c.ApprovalStatus === 'Pending');
-  document.getElementById('adminPendingClubs').innerHTML = pending.length ? `
-    <div class="table-wrap"><table>
-      <thead><tr><th>Club Name</th><th>Description</th><th>Submitted By</th><th>Actions</th></tr></thead>
-      <tbody>${pending.map(c => `<tr>
-        <td><strong>${c.ClubName}</strong></td>
-        <td>${c.Description || '—'}</td>
-        <td>${c.CreatedBy}</td>
-        <td style="display:flex;gap:6px">
-          <button class="btn btn-sm btn-success" onclick="approveClub(${c.ClubID});loadAdminPending()">Approve</button>
-          <button class="btn btn-sm btn-danger" onclick="rejectClub(${c.ClubID});loadAdminPending()">Reject</button>
-        </td>
-      </tr>`).join('')}</tbody>
-    </table></div>
-  ` : '<div class="empty-state"><div class="empty-icon">✅</div><p>No pending clubs.</p></div>';
+
+  el.innerHTML = pending.length
+    ? `<div class="table-wrap"><table>
+        <thead><tr><th>Club Name</th><th>Description</th><th>Submitted By</th><th>Actions</th></tr></thead>
+        <tbody>${pending.map(c => `
+          <tr>
+            <td><strong>${c.ClubName}</strong></td>
+            <td>${c.Description || '—'}</td>
+            <td>${c.CreatedBy}</td>
+            <td style="display:flex;gap:6px">
+              <button class="btn btn-sm btn-success" onclick="approveClubAdmin(${c.ClubID})">Approve</button>
+              <button class="btn btn-sm btn-danger"  onclick="rejectClubAdmin(${c.ClubID})">Reject</button>
+            </td>
+          </tr>`).join('')}
+        </tbody>
+      </table></div>`
+    : '<div class="empty-state"><div class="empty-icon">✅</div><p>No pending clubs.</p></div>';
+}
+
+async function approveClubAdmin(clubId) {
+  const res = await api(`/api/clubs/${clubId}/approve`, { method: 'PUT' });
+  alert(res.message || res.error);
+  loadAdminPending();
+}
+
+async function rejectClubAdmin(clubId) {
+  if (!confirm('Reject this club?')) return;
+  const res = await api(`/api/clubs/${clubId}/reject`, { method: 'PUT' });
+  alert(res.message || res.error);
+  loadAdminPending();
 }
 
 async function loadAdminUsers() {
-  document.getElementById('adminUsers').style.display = 'block';
-  const users = await api('/users');
-  const arr = Array.isArray(users) ? users : [];
-  document.getElementById('adminUsers').innerHTML = `
+  const el    = document.getElementById('adminUsers');
+  el.style.display = 'block';
+  const users = await api('/api/users');
+  const arr   = Array.isArray(users) ? users : [];
+
+  el.innerHTML = `
     <div class="table-wrap"><table>
       <thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Joined</th><th>Actions</th></tr></thead>
-      <tbody>${arr.map(u => `<tr>
-        <td>${u.FullName}</td>
-        <td>${u.Email}</td>
-        <td><span class="badge ${u.RoleName==='Admin'?'badge-gold':u.RoleName==='ClubAdmin'?'badge-event':'badge-approved'}">${u.RoleName}</span></td>
-        <td>${fmtDate(u.CreatedAt)}</td>
-        <td style="display:flex;gap:6px;flex-wrap:wrap">
-          ${u.RoleName === 'Student' ? `<button class="btn btn-sm btn-purple" onclick="assignClubAdmin(${u.UserID})">Make ClubAdmin</button>` : ''}
-          ${u.RoleName === 'ClubAdmin' ? `<button class="btn btn-sm btn-danger" onclick="revokeClubAdmin(${u.UserID})">Revoke ClubAdmin</button>` : ''}
-        </td>
-      </tr>`).join('')}</tbody>
-    </table></div>
-  `;
+      <tbody>${arr.map(u => `
+        <tr>
+          <td>${u.FullName}</td>
+          <td>${u.Email}</td>
+          <td><span class="badge ${u.RoleName==='Admin'?'badge-gold':u.RoleName==='ClubAdmin'?'badge-event':'badge-approved'}">${u.RoleName}</span></td>
+          <td>${fmtDate(u.CreatedAt)}</td>
+          <td style="display:flex;gap:6px;flex-wrap:wrap">
+            ${u.RoleName === 'Student'   ? `<button class="btn btn-sm btn-purple" onclick="assignClubAdmin(${u.UserID})">Make ClubAdmin</button>` : ''}
+            ${u.RoleName === 'ClubAdmin' ? `<button class="btn btn-sm btn-danger"  onclick="revokeClubAdmin(${u.UserID})">Revoke ClubAdmin</button>` : ''}
+          </td>
+        </tr>`).join('')}
+      </tbody>
+    </table></div>`;
 }
 
 async function assignClubAdmin(userId) {
-  const res = await api(`/users/${userId}/assign-club-admin`, { method:'PUT' });
+  const res = await api(`/api/users/${userId}/assign-club-admin`, { method: 'PUT' });
   alert(res.message || res.error);
   loadAdminUsers();
 }
 
 async function revokeClubAdmin(userId) {
-  const res = await api(`/users/${userId}/revoke-club-admin`, { method:'PUT' });
+  const res = await api(`/api/users/${userId}/revoke-club-admin`, { method: 'PUT' });
   alert(res.message || res.error);
   loadAdminUsers();
 }
 
 async function loadAudit() {
-  document.getElementById('adminAudit').style.display = 'block';
-  const logs = await api('/audit');
+  const el   = document.getElementById('adminAudit');
+  el.style.display = 'block';
+  const logs = await api('/api/audit');
   const arr  = Array.isArray(logs) ? logs : [];
-  document.getElementById('adminAudit').innerHTML = arr.length ? `
-    <div class="table-wrap"><table>
-      <thead><tr><th>ID</th><th>Table</th><th>Action</th><th>Record ID</th><th>By</th><th>Date</th></tr></thead>
-      <tbody>${arr.map(l => `<tr>
-        <td>${l.LogID}</td>
-        <td>${l.TableName}</td>
-        <td><span class="badge ${l.ActionType==='INSERT'?'badge-approved':l.ActionType==='DELETE'?'badge-rejected':'badge-pending'}">${l.ActionType}</span></td>
-        <td>${l.RecordID}</td>
-        <td>${l.ActionBy || '—'}</td>
-        <td>${fmtDate(l.ActionDate)}</td>
-      </tr>`).join('')}</tbody>
-    </table></div>
-  ` : '<div class="empty-state"><p>No audit logs yet.</p></div>';
+
+  el.innerHTML = arr.length
+    ? `<div class="table-wrap"><table>
+        <thead><tr><th>ID</th><th>Table</th><th>Action</th><th>Record</th><th>By</th><th>Date</th></tr></thead>
+        <tbody>${arr.map(l => `
+          <tr>
+            <td>${l.LogID}</td>
+            <td>${l.TableName}</td>
+            <td><span class="badge ${l.ActionType==='INSERT'?'badge-approved':l.ActionType==='DELETE'?'badge-rejected':'badge-pending'}">${l.ActionType}</span></td>
+            <td>${l.RecordID}</td>
+            <td>${l.ActionBy || '—'}</td>
+            <td>${fmtDate(l.ActionDate)}</td>
+          </tr>`).join('')}
+        </tbody>
+      </table></div>`
+    : '<div class="empty-state"><p>No audit logs yet.</p></div>';
 }
 
-// Close modals on overlay click
+// Close modals on background click
 document.querySelectorAll('.modal-overlay').forEach(overlay => {
-  overlay.addEventListener('click', e => { if (e.target === overlay) overlay.classList.remove('open'); });
+  overlay.addEventListener('click', e => {
+    if (e.target === overlay) overlay.classList.remove('open');
+  });
 });
 </script>
 </body>
