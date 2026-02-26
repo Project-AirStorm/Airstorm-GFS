@@ -944,9 +944,20 @@
         el.innerHTML = `<div class="msg msg-${type}">${txt}</div>`;
         setTimeout(() => (el.innerHTML = ''), 3500);
       }
+      // SQL Server returns datetimes without timezone info (e.g. "2026-04-01T10:00:00").
+      // JavaScript's new Date() treats bare ISO strings as UTC, shifting the time by the
+      // local UTC offset. This helper parses the components manually so the result is
+      // always in the user's local timezone, matching what was stored on the server.
+      function parseLocalDate(d) {
+        if (!d) return null;
+        const [datePart, timePart = '00:00:00'] = d.split(/[T ]/);
+        const [year, month, day] = datePart.split('-').map(Number);
+        const [hour, minute, second = 0] = timePart.split(':').map(Number);
+        return new Date(year, month - 1, day, hour, minute, second);
+      }
       function fmt(d) {
         if (!d) return 'TBD';
-        return new Date(d).toLocaleString('en-US', {
+        return parseLocalDate(d).toLocaleString('en-US', {
           dateStyle: 'medium',
           timeStyle: 'short',
         });
@@ -1080,7 +1091,7 @@
         const ea = Array.isArray(events) ? events : [];
         const approved = ca.filter((c) => c.ApprovalStatus === 'Approved');
         const upcoming = ea
-          .filter((e) => new Date(e.EventDate) > new Date())
+          .filter((e) => parseLocalDate(e.EventDate) > new Date())
           .slice(0, 5);
 
         $('dashStats').innerHTML = `
@@ -1346,7 +1357,7 @@
 
       function renderEventCard(e) {
         const owner = iOwn();
-        const past = new Date(e.EventDate) < new Date();
+        const past = parseLocalDate(e.EventDate) < new Date();
         return `
     <div class="card" style="border-left-color:${past ? '#bbb' : 'var(--gold)'}">
       <div class="card-title">${e.EventName}</div>
@@ -1396,7 +1407,7 @@
         }
         g.innerHTML = list
           .map((e) => {
-            const past = new Date(e.EventDate) < new Date();
+            const past = parseLocalDate(e.EventDate) < new Date();
             return `<div class="card" style="border-left-color:${past ? '#bbb' : 'var(--gold)'}">
       <div class="card-title">${e.EventName}</div>
       <div class="card-desc">${e.Description || 'No description.'}</div>

@@ -142,6 +142,37 @@ BEGIN
 END;
 GO
 
+-- When a member leaves a club:
+--   1. Remove their event registrations for all events in that club.
+--   2. If they were the ClubAdmin who created that club (and have no other
+--      clubs they created), demote their role back to Student.
+CREATE TRIGGER trg_ClubMemberships_Cleanup ON ClubMemberships AFTER DELETE
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    -- 1. Drop registrations for events belonging to the club(s) just left
+    DELETE r
+    FROM Registrations r
+    JOIN Events e ON r.EventID = e.EventID
+    JOIN deleted d ON e.ClubID = d.ClubID AND r.UserID = d.UserID;
+
+    -- 2. Demote to Student if the leaving user created that specific club
+    --    and no longer has any other club they created.
+    UPDATE u
+    SET u.RoleID = (SELECT RoleID FROM Roles WHERE RoleName = 'Student')
+    FROM Users u
+    JOIN deleted d ON u.UserID = d.UserID
+    JOIN Clubs  c ON c.ClubID = d.ClubID AND c.CreatedBy = d.UserID
+    WHERE u.RoleID = (SELECT RoleID FROM Roles WHERE RoleName = 'ClubAdmin')
+      AND NOT EXISTS (
+          SELECT 1 FROM Clubs c2
+          WHERE c2.CreatedBy = d.UserID
+            AND c2.ClubID   != d.ClubID
+      );
+END;
+GO
+
 -- ==========================================================================================================================
 -- STORED PROCEDURES
 -- ==========================================================================================================================

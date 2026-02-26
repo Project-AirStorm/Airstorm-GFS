@@ -10,12 +10,29 @@ import bcrypt
 from datetime import datetime
 from functools import wraps
 from flask import Flask, request, jsonify, g
+from flask.json.provider import DefaultJSONProvider
 from flask_cors import CORS
 from dotenv import load_dotenv
 
 load_dotenv()
 
+
+class ISODateJSONProvider(DefaultJSONProvider):
+    """Serialize datetime objects as ISO 8601 strings instead of RFC 2822.
+    Flask 3.x defaults to RFC 2822 (e.g. 'Wed, 01 Apr 2026 10:00:00 GMT'),
+    which JavaScript's Date constructor treats as UTC and mis-shifts times.
+    ISO strings without a timezone marker are parsed as local time by our
+    frontend helper, keeping displayed times correct.
+    """
+    def default(self, obj):
+        if isinstance(obj, datetime):
+            return obj.isoformat()
+        return super().default(obj)
+
+
 app = Flask(__name__)
+app.json_provider_class = ISODateJSONProvider
+app.json = ISODateJSONProvider(app)
 
 CORS(app,
      supports_credentials=True,
