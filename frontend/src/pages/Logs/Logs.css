@@ -1,6 +1,6 @@
-/* Logs.css - Combined Version */
+/* Logs.css 
 
-/* Container Styles */
+/* Container Styles 
 .logs-body {
   background-color: white;
   padding: 1.5rem;
@@ -10,7 +10,7 @@
   width: 100%;
 }
 
-/* Header Styles */
+/* Header Styles 
 .logs-header {
   display: flex;
   justify-content: space-between;
@@ -35,7 +35,7 @@
   gap: 0.75rem;
 }
 
-/* Button Styles */
+/* Button Styles
 .button-icon {
   width: 1rem;
   height: 1rem;
@@ -77,7 +77,7 @@
   cursor: not-allowed;
 }
 
-/* Controls Section */
+/* Controls Section 
 .logs-controls {
   display: flex;
   gap: 1rem;
@@ -85,7 +85,7 @@
   flex-wrap: wrap;
 }
 
-/* Search Bar */
+/* Search Bar 
 .search-bar {
   flex-grow: 3;
   min-width: 300px;
@@ -117,7 +117,7 @@
   box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
 }
 
-/* Filters Section */
+/* Filters Section 
 .filters-section {
   display: flex;
   align-items: center;
@@ -173,7 +173,7 @@
   box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
 }
 
-/* Table Styles */
+/* Table Styles 
 .logs-table {
   overflow-x: auto;
 }
@@ -200,7 +200,7 @@ td {
   border-bottom: 1px solid rgb(229 231 235);
 }
 
-/* Log Type Badges */
+/* Log Type Badges 
 .log-type {
   padding: 0.25rem 0.5rem;
   border-radius: 0.375rem;
@@ -211,7 +211,7 @@ td {
   color: rgb(75 85 99);
 }
 
-/* Severity Badges */
+/* Severity Badges 
 .severity-badge {
   padding: 0.25rem 0.5rem;
   border-radius: 0.375rem;
@@ -235,7 +235,7 @@ td {
   color: rgb(239 68 68);
 }
 
-/* Row Highlight */
+/* Row Highlight 
 tr.severity-error {
   background-color: rgb(254 242 242);
 }
@@ -248,7 +248,7 @@ tr.severity-info {
   background-color: rgb(239 246 255);
 }
 
-/* Legacy Log Entry Styles for backwards compatibility */
+/* Legacy Log Entry Styles for backwards compatibility 
 .log-entry {
   padding: 1rem;
   margin-bottom: 0.5rem;
@@ -328,7 +328,7 @@ tr.severity-info {
   color: rgb(30 58 138);
 }
 
-/* Delete Confirmation Dialog */
+/* Delete Confirmation Dialog 
 .delete-confirm-overlay {
   position: fixed;
   top: 0;
@@ -405,7 +405,7 @@ tr.severity-info {
   font-size: 0.875rem;
 }
 
-/* Loading and Empty States */
+/* Loading and Empty States 
 .logs-loading,
 .logs-error,
 .logs-empty-state {
@@ -450,7 +450,7 @@ tr.severity-info {
   background-color: rgb(254 202 202);
 }
 
-/* Success Message */
+/* Success Message 
 .delete-success-message {
   position: fixed;
   bottom: 1.5rem;
@@ -485,7 +485,7 @@ tr.severity-info {
   }
 }
 
-/* Responsive Design */
+/* Responsive Design 
 @media screen and (max-width: 768px) {
   .logs-body {
     padding: 1rem;
@@ -524,9 +524,10 @@ tr.severity-info {
     justify-content: center;
   }
 
-  /* Make table scrollable horizontally on mobile */
+  /* Make table scrollable horizontally on mobile 
   .logs-table {
     margin: 0 -1rem;
     padding: 0 1rem;
   }
-}
+} */ 
+ 

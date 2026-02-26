@@ -1,0 +1,72 @@
+/* src/components/common/Loader/Loader.css */
+.loader {
+    margin-top: 1rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 1.5rem 0;
+    background: transparent; /* Explicitly clear background */
+  }
+  
+  .loader-animation {
+    height: 0.94rem;
+    aspect-ratio: 4;
+    --_g: no-repeat radial-gradient(farthest-side,#0a45c3 90%,#0000);
+    background:
+      var(--_g) left,
+      var(--_g) right;
+    background-size: 25% 100%;
+    display: grid;
+  }
+  
+  .loader-animation:before,
+  .loader-animation:after {
+    content: "";
+    height: inherit;
+    aspect-ratio: 1;
+    grid-area: 1/1;
+    margin: auto;
+    border-radius: 50%;
+    transform-origin: -100% 50%;
+    background: #bb8bc4;
+    animation: l49 1s infinite linear;
+  }
+  
+  .loader-animation:after {
+    transform-origin: 200% 50%;
+    --s:-1;
+    animation-delay: -.5s;
+  }
+  
+  /* Size variants */
+  .loader-small .loader-animation {
+    height: 0.625rem; /* 10px */
+  }
+  
+  .loader-medium .loader-animation {
+    height: 0.94rem; /* 15px - default */
+  }
+  
+  .loader-large .loader-animation {
+    height: 1.25rem; /* 20px */
+  }
+  
+  /* Fullpage loader that overrides any backgrounds */
+  .loader-fullpage {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    background-color: var(--primary-bg, rgb(249 250 251)); /* Match app background */
+  }
+  
+  @keyframes l49 {
+    58%, 100% {
+      transform: rotate(calc(var(--s,1)*1turn));
+    }
+  }

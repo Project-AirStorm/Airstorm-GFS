@@ -93,25 +93,25 @@
 /* Fix map controls position to align with Map/Satellite toggle */
 .map-controls {
   position: absolute;
-  top: 10px !important; /* Same top position as map type control */
-  left: 10px !important; /* Same left position as map type control */
+  top: 0.625rem !important; /* Same top position as map type control */
+  left: 0.625rem !important; /* Same left position as map type control */
   z-index: 10;
   background: rgba(0, 0, 0, 0.65);
   padding: 0.75rem;
   border-radius: 0.5rem;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-  margin-top: 60px; /* Increased vertical distance between Map/Satellite and map controls */
+  box-shadow: 0 0.125rem 0.625rem rgba(0, 0, 0, 0.1);
+  margin-top: 3.75rem; /* Increased vertical distance between Map/Satellite and map controls */
 }
 
 /* Map type selector inside map controls */
 .map-type-selector {
   padding: 0.625rem;
-  border: 1px solid rgba(255, 255, 255, 0.3);
+  border: 0.0625rem solid rgba(255, 255, 255, 0.3);
   border-radius: 0.5rem;
   background: rgba(255, 255, 255, 0.1);
   font-size: 0.875rem;
   color: white;
-  width: 200px;
+  width: 12.5rem;
   cursor: pointer;
   transition: border-color 0.2s ease;
 }
@@ -119,13 +119,13 @@
 /* Weather Graph Container - aligned horizontally with the map controls */
 .weather-graph-container {
   position: absolute;
-  bottom: 30px; /* Keep position at bottom */
-  left: 10px; /* Same left alignment as map controls */
-  width: 300px;
+  bottom: 1.875rem; /* Keep position at bottom */
+  left: 0.625rem; /* Same left alignment as map controls */
+  width: 18.75rem;
   background-color: rgba(0, 0, 0, 0.65);
-  padding: 15px;
+  padding: 0.9375rem;
   border-radius: 0.5rem; /* Match other components */
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 0.125rem 0.625rem rgba(0, 0, 0, 0.1);
   z-index: 10;
   display: flex;
   flex-direction: column;
@@ -135,59 +135,58 @@
 /* Timeline slider positioning */
 .timeline-container {
   position: absolute;
-  bottom: 30px;
+  bottom: 1.875rem;
   left: 50%;
   transform: translateX(-50%);
   width: 50%;
-  min-width: 400px;
+  min-width: 25rem;
   background: rgba(0, 0, 0, 0.65);
-  padding: 15px;
+  padding: 0.9375rem;
   border-radius: 0.5rem;
-  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 0.1875rem 0.625rem rgba(0, 0, 0, 0.15);
   z-index: 10;
 }
 
 /* Location panel - keeping original positioning from Weather.js */
 .location-panel {
   position: absolute;
-  top: calc(var(--header-height) + 20px); /* Restore original top position */
-  right: 20px;
-  width: 320px;
-  max-height: 400px; 
+  top: calc(var(--header-height) + 1.25rem); /* Restore original top position */
+  right: 1.25rem;
+  width: 20rem;
+  max-height: 25rem; 
   background: rgba(0, 0, 0, 0.65);
   border-radius: 0.5rem;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 0.125rem 0.625rem rgba(0, 0, 0, 0.1);
   transition: transform 0.3s ease;
   z-index: 10;
   color: white;
   display: flex;
   flex-direction: column;
 }
-
 /* Responsive Design */
-@media screen and (max-width: 1200px) {
+@media screen and (max-width: 75rem) {
   .timeline-container {
-    width: calc(100% - 40px);
-    left: 20px;
+    width: calc(100% - 2.5rem);
+    left: 1.25rem;
     transform: none;
-    bottom: 100px;
+    bottom: 6.25rem;
   }
 
   .weather-graph-container {
-    width: 280px;
-    bottom: 180px;
-    left: 10px; /* Keep consistent left alignment */
+    width: 17.5rem;
+    bottom: 11.25rem;
+    left: 0.625rem; /* Keep consistent left alignment */
   }
 
   .location-panel {
-    width: 280px;
+    width: 17.5rem;
   }
 }
 
-@media screen and (max-width: 768px) {
+@media screen and (max-width: 48rem) {
   .map-controls {
-    width: calc(100% - 40px);
-    margin-top: 70px; /* Further increased for mobile */
+    width: calc(100% - 2.5rem);
+    margin-top: 4.375rem; /* Further increased for mobile */
   }
 
   .map-type-selector {
@@ -195,50 +194,49 @@
   }
 
   .weather-graph-container {
-    width: calc(100% - 40px);
-    bottom: 30px; /* Keep aligned with timeline */
-    left: 10px; /* Keep consistent left alignment */
+    width: calc(100% - 1.25rem);
+    bottom: 1.25rem; /* Keep aligned with timeline */
+    left: 0.625rem; /* Keep consistent left alignment */
   }
 
   .location-panel {
-    width: calc(100% - 40px);
-    top: calc(var(--header-height) + 20px); /* Maintain consistent position */
+    width: calc(100% - 2.5rem);
+    top: calc(var(--header-height) + 1.25rem); /* Maintain consistent position */
   }
 
   .timeline-container {
-    bottom: 30px; /* Consistent bottom positioning */
+    bottom: 1.875rem; /* Consistent bottom positioning */
     width: 80%;
-    min-width: 300px;
+    min-width: 18.75rem;
   }
 }
 
 /* Custom Zoom Controls - Black background with white icons */
 .custom-zoom-controls {
   position: absolute;
-  right: 10px;
-  bottom: 30px;
+  right: 0.625rem;
+  bottom: 1.875rem;
   z-index: 100;
-  width: 40px;
+  width: 2.5rem;
   border-radius: 0.5rem;
   overflow: hidden;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 0.125rem 0.625rem rgba(0, 0, 0, 0.1);
 }
 
 .custom-zoom-button {
-  width: 40px;
-  height: 40px;
+  width: 2.5rem;
+  height: 2.5rem;
   display: flex;
   align-items: center;
   justify-content: center;
   background-color: rgba(0, 0, 0, 0.65);
   border: none;
   color: white;
-  font-size: 24px;
+  font-size: 1.5rem;
   cursor: pointer;
 }
-
 .custom-zoom-button:first-child {
-  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+  border-bottom: 0.0625rem solid rgba(255, 255, 255, 0.2);
 }
 
 .custom-zoom-button:hover {
@@ -265,9 +263,9 @@
 }
 
 .loading-spinner {
-  width: 40px;
-  height: 40px;
-  border: 3px solid rgb(229 231 235);
+  width: 2.5rem;
+  height: 2.5rem;
+  border: 0.1875rem solid rgb(229 231 235);
   border-top-color: rgb(37 99 235);
   border-radius: 50%;
   animation: spin 1s linear infinite;
@@ -288,7 +286,7 @@
   background: white;
   padding: 1rem;
   border-radius: 0.5rem;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 0.125rem 0.625rem rgba(0, 0, 0, 0.1);
   text-align: center;
   color: rgb(239 68 68);
   z-index: 1100;
@@ -298,26 +296,49 @@
 .map-context-menu {
   background-color: rgba(0, 0, 0, 0.85);
   border-radius: 0.5rem;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 0.125rem 0.625rem rgba(0, 0, 0, 0.2);
   color: white;
-  min-width: 200px;
+  min-width: 12.5rem;
   z-index: 2000;
   overflow: hidden;
 }
 
 .context-menu-title {
-  padding: 10px 15px;
+  padding: 0.625rem 0.9375rem;
   font-weight: bold;
   background-color: rgba(255, 255, 255, 0.1);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+  border-bottom: 0.0625rem solid rgba(255, 255, 255, 0.2);
 }
 
 .context-menu-item {
-  padding: 10px 15px;
+  padding: 0.625rem 0.9375rem;
   cursor: pointer;
   transition: background-color 0.2s;
 }
 
 .context-menu-item:hover {
   background-color: rgba(255, 255, 255, 0.2);
+}
+
+.map-loader-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(255, 255, 255, 0.8); /* Semi-transparent white */
+  display: flex;
+  flex-direction: column; /* Allow message below loader */
+  align-items: center;
+  justify-content: center;
+  z-index: 999; /* Ensure it's above map tiles */
+  border-radius: inherit; /* Match parent rounding */
+  pointer-events: none; /* Allow clicks to pass through if needed, though usually not desired for a loader */
+}
+
+/* Optional: Style for the message within the loader component if you pass one */
+.map-loader-overlay .loader-message { /* Assuming your Loader uses this class */
+    margin-top: 1rem;
+    color: #333; /* Darker text for visibility */
+    font-weight: 500;
 }

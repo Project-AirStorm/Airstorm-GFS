@@ -1,0 +1,240 @@
+/* Airstorm-GFS/frontend/src/components/specific/WeatherBox/WeatherBox.css */
+
+/* Container for all weather boxes */
+.weather-boxes-container {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  gap: 1rem; /* Space between weather boxes */
+}
+
+/* Individual Weather Box (collapsed state) */
+.weather-box {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  width: 100%;
+  padding: 1rem 1.5rem; /* Standard padding */
+  background-color: white; /* Use white background */
+  border-radius: 0.5rem; /* Standard radius */
+  border: 1px solid var(--border-color, rgb(229 231 235)); /* Use variable */
+  box-shadow: 0 0.0625rem 0.1875rem rgba(0, 0, 0, 0.05); /* Subtle shadow */
+  transition: box-shadow 0.2s ease;
+}
+
+.weather-box:hover {
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.07); /* Slightly enhance shadow on hover */
+}
+
+/* Day of Week / Date Section */
+.dayOfWeek {
+  /* Removed fixed padding */
+  text-align: center;
+  min-width: 3.75rem; /* Give it a minimum width */
+  margin-right: 1.5rem; /* Space after date */
+}
+
+.dayOfWeek .weekday { /* Add a class for the weekday text */
+    display: block;
+    font-size: 1.125rem; /* Slightly smaller */
+    font-weight: 600; /* Semibold */
+    color: rgb(31 41 55); /* text-gray-800 */
+}
+
+.date {
+  display: block;
+  font-size: 1rem; /* Smaller font */
+  font-weight: 500; /* Medium */
+  color: rgb(107 114 128); /* text-gray-500 */
+  margin-top: 0.125rem; /* Small space */
+}
+
+/* Weather Icon */
+.weatherIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0; /* Remove fixed padding */
+  margin-right: 1.5rem; /* Space after icon */
+  color: #3182CE; /* UPDATED: Lighter Sky Blue */
+}
+/* Ensure icons inside have consistent size */
+.weatherIcon svg {
+  width: 3.125rem;
+  height: 3.125rem;
+}
+
+/* Temperature Section */
+.tempFormatting {
+  display: flex;
+  flex-direction: row; /* Keep row */
+  align-items: baseline; /* Align text baseline */
+  /* Removed fixed padding */
+  font-weight: 500; /* Medium weight */
+  color: rgb(31 41 55); /* text-gray-800 */
+  gap: 0.25rem; /* Small gap around slash */
+}
+
+.minTemp, .maxTemp {
+  font-size: 1.25rem; /* Slightly smaller temp size */
+  line-height: 1; /* Ensure consistent line height */
+}
+
+.minTemp {
+  color: #3182CE; /* UPDATED: Lighter Sky Blue */
+}
+
+.maxTemp {
+  color: #000000; /* UPDATED: Complementary Red */
+}
+
+.tempFormatting > div:nth-child(2) { /* Style the slash */
+    font-size: 1.125rem;
+    color: rgb(156 163 175); /* text-gray-400 */
+    padding: 0 0.1rem;
+}
+
+/* Open/Expand Button */
+.openButton {
+  margin-left: auto; /* Push button to the far right */
+  display: flex;
+  align-items: center;
+}
+
+.openButton button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.5rem; /* Add some padding */
+  border-radius: 50%; /* Make it circular */
+  color: rgb(107 114 128); /* text-gray-500 */
+  transition: background-color 0.2s ease, color 0.2s ease;
+  display: flex; /* Align icon inside */
+  align-items: center;
+  justify-content: center;
+}
+
+.openButton button:hover {
+  background-color: rgb(243 244 246); /* bg-gray-100 */
+  color: rgb(55 65 81); /* text-gray-700 */
+}
+
+.openButton button svg {
+  width: 1.5rem; /* Consistent icon size */
+  height: 1.5rem;
+  transition: transform 0.3s ease-out; /* Match animation */
+}
+
+/* Expanded Content Area */
+.expanded-content {
+  width: 100%;
+  margin-top: -1px; /* Overlap border slightly for seamless look */
+  border-top: none; /* Remove top border as it's part of the box below */
+  overflow: hidden; /* Needed for animation */
+  animation: expandDown 0.3s ease-out forwards;
+}
+
+/* Add this rule to WeatherBox.css */
+.weatherIcon .sun-icon {
+  color: #facc15; /* Tailwind yellow-400 */
+}
+/* Keep the existing smooth expansion animation */
+@keyframes expandDown {
+  from {
+    max-height: 0;
+    opacity: 0;
+    transform: translateY(-0.625rem); /* Optional: slight slide down */
+  }
+  to {
+    max-height: 40rem; /* Adjust if needed, ensure large enough */
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* --- Loading Skeleton Styles for WeatherBox --- */
+
+/* Apply pulsing animation to the loading box */
+.weather-box.weather-box--loading {
+  background-color: #e5e7eb; /* Lighter gray background for loading state */
+  border-color: #d1d5db; /* Slightly darker border */
+  box-shadow: none; /* Remove shadow during loading */
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* General loading line style */
+.weather-box--loading .loading-line {
+  background-color: rgba(107, 114, 128, 0.3); /* Gray loading placeholder color */
+  border-radius: 0.25rem; /* 4px */
+}
+
+/* Container for placeholder elements to match spacing */
+.weather-box--loading .loading-placeholder-container {
+   display: flex;
+   align-items: center;
+   justify-content: center;
+   flex-direction: column; /* Stack date elements */
+}
+/* Adjust specific containers */
+.weather-box--loading .dayOfWeek.loading-placeholder-container {
+  min-width: 3.75rem;
+  margin-right: 1.5rem;
+  gap: 0.25rem; /* Space between weekday and daynum */
+}
+.weather-box--loading .weatherIcon.loading-placeholder-container {
+    margin-right: 1.5rem;
+}
+.weather-box--loading .tempFormatting.loading-placeholder-container {
+    flex-direction: row; /* Temps are row */
+    align-items: baseline;
+    gap: 0.25rem;
+}
+.weather-box--loading .openButton.loading-placeholder-container {
+    margin-left: auto;
+}
+
+
+/* Specific placeholder styles */
+.weather-box--loading .loading-placeholder-weekday {
+  height: 1.125rem; /* Match font size */
+  width: 80%;
+  margin-bottom: 0.125rem; /* Small space */
+}
+.weather-box--loading .loading-placeholder-daynum {
+  height: 1rem; /* Match font size */
+  width: 50%;
+}
+.weather-box--loading .loading-placeholder-icon-circle {
+  height: 3.125rem; /* Match icon size */
+  width: 3.125rem; /* Match icon size */
+  background-color: rgba(107, 114, 128, 0.3);
+  border-radius: 50%;
+}
+
+.weather-box--loading .loading-placeholder-temp {
+  height: 1.25rem; /* Match font size */
+  width: 2rem; /* Approx width of 'XX°' */
+}
+.weather-box--loading .loading-placeholder-slash {
+  height: 1.125rem;
+  width: 0.5rem;
+}
+
+.weather-box--loading .loading-placeholder-button-circle {
+  height: 1.875rem; /* Approx button size */
+  width: 1.875rem;
+  background-color: rgba(107, 114, 128, 0.3);
+  border-radius: 50%;
+  margin: 0.5rem; /* Match button padding */
+}
+
+
+/* Animation Keyframes (Copy from WeatherCard.css if not already global) */
+@keyframes pulse {
+  0%, 100% {
+      opacity: 1;
+  }
+  50% {
+      opacity: .6; /* Slightly different opacity */
+  }
+}

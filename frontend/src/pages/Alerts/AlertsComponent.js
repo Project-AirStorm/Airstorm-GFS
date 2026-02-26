@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { UserSession } from '../../utils/UserSession';
 import OverviewSwitch from '../../components/specific/OverviewSwitch/OverviewSwitch';
 import ActionButtons from '../../components/specific/ActionButtons/ActionButtons';
+import Loader from '../../components/common/loader';
 
 import {
   ChevronDown,
@@ -10,8 +11,8 @@ import {
   MapPin,
   ArrowUpDown,
   AlertTriangle,
-  ChevronsDown,
   ChevronsUp,
+  ChevronsDown,
   Copy,
 } from 'lucide-react';
 import axios from 'axios';
@@ -206,11 +207,7 @@ ${alert.instruction ? `Instructions: ${alert.instruction}` : ''}
   };
 
   if (loading) {
-    return (
-      <div className="alerts-body">
-        <div className="text-center py-8">Loading alerts...</div>
-      </div>
-    );
+    return <Loader size="medium" />;
   }
 
   if (error) {
@@ -257,12 +254,8 @@ ${alert.instruction ? `Instructions: ${alert.instruction}` : ''}
     });
 
   if (loading) {
-    return (
-      <div className="alerts-body">
-        <div className="text-center py-8">Loading alerts...</div>
-      </div>
-    );
-  }
+    return <Loader size="medium" />;
+  } 
 
   if (error) {
     return (
@@ -279,10 +272,11 @@ ${alert.instruction ? `Instructions: ${alert.instruction}` : ''}
 
   const toggleExpandAll = () => {
     if (Object.keys(expandedAlerts).length === processedAlerts.length) {
-      // If all are expanded, collapse all
+      // If all are expanded, collapse all and switch to overview
       setExpandedAlerts({});
+      setActiveView('overview'); // Switch to overview when collapsing all
     } else {
-      // Expand all
+      // Expand all and switch to detailed view
       const newExpandedState = {};
       processedAlerts.forEach((alert, index) => {
         newExpandedState[
@@ -290,17 +284,48 @@ ${alert.instruction ? `Instructions: ${alert.instruction}` : ''}
         ] = true;
       });
       setExpandedAlerts(newExpandedState);
+      setActiveView('detailed'); // Switch to detailed when expanding all
     }
   };
 
+  
+
+  // Format text with paragraphs
+  const formatTextWithParagraphs = (text) => {
+    if (!text) return '';
+    // Split text by double newlines (paragraphs)
+    return text.split(/\n\n+/).map((paragraph, index) => (
+      <p key={index} className="alert-paragraph">
+        {paragraph.trim()}
+      </p>
+    ));
+  };
+
   return (
-    <div classname="dashboard-container">
+    <div className="dashboard-container">
       <div className="main-content">
         <div className="controls-container">
-          <OverviewSwitch
-            activeView={activeView}
-            onViewChange={setActiveView}
-          />
+        <OverviewSwitch
+          activeView={activeView}
+          onViewChange={(view) => {
+            // Set the active view
+            setActiveView(view);
+            
+            // When switching to detailed view, expand all alerts
+            if (view === 'detailed') {
+              const newExpandedState = {};
+              processedAlerts.forEach((alert, index) => {
+                newExpandedState[
+                  `${alert.location_name}-${alert.event}-${index}`
+                ] = true;
+              });
+              setExpandedAlerts(newExpandedState);
+            } else {
+              // When switching to overview, collapse all alerts
+              setExpandedAlerts({});
+            }
+          }}
+        />
 
           <ActionButtons
             onTimeframeChange={() => console.log('Timeframe changed')}
@@ -329,13 +354,18 @@ ${alert.instruction ? `Instructions: ${alert.instruction}` : ''}
               >
                 {showFavoritesOnly
                   ? 'Show All Locations'
-                  : 'Show Favoried Locations'}
+                  : 'Show Favorited Locations'}
               </button>
 
               <button
                 onClick={toggleExpandAll}
                 className="button-toggle flex items-center gap-2"
               >
+                {Object.keys(expandedAlerts).length === processedAlerts.length ? (
+                  <ChevronsUp className="w-4 h-4" />
+                ) : (
+                  <ChevronsDown className="w-4 h-4" />
+                )}
                 {Object.keys(expandedAlerts).length === processedAlerts.length
                   ? 'Collapse All'
                   : 'Expand All'}
@@ -477,27 +507,37 @@ ${alert.instruction ? `Instructions: ${alert.instruction}` : ''}
 
                     {isExpanded && (
                       <div className="alert-details">
-                        <p>
-                          <strong>Start:</strong> {formatDateTime(alert.onset)}
-                        </p>
-                        <p>
-                          <strong>End:</strong> {formatDateTime(alert.expires)}
-                        </p>
-                        <p>
-                          <strong>Sender:</strong> {alert.sender}
-                        </p>
+                        <div className="alert-metadata">
+                          <p>
+                            <strong>Start:</strong> {formatDateTime(alert.onset)}
+                          </p>
+                          <p>
+                            <strong>End:</strong> {formatDateTime(alert.expires)}
+                          </p>
+                          <p>
+                            <strong>Sender:</strong> {alert.sender}
+                          </p>
+                        </div>
+                        
                         {alert.headline && (
-                          <p className="font-bold">{alert.headline}</p>
+                          <h4 className="alert-headline">{alert.headline}</h4>
                         )}
-                        <p>{alert.description}</p>
+                        
+                        <div className="alert-description">
+                          {formatTextWithParagraphs(alert.description)}
+                        </div>
+                        
                         {alert.instruction && (
-                          <div className="mt-4">
-                            <p className="font-bold">Instructions:</p>
-                            <p>{alert.instruction}</p>
+                          <div className="alert-instruction-container">
+                            <h4 className="alert-instruction-title">Instructions:</h4>
+                            <div className="alert-instruction">
+                              {formatTextWithParagraphs(alert.instruction)}
+                            </div>
                           </div>
                         )}
+                        
                         {alert.url && (
-                          <p className="mt-2">
+                          <p className="alert-more-info">
                             <a
                               href={alert.url}
                               target="_blank"

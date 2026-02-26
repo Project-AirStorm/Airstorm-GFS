@@ -1,23 +1,23 @@
-// Third-party imports
+// File: Airstorm-GFS/frontend/src/pages/Maps/Maps.js
+
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import axios from 'axios';
-
-// Local absolute imports (from src/)
-import { UserSession } from '../../utils/UserSession';
+import { useUserProfile } from '../../contexts/UserContext'; // <-- Import UserContext hook
+// import { UserSession } from '../../utils/UserSession'; // <-- Can remove if userProfile provides ID
 import { weatherVariables, units } from '../../config/WeatherConfig.js';
 import WeatherMapControls from '../../components/specific/WeatherMap/MapControls/MapControls';
 import LocationPanel from '../../components/specific/WeatherMap/LocationPanel/LocationPanel';
 import WeatherGraph from '../../components/specific/WeatherGraph/WeatherGraph';
 import TimelineSlider from '../../components/specific/TimelineSlider/TimelineSlider';
- 
-// Relative imports (same directory)
+import Loader from '../../components/common/loader'; // <-- Import Loader
+
 import './Maps.css';
 
 // Constants
 const REACT_APP_API_URL = process.env.REACT_APP_API_URL;
 
 const Maps = () => {
-  // Refs for map
+  // Refs
   const mapContainer = useRef(null);
   const mapRef = useRef(null);
   const markerRef = useRef(null);
@@ -26,416 +26,374 @@ const Maps = () => {
   const timelineSliderRef = useRef(null);
   const weatherGraphRef = useRef(null);
   const zoomControlsRef = useRef(null);
-  
-  const { user } = UserSession();
-  
-  // State Management
-  const [selectedVariable, setSelectedVariable] = useState('none');
+
+
+  // Get data and functions from UserContext
+  const {
+    userProfile, // Contains user ID and other profile info
+    savedLocations: contextSavedLocations, // Renamed to avoid potential naming conflicts
+    refreshAlerts, // Use context refresh function (refreshes locations too)
+    isLoading: contextLoading, // General context loading state
+    isLocationLoading // Specific location loading state
+  } = useUserProfile();
+
+  // Local state specific to the Maps page interactions
+  const [selectedVariable, setSelectedVariable] = useState('temperature');
   const [timeOffset, setTimeOffset] = useState('now');
   const [isLocationPanelCollapsed, setIsLocationPanelCollapsed] = useState(true);
-  const [coordinates, setCoordinates] = useState({ lat: '', lng: '' });
-  const [locationName, setLocationName] = useState('');
-  const [isFavorite, setIsFavorite] = useState(false);
-  const [savedLocations, setSavedLocations] = useState([]);
-  const [kmlLayers, setKmlLayers] = useState({});
-  const [mapInitialized, setMapInitialized] = useState(false);
-  const [locationMarkers, setLocationMarkers] = useState([]);
+  const [coordinates, setCoordinates] = useState({ lat: '', lng: '' }); // Coords for adding new location
+  const [locationName, setLocationName] = useState(''); // Name for adding new location
+  const [isFavorite, setIsFavorite] = useState(false); // Favorite status for adding new location
+  const [kmlLayers, setKmlLayers] = useState({}); // State for KML layer objects
+  const [mapInitialized, setMapInitialized] = useState(false); // Track map API initialization
+  const [locationMarkers, setLocationMarkers] = useState([]); // Array to hold map marker objects
 
-  // API Handlers
+  // REMOVE local savedLocations state and loadSavedLocations function - Use context directly
+  // const [savedLocations, setSavedLocations] = useState([]);
+  // const loadSavedLocations = useCallback(async () => { ... }, [userProfile?.userId]);
+
+  // API Handlers using context refresh
   const handleSaveLocation = async () => {
-    if (!locationName) return;
+    if (!locationName || !coordinates.lat || !coordinates.lng || !userProfile?.userId) {
+        console.error("Cannot save: Missing location name, coordinates, or user ID.");
+        alert("Please enter a location name and ensure coordinates are set.");
+        return;
+    }
     try {
+      console.log(`Maps: Saving location "${locationName}" for user ${userProfile.userId}`);
       await axios.post(`${REACT_APP_API_URL}/api/locations`, {
-        userId: user.id,
+        userId: userProfile.userId,
         name: locationName,
         latitude: parseFloat(coordinates.lat),
         longitude: parseFloat(coordinates.lng),
-        isFavorite
+        isFavorite // Use the local state for the new location being saved
       });
-      await loadSavedLocations();
+      console.log("Maps: Location saved, refreshing context...");
+      refreshAlerts(); // <-- Refresh context to get updated list including the new one
+      // Clear input fields after successful save
       setLocationName('');
       setIsFavorite(false);
       setCoordinates({ lat: '', lng: '' });
-      setIsLocationPanelCollapsed(true);
+      if (markerRef.current) markerRef.current.setVisible(false); // Hide the temporary marker
+      // Optionally close panel or provide other feedback
+      // setIsLocationPanelCollapsed(true);
+      alert(`Location "${locationName}" saved successfully!`); // Simple feedback
     } catch (error) {
       console.error('Error saving location:', error);
+      alert(`Failed to save location: ${error.response?.data?.error || error.message}`);
     }
   };
 
-  const loadSavedLocations = useCallback(async () => {
-    try {
-      if (!user?.id) return;
-      const response = await axios.get(
-        `${REACT_APP_API_URL}/api/locations?userId=${user.id}`
-      );
-      setSavedLocations(response.data.map(loc => ({
-        ...loc,
-        latitude: parseFloat(loc.latitude),
-        longitude: parseFloat(loc.longitude)
-      })));
-    } catch (error) {
-      console.error('Error loading locations:', error);
-    }
-  }, [user?.id]);
-
+  // If keeping the handler here, ensure it calls refreshAlerts.
+  // This handler is now kept as requested.
   const handleDeleteLocation = async (location) => {
+    if (!userProfile?.userId) return;
     try {
       await axios.delete(`${REACT_APP_API_URL}/api/locations`, {
-        data: {
-          userId: user.id,
-          latitude: location.latitude,
-          longitude: location.longitude
-        }
+        data: { userId: userProfile.userId, latitude: location.latitude, longitude: location.longitude }
       });
-      await loadSavedLocations();
+      refreshAlerts(); // <-- Refresh context
     } catch (error) {
       console.error('Error deleting location:', error);
+       alert(`Failed to delete location: ${error.response?.data?.error || error.message}`);
     }
   };
+
+
+  // Toggle Favorite handler for locations *already saved* (if needed on Maps panel)
+  // Note: WeatherCard on Dashboard already has its own toggle handler.
+  // This would be for potentially toggling from the saved list in LocationPanel.
+  const handleToggleFavoriteInPanel = async (location) => {
+     if (!userProfile?.userId) return;
+      try {
+          console.log(`Maps: Toggling favorite for ${location.name} (User: ${userProfile.userId})`);
+          await axios.post(`${REACT_APP_API_URL}/api/locations/favorite`, {
+              userId: userProfile.userId,
+              latitude: location.latitude,
+              longitude: location.longitude,
+          });
+          console.log("Maps: Favorite toggled, refreshing context.");
+          refreshAlerts(); // <-- Refresh context
+      } catch (err) {
+          console.error('Error toggling favorite:', err);
+          alert(`Failed to toggle favorite: ${err.response?.data?.error || err.message}`);
+      }
+  };
+
 
   // Event Handlers
   const handleCoordinateChange = (type, value) => {
-    setCoordinates(prev => ({
-      ...prev,
-      [type]: value
-    }));
+    // Basic validation for lat/lng format
+    if (/^-?\d*\.?\d*$/.test(value)) {
+        setCoordinates(prev => ({ ...prev, [type]: value }));
+    }
   };
 
   const handleTimeChange = (offset) => {
-    setTimeOffset(offset === 'now' ? 'now' : offset);
+    console.log(`Maps: Time changed to offset: ${offset}`);
+    setTimeOffset(offset === 'now' ? 'now' : offset); // Ensure 'now' is handled correctly
   };
 
-  // Map click handler
+  // Map click handler - sets temporary marker and coordinates for potential saving
   const handleMapClick = useCallback(async (e) => {
-    if (!markerRef.current) return;
+    if (!markerRef.current) return; // Ensure temp marker exists
 
     const lat = e.latLng.lat();
     const lng = e.latLng.lng();
+    console.log(`Maps: Map clicked at ${lat.toFixed(4)}, ${lng.toFixed(4)}`);
 
     markerRef.current.setPosition(e.latLng);
     markerRef.current.setVisible(true);
     setCoordinates({ lat: lat.toFixed(4), lng: lng.toFixed(4) });
 
-  }, []);
-  
-  // Map right-click handler for context menu
-  const handleMapRightClick = useCallback((e) => {
-    if (!mapRef.current) return;
-    
-    const lat = e.latLng.lat();
-    const lng = e.latLng.lng();
-    
-    // Create context menu div
-    const contextMenu = document.createElement('div');
-    contextMenu.className = 'map-context-menu';
-    contextMenu.innerHTML = `
-      <div class="context-menu-title">Point-Based Products</div>
-      <div class="context-menu-item" id="generate-skewt">Generate SKEW-T Chart</div>
-    `;
-    
-    // Position the menu at click location
-    contextMenu.style.position = 'absolute';
-    contextMenu.style.left = e.pixel.x + 'px';
-    contextMenu.style.top = e.pixel.y + 'px';
-    
-    // Close menu on map click
-    const closeMenu = () => {
-      if (contextMenu.parentNode) {
-        contextMenu.parentNode.removeChild(contextMenu);
-      }
-      
-      // Remove listener after menu is closed
-      if (mapRef.current) {
-        window.google.maps.event.removeListener(mapClickListener);
-      }
-    };
-    
-    // Add the menu to the map container
-    mapContainer.current.appendChild(contextMenu);
-    
-    // Add click event to "Generate SKEW-T Chart" option
-    document.getElementById('generate-skewt').addEventListener('click', () => {
-      // Open the chart generation page with coordinates
-      window.open(
-        `/charts?lat=${lat.toFixed(4)}&lon=${lng.toFixed(4)}`,
-        '_blank'
-      );
-      closeMenu();
-    });
-    
-    // Close menu when clicking elsewhere on the map
-    const mapClickListener = mapRef.current.addListener('click', closeMenu);
-    
-    // Also close menu when clicking anywhere else on the page
-    setTimeout(() => {
-      document.addEventListener('click', closeMenu, { once: true });
-    }, 0);
-    
-  }, []);
+    // Clear name and favorite status when clicking a new point
+    setLocationName('');
+    setIsFavorite(false);
+    // Optionally open the panel
+    // setIsLocationPanelCollapsed(false);
 
-  // Declare function references first to avoid initialization order problems
-  const initializeMapRef = useRef(null);
-  const loadGoogleMapsRef = useRef(null);
-  const handleSavedLocationsAfterMapInitRef = useRef(null);
-  
-  // Function to handle saved locations after map initialization
-  const handleSavedLocationsAfterMapInit = useCallback(() => {
-    // A separate function to load saved locations after map init
-    // to avoid circular dependencies
-    if (mapRef.current && user?.id) {
-      loadSavedLocations();
+  }, []); // Empty dependency array as it doesn't depend on changing state/props
+
+  // Map right-click handler for context menu (e.g., Skew-T)
+ const handleMapRightClick = useCallback((e) => {
+  if (!mapRef.current || !mapContainer.current) return; // Ensure map and container are ready
+
+  // Prevent default browser context menu
+  e.stop(); // Recommended by Google Maps docs for right-click
+
+  const lat = e.latLng.lat();
+  const lng = e.latLng.lng();
+  console.log(`Maps: Map right-clicked at ${lat.toFixed(4)}, ${lng.toFixed(4)}`);
+
+  // Remove any existing context menu first
+  const existingMenu = mapContainer.current.querySelector('.map-context-menu');
+  if (existingMenu) {
+      existingMenu.remove();
+  }
+
+  // Create context menu div
+  const contextMenu = document.createElement('div');
+  contextMenu.className = 'map-context-menu'; // Apply CSS class
+
+  Object.assign(contextMenu.style, {
+      position: 'absolute',
+      // background: 'white', // Use CSS
+      // border: '1px solid #ccc', // Use CSS
+      // borderRadius: '4px', // Use CSS
+      // boxShadow: '0 2px 6px rgba(0,0,0,0.3)', // Use CSS
+      // padding: '5px 0', // Use CSS
+      zIndex: 1000, // Keep zIndex (or use CSS value: 2000)
+      left: `${e.pixel.x}px`, // Keep positioning
+      top: `${e.pixel.y}px`  // Keep positioning
+  });
+  // --- End of removals ---
+
+  // Menu items - Use classes defined in Maps.css
+  // Assign title class and item class
+  contextMenu.innerHTML = `
+    <div class="context-menu-title">Point Actions</div> 
+    <div class="context-menu-item" id="generate-skewt">Generate SKEW-T Chart</div>
+    <div class="context-menu-item" id="center-map">Center Map Here</div>
+  `;
+
+  // Function to close the menu (remains the same)
+  const closeMenu = () => {
+    if (contextMenu.parentNode) {
+      contextMenu.remove();
     }
-  }, [loadSavedLocations, user?.id]);
+    document.removeEventListener('click', closeMenu, true); 
+  };
 
-  // Store reference
-  handleSavedLocationsAfterMapInitRef.current = handleSavedLocationsAfterMapInit;
+  // Add event listeners to menu items (remains the same)
+  contextMenu.querySelector('#generate-skewt').addEventListener('click', () => {
+    console.log("Maps: Opening Skew-T chart in new tab.");
+    window.open(`/charts?lat=${lat.toFixed(4)}&lon=${lng.toFixed(4)}`, '_blank');
+    closeMenu();
+  });
+   contextMenu.querySelector('#center-map').addEventListener('click', () => {
+     if (mapRef.current) {
+          mapRef.current.setCenter(e.latLng);
+     }
+    closeMenu();
+  });
 
-  // Separate function to initialize the map
+  // Add the menu to the map container (remains the same)
+  mapContainer.current.appendChild(contextMenu);
+
+  // Add a one-time global click listener (remains the same)
+  setTimeout(() => document.addEventListener('click', closeMenu, { once: true, capture: true }), 0);
+
+}, []); // Empty dependency array
+
+
+  // Map Initialization Logic using refs and useCallback
   const initializeMap = useCallback(() => {
-    if (!mapContainer.current || !window.google?.maps) {
-      console.log('Cannot initialize map: container or Google Maps not ready');
-      return;
+    if (!mapContainer.current || !window.google?.maps || mapInitialized) {
+      console.warn('Map initialization skipped:', {
+          hasContainer: !!mapContainer.current,
+          hasMapsAPI: !!window.google?.maps,
+          alreadyInitialized: mapInitialized
+      });
+      return; // Skip if already initialized or prerequisites not met
     }
-    
-    console.log('Initializing map');
-    
+
+    console.log('Maps: Initializing Google Map...');
     try {
       const mapInstance = new window.google.maps.Map(mapContainer.current, {
-        center: { lat: 36, lng: -86 },
+        center: { lat: 39.8283, lng: -98.5795 }, // Center of US
         zoom: 4,
-        // Configure map type controls (Map/Satellite)
         mapTypeControl: true,
-        mapTypeControlOptions: {
-          style: window.google.maps.MapTypeControlStyle.HORIZONTAL_BAR,
-          position: window.google.maps.ControlPosition.TOP_LEFT
-        },
-        // Configure fullscreen control
+        mapTypeControlOptions: { style: window.google.maps.MapTypeControlStyle.HORIZONTAL_BAR, position: window.google.maps.ControlPosition.TOP_LEFT },
         fullscreenControl: true,
-        fullscreenControlOptions: {
-          position: window.google.maps.ControlPosition.TOP_RIGHT
-        },
-        // Other map options
+        fullscreenControlOptions: { position: window.google.maps.ControlPosition.TOP_RIGHT },
         streetViewControl: false,
-        zoomControl: true,
-        zoomControlOptions: {
-          position: window.google.maps.ControlPosition.RIGHT_BOTTOM
-        }
+        zoomControl: false, // Disable default zoom, use custom
+        gestureHandling: 'greedy' // Allow smooth panning/zooming
       });
 
+      // Initialize the temporary marker for map clicks
       markerRef.current = new window.google.maps.Marker({
         map: mapInstance,
-        position: null,
-        icon: {
-          path: window.google.maps.SymbolPath.CIRCLE,
-          fillColor: '#FF0000',
-          fillOpacity: 1,
-          strokeWeight: 0,
-          scale: 8
-        },
-        visible: false
+        position: null, // Initially no position
+        icon: { path: window.google.maps.SymbolPath.CIRCLE, fillColor: '#FF0000', fillOpacity: 1, strokeWeight: 0, scale: 6 },
+        visible: false // Initially hidden
       });
 
-      // Only add meteosource overlay if a weather variable is selected
-      if (selectedVariable !== 'none') {
-        const meteosourceOverlay = new window.google.maps.ImageMapType({
-          getTileUrl: (coord, zoom) => {
-            const timeParam = timeOffset === 'now' ? 'now' : timeOffset;
-            return `${REACT_APP_API_URL}/api/meteosource/tile?x=${coord.x}&y=${coord.y}&zoom=${zoom}&variable=${selectedVariable}&datetime=${timeParam}`;
-          },
-          tileSize: new window.google.maps.Size(256, 256),
-          name: 'Weather Data'
-        });
+      mapRef.current = mapInstance; // Store map instance
 
-        mapInstance.overlayMapTypes.push(meteosourceOverlay);
-      }
-      
-      mapRef.current = mapInstance;
+      // Add listeners AFTER storing the map instance
       mapInstance.addListener('click', handleMapClick);
       mapInstance.addListener('rightclick', handleMapRightClick);
-      setMapInitialized(true);
-      
-      // Load saved locations once map is initialized
-      setTimeout(() => {
-        if (handleSavedLocationsAfterMapInitRef.current) {
-          handleSavedLocationsAfterMapInitRef.current();
-        }
-      }, 300); // Short delay to ensure map is fully ready
-      
-    } catch (error) {
-      console.error('Error in map initialization:', error);
-    }
-  }, [selectedVariable, timeOffset, handleMapClick, handleMapRightClick]);
-  
-  // Store reference
-  initializeMapRef.current = initializeMap;
 
-  // Initialize Google Maps
+      setMapInitialized(true); // Mark map as initialized
+      console.log("Maps: Google Map Initialized.");
+
+    } catch (error) {
+      console.error('Error initializing Google Map:', error);
+      // Consider setting an error state to show feedback to the user
+    }
+  }, [mapInitialized, handleMapClick, handleMapRightClick]); // Include mapInitialized to prevent re-running
+
+
+  // Function to load Google Maps script if needed
   const loadGoogleMaps = useCallback(async () => {
+    if (window.google?.maps) {
+        console.log("Maps: Google Maps API already loaded.");
+        if (!mapInitialized) initializeMap(); // Initialize if not already done
+        return;
+    }
+    if (window.googleMapsLoading) {
+        console.log("Maps: Google Maps script is already loading.");
+        return; // Prevent multiple loads
+    }
+
+    console.log("Maps: Loading Google Maps API script...");
+    window.googleMapsLoading = true; // Set flag
+
     try {
-      // Check for existing Google Maps script
-      const existingScript = document.querySelector('script[src*="maps.googleapis.com/maps/api/js"]');
-      
-      // If Google Maps is already loaded, just initialize the map directly
-      if (window.google?.maps) {
-        console.log('Google Maps API already loaded, initializing map directly');
-        if (initializeMapRef.current) {
-          initializeMapRef.current();
-        }
-        return;
-      }
-      
-      // If the script tag exists but Google Maps isn't loaded yet,
-      // just wait for the callback to happen
-      if (existingScript) {
-        console.log('Google Maps script already exists, waiting for callback');
-        window.initMap = () => {
-          console.log('Google Maps callback received');
-          if (initializeMapRef.current) {
-            initializeMapRef.current();
-          }
-        };
-        return;
-      }
-      
-      // Otherwise, we need to load the script
-      console.log('Fetching Google Maps API key and loading script');
       const response = await axios.get(`${REACT_APP_API_URL}/api/google-maps-init`);
-      
-      if (!response.data || !response.data.googleMapsKey) {
-        console.error('Failed to get Google Maps API key from server');
-        return;
+      const googleMapsKey = response.data?.googleMapsKey;
+      if (!googleMapsKey) {
+        throw new Error('Failed to get Google Maps API key from server');
       }
-      
-      const { googleMapsKey } = response.data;
-      
-      // Set up the callback before adding the script
+
+      // Define the global callback function
       window.initMap = () => {
-        console.log('Google Maps callback received');
-        if (initializeMapRef.current) {
-          initializeMapRef.current();
-        }
+        console.log('Maps: initMap callback executed.');
+        delete window.googleMapsLoading; // Clear flag
+        initializeMap(); // Call initializeMap now that API is ready
       };
-      
-      // Create new script tag
+
+      // Create and append the script tag
       const script = document.createElement('script');
-      script.src = `https://maps.googleapis.com/maps/api/js?key=${googleMapsKey}&callback=initMap&v=weekly`;
+      script.src = `https://maps.googleapis.com/maps/api/js?key=${googleMapsKey}&callback=initMap&v=weekly&libraries=marker`; // Added marker library potentially
       script.async = true;
       script.defer = true;
-      
-      // Add script to document
+      script.onerror = () => {
+           console.error("Maps: Google Maps script failed to load.");
+           delete window.googleMapsLoading; // Clear flag on error too
+           // Handle script loading error (e.g., show error message)
+      };
       document.head.appendChild(script);
-      
+
     } catch (error) {
-      console.error('Error initializing map:', error);
+      console.error('Error loading Google Maps:', error);
+      delete window.googleMapsLoading; // Clear flag on error
+      // Handle API key fetch error or script setup error
     }
-  }, []);
-  
-  // Store reference
-  loadGoogleMapsRef.current = loadGoogleMaps;
+  }, [initializeMap, mapInitialized]); // Depend on initializeMap and mapInitialized
 
-  // Load Google Maps on component mount and rerender when switching back to the page
+
+  // Effect to load Google Maps script on component mount
   useEffect(() => {
-    // This will run both when component first mounts and when switching back to the page
-    if (window.google?.maps) {
-      // If Google Maps is already loaded, just initialize the map
-      if (initializeMapRef.current) {
-        initializeMapRef.current();
-      }
-    } else {
-      // If Google Maps isn't loaded yet, load it (which will then initialize the map)
-      if (loadGoogleMapsRef.current) {
-        loadGoogleMapsRef.current();
-      }
-    }
-    
-    // Create cleanup function that doesn't depend on locationMarkers state
-    // to avoid dependency cycles and infinite loops
+    loadGoogleMaps();
+
+    // Basic cleanup for the map instance, more comprehensive cleanup might be needed
     return () => {
-      // Cleanup when component unmounts or before reinitialization
-      if (markerRef.current) {
-        markerRef.current.setMap(null);
-      }
-      
-      // Get a stable reference to current markers for cleanup
-      const currentMarkers = locationMarkers;
-      currentMarkers.forEach(marker => {
-        if (marker) marker.setMap(null);
-      });
-      
-      if (window.google?.maps && mapRef.current) {
-        window.google.maps.event.clearInstanceListeners(mapRef.current);
-      }
-      // Don't set mapRef.current to null to maintain reference
+        console.log("Maps: Unmounting - basic map cleanup.");
+        // Note: More robust cleanup, especially for listeners and markers,
+        // should happen in the useEffects where they are created/managed.
+        // Resetting mapRef might cause issues if other cleanup depends on it.
+        // setMapInitialized(false); // Reset initialization status if needed on remount
     };
-  }, []); // No dependencies to avoid infinite loop
+  }, [loadGoogleMaps]); // Run only once on mount
 
-  // Update map overlay when variable or time changes
+
+  // Effect to update map overlay tiles when variable or time changes
   useEffect(() => {
-    if (mapRef.current) {
-      // Clear existing overlays but maintain click handler
-      mapRef.current.overlayMapTypes.clear();
-      
-      // Only add MeteoSource overlay if a weather variable is selected
+      if (!mapInitialized || !mapRef.current || !window.google?.maps) return; // Ensure map is ready
+
+      console.log(`Maps: Updating overlay for variable "${selectedVariable}" at time "${timeOffset}"`);
+      mapRef.current.overlayMapTypes.clear(); // Clear previous weather overlays
+
       if (selectedVariable !== 'none') {
-        // Create new overlay with updated parameters
-        const meteosourceOverlay = new window.google.maps.ImageMapType({
-          getTileUrl: (coord, zoom) => {
-            const timeParam = timeOffset === 'now' ? 'now' : timeOffset;
-            return `${REACT_APP_API_URL}/api/meteosource/tile?x=${coord.x}&y=${coord.y}&zoom=${zoom}&variable=${selectedVariable}&datetime=${timeParam}`;
-          },
-          tileSize: new window.google.maps.Size(256, 256),
-          name: 'Weather Data'
-        });
-        
-        // Add new overlay
-        mapRef.current.overlayMapTypes.push(meteosourceOverlay);
-      }
-      
-      // Make sure click handlers are still attached
-      // First remove to prevent duplicates
-      window.google.maps.event.clearListeners(mapRef.current, 'click');
-      window.google.maps.event.clearListeners(mapRef.current, 'rightclick');
-      mapRef.current.addListener('click', handleMapClick);
-      mapRef.current.addListener('rightclick', handleMapRightClick);
-    }
-  }, [selectedVariable, timeOffset, handleMapClick, handleMapRightClick]);
-  
-  // Load saved locations when user changes
-  useEffect(() => {
-    if (user?.id && mapInitialized) {
-      console.log(`User data available (${user.id}), loading saved locations`);
-      loadSavedLocations();
-    }
-  }, [user?.id, mapInitialized, loadSavedLocations]);
+        const tileUrl = `${REACT_APP_API_URL}/api/meteosource/tile?x={x}&y={y}&zoom={z}&variable=${selectedVariable}&datetime=${timeOffset === 'now' ? 'now' : timeOffset}`;
 
-  // Display saved locations on the map
-  useEffect(() => {
-    // Check if map and Google Maps are ready
-    if (!mapRef.current || !window.google?.maps) {
-      return;
-    }
-    
-    // Clear existing location markers
-    locationMarkers.forEach(marker => {
-      if (marker) marker.setMap(null);
-    });
-    
-    // If no saved locations, don't proceed
-    if (!savedLocations.length) {
-      setLocationMarkers([]);
-      return;
-    }
-    
-    console.log(`Creating ${savedLocations.length} location markers on map`);
-    
-    // Create markers for saved locations
-    const markers = savedLocations.map(location => {
-      if (!location || isNaN(location.latitude) || isNaN(location.longitude)) {
-        return null;
+        const meteosourceOverlay = new window.google.maps.ImageMapType({
+          getTileUrl: (coord, zoom) => tileUrl.replace('{x}', coord.x).replace('{y}', coord.y).replace('{z}', zoom),
+          tileSize: new window.google.maps.Size(256, 256),
+          name: 'Weather Data',
+          isPng: true, // Assuming tiles are PNG
+          opacity: 0.7
+        });
+        mapRef.current.overlayMapTypes.push(meteosourceOverlay);
+        console.log("Maps: Meteosource overlay added/updated.");
+      } else {
+           console.log("Maps: No weather variable selected, overlay cleared.");
       }
-      
+  }, [selectedVariable, timeOffset, mapInitialized]); // Re-run when these change
+
+
+  // useEffect to display saved location markers from context
+  useEffect(() => {
+    // Ensure map API and map instance are ready, and locations are not loading
+    if (!mapInitialized || !mapRef.current || !window.google?.maps || isLocationLoading) {
+       // If map was previously initialized, clear old markers during loading
+       if(mapInitialized) {
+            locationMarkers.forEach(marker => marker?.setMap(null));
+            setLocationMarkers([]);
+       }
+       return;
+    }
+
+    // Clear previous markers before adding new ones
+    locationMarkers.forEach(marker => marker?.setMap(null));
+
+    // Ensure contextSavedLocations is an array
+    const locations = Array.isArray(contextSavedLocations) ? contextSavedLocations : [];
+    console.log(`Maps: Displaying ${locations.length} saved location markers.`);
+
+    const markers = locations.map(location => {
+      // Validate coordinates
+      const lat = Number(location.latitude);
+      const lng = Number(location.longitude);
+      if (isNaN(lat) || isNaN(lng)) {
+          console.warn(`Invalid coordinates for location "${location.name}":`, location.latitude, location.longitude);
+          return null; // Skip this marker
+      }
+
       const marker = new window.google.maps.Marker({
-        position: { lat: location.latitude, lng: location.longitude },
+        position: { lat: lat, lng: lng },
         map: mapRef.current,
         title: location.name,
         icon: {
@@ -444,62 +402,78 @@ const Maps = () => {
           fillOpacity: 0.9,
           strokeWeight: 1,
           strokeColor: '#FFFFFF',
-          scale: 8
+          scale: 7 // Slightly smaller scale
         }
       });
-      
+
       // Add click event to center map on marker
       marker.addListener('click', () => {
-        mapRef.current.setCenter({ lat: location.latitude, lng: location.longitude });
-        mapRef.current.setZoom(10);
+        console.log(`Maps: Clicked marker for ${location.name}`);
+        mapRef.current?.setCenter({ lat: lat, lng: lng });
+        mapRef.current?.setZoom(10); // Adjust zoom level as needed
       });
-      
+
       // Add info window with custom CSS to hide the close button
       const infoWindow = new window.google.maps.InfoWindow({
         content: `
           <div style="padding: 5px; max-width: 200px;">
             <div style="font-weight: bold; margin-bottom: 5px;">${location.name}</div>
-            <div>Latitude: ${location.latitude.toFixed(5)}</div>
-            <div>Longitude: ${location.longitude.toFixed(5)}</div>
-            ${location.isFavorite ? '<div style="color: #FFD700; margin-top: 5px;">★ Favorite Location</div>' : ''}
+            <div>Lat: ${lat.toFixed(4)}, Lon: ${lng.toFixed(4)}</div>
+            ${location.isFavorite ? '<div style="color: #FFD700; margin-top: 5px;">★ Favorite</div>' : ''}
           </div>
-          <style>
-            .gm-ui-hover-effect {display: none !important;}
-          </style>
+          <style>.gm-ui-hover-effect {display: none !important;}</style>
         `
       });
-      
-      // Show info window on hover
-      marker.addListener('mouseover', () => {
-        infoWindow.open(mapRef.current, marker);
-      });
-      
-      marker.addListener('mouseout', () => {
-        infoWindow.close();
-      });
-      
+
+      marker.addListener('mouseover', () => infoWindow.open(mapRef.current, marker));
+      marker.addListener('mouseout', () => infoWindow.close());
+
       return marker;
-    }).filter(Boolean); // Remove any null markers
-    
-    setLocationMarkers(markers);
-  }, [savedLocations]); // Removed locationMarkers from dependencies to avoid loop
+    }).filter(Boolean); // Remove any null markers created due to invalid data
 
+    setLocationMarkers(markers); // Update the state with the new array of markers
+
+    // Cleanup function for this effect: remove markers when locations change or component unmounts
+    return () => {
+        console.log("Maps: Cleaning up location markers.");
+        markers.forEach(marker => marker?.setMap(null));
+    };
+
+  }, [contextSavedLocations, mapInitialized, isLocationLoading]); // Depend on context locations & loading status
+
+
+  // Main component render
   return (
-    <div className="dashboard-container">
-      <div className="main-content">
-        <div className="weather-page-container">
-          <div ref={weatherControlsRef}>
-            <WeatherMapControls
-              selectedVariable={selectedVariable}
-              onVariableChange={setSelectedVariable}
-              weatherVariables={weatherVariables}
-              units={units}
-            />
-          </div>
+    <div className="white-dashboard-container"> {/* Use dashboard-container for consistent padding/layout */}
+      <div className="white-main-content">
+        <div className="weather-page-container"> {/* Specific container for map layout */}
 
-          <div ref={mapContainer} id="map" className="map-container" />
+          {/* Show loader overlay while map/context is initializing */}
+          {(contextLoading || isLocationLoading || !mapInitialized) && (
+            <div className="map-loader-overlay">
+              <Loader size="medium" message={
+                  contextLoading ? "Loading user data..." :
+                  isLocationLoading ? "Loading locations..." :
+                  "Initializing map..."
+              } />
+            </div>
+           )}
 
-          <div ref={locationPanelRef}>
+           {/* Map Controls - visibility tied to map initialization */}
+           <div ref={weatherControlsRef} style={{ visibility: mapInitialized ? 'visible' : 'hidden' }}>
+             <WeatherMapControls
+                 selectedVariable={selectedVariable}
+                 onVariableChange={setSelectedVariable}
+                 weatherVariables={weatherVariables}
+                 units={units}
+             />
+           </div>
+
+           {/* Map Container - always present in DOM for initialization */}
+           <div ref={mapContainer} id="map" className="map-container" />
+
+           {/* Location Panel - visibility tied to map initialization */}
+           <div ref={locationPanelRef} style={{ visibility: mapInitialized ? 'visible' : 'hidden' }}>
             <LocationPanel
               isCollapsed={isLocationPanelCollapsed}
               onToggleCollapse={() => setIsLocationPanelCollapsed(!isLocationPanelCollapsed)}
@@ -507,51 +481,51 @@ const Maps = () => {
               onLocationNameChange={setLocationName}
               coordinates={coordinates}
               onCoordinateChange={handleCoordinateChange}
-              isFavorite={isFavorite}
-              onToggleFavorite={() => setIsFavorite(!isFavorite)}
-              onSaveLocation={handleSaveLocation}
-              savedLocations={savedLocations}
-              onDeleteLocation={handleDeleteLocation}
-              userId={user?.id}
+              isFavorite={isFavorite} // For new location favorite status
+              onToggleFavorite={() => setIsFavorite(!isFavorite)} // Toggles local state for new location
+              onSaveLocation={handleSaveLocation} // Uses context refresh
+              // Pass context locations, ensuring it's an array
+              savedLocations={Array.isArray(contextSavedLocations) ? contextSavedLocations : []}
+              onDeleteLocation={handleDeleteLocation} // Use the uncommented function
+              userId={userProfile?.userId} // Use ID from context profile
               mapRef={mapRef}
               kmlLayers={kmlLayers}
               setKmlLayers={setKmlLayers}
+              // Pass the favorite toggle handler for existing locations if needed
+              // onToggleFavoriteSaved={handleToggleFavoriteInPanel} // Example if needed
             />
           </div>
 
-          {selectedVariable !== 'none' && (
-            <div ref={weatherGraphRef} className="weather-graph-container">
-              <WeatherGraph weatherType={selectedVariable} />
-            </div>
+          {/* Conditional rendering of graph/slider based on selection and map init */}
+          {selectedVariable !== 'none' && mapInitialized && (
+            <>
+              <div ref={weatherGraphRef} className="weather-graph-container">
+                  <WeatherGraph weatherType={selectedVariable} />
+              </div>
+              <div ref={timelineSliderRef} className="timeline-slider-wrapper">
+                  <TimelineSlider onTimeChange={handleTimeChange} />
+              </div>
+            </>
           )}
 
-          {selectedVariable !== 'none' && (
-            <div ref={timelineSliderRef} className="timeline-slider-wrapper">
-              <TimelineSlider onTimeChange={handleTimeChange} />
-            </div>
-          )}
-          <div ref={zoomControlsRef} className="custom-zoom-controls">
-            <button 
-              className="custom-zoom-button" 
-              onClick={() => {
-                if (mapRef.current) {
-                  mapRef.current.setZoom(mapRef.current.getZoom() + 1);
-                }
-              }}
-            >
-              +
-            </button>
-            <button 
-              className="custom-zoom-button" 
-              onClick={() => {
-                if (mapRef.current) {
-                  mapRef.current.setZoom(mapRef.current.getZoom() - 1);
-                }
-              }}
-            >
-              −
-            </button>
-          </div>
+          {/* Custom Zoom Controls */}
+           <div ref={zoomControlsRef} className="custom-zoom-controls" style={{ visibility: mapInitialized ? 'visible' : 'hidden' }}>
+             <button
+               className="custom-zoom-button"
+               onClick={() => mapRef.current?.setZoom(mapRef.current.getZoom() + 1)}
+               title="Zoom In"
+             >
+               +
+             </button>
+             <button
+               className="custom-zoom-button"
+               onClick={() => mapRef.current?.setZoom(mapRef.current.getZoom() - 1)}
+               title="Zoom Out"
+             >
+               −
+             </button>
+           </div>
+
         </div>
       </div>
     </div>

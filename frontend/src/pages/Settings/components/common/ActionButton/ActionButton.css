@@ -1,0 +1,81 @@
+/* ActionButton.css */
+.save-button {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-family: 'Manrope', sans-serif;
+  background-color: rgb(37 99 235);
+  color: white;
+  border-radius: 0.25rem;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: background-color 0.15s;
+  border: none;
+  width: auto;
+  min-width: 80px;
+  height: 2.15rem;
+}
+
+.save-button:hover {
+  background-color: rgb(29 78 216);
+}
+
+.save-button:hover:not(:disabled) {
+  background-color: rgb(29 78 216);
+}
+
+.cancel-button {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: white;
+  border: 1px solid rgb(229 231 235);
+  color: rgb(75 85 99);
+  border-radius: 0.25rem;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: background-color 0.15s;
+  width: auto;
+  min-width: 80px;
+  height: 2.15rem;
+}
+
+.cancel-button:hover {
+  background-color: rgb(249 250 251);
+}
+
+.cancel-button:hover:not(:disabled) {
+  background-color: rgb(249 250 251);
+}
+
+.danger-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem 1rem;
+  background-color: rgb(239, 68, 68);
+  color: white;
+  border: none;
+  border-radius: 0.25rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.15s;
+  min-width: 80px;
+  height: 2.15rem;
+}
+
+.danger-button:hover:not(:disabled) {
+  background-color: rgb(220, 38, 38);
+}
+
+.save-button:disabled,
+.cancel-button:disabled,
+.danger-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.button-icon {
+  margin-right: 0.5rem;
+}

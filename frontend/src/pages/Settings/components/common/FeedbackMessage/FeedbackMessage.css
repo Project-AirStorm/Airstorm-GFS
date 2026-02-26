@@ -1,0 +1,31 @@
+/* FeedbackMessage.css */
+.feedback-message {
+  margin: 1rem 1.5rem;
+  padding: 0.75rem 1rem;
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+  animation: fadeIn 0.3s ease-out;
+}
+
+.feedback-message.success {
+  background-color: rgb(209, 250, 229); /* Light green */
+  color: rgb(4, 120, 87); /* Dark green */
+  border: 1px solid rgb(167, 243, 208); /* Medium green */
+}
+
+.feedback-message.error {
+  background-color: rgb(254, 226, 226); /* Light red */
+  color: rgb(185, 28, 28); /* Dark red */
+  border: 1px solid rgb(248, 180, 180); /* Medium red */
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

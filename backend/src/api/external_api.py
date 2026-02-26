@@ -15,12 +15,13 @@ from functools import lru_cache
 from datetime import datetime, timedelta
 from threading import Lock
 from middleware.api_key_protection import protect_api_keys
+import json
 
 external_api_bp = Blueprint("external_api", __name__)
 
 logger = logging.getLogger(__name__)
 database_service = DatabaseManager()
-
+responses = []
 # Initialize services
 weather_analyzer = WeatherAnalyzer()
 BACKEND_GOOGLE_MAPS_API_KEY = os.getenv("BACKEND_GOOGLE_MAPS_API_KEY")
@@ -456,7 +457,7 @@ def get_forecast():
             "precipitation_unit": "inch",
             "forecast_days": 16,
             "timezone": "auto",
-            "models": "best_match",
+            "models": "gfs_graphcast025",
         }
 
         # Make the request to Open-Meteo
@@ -487,6 +488,193 @@ def get_forecast():
         return jsonify({"error": f"Server error: {str(e)}"}), 500
 
 
+@external_api_bp.route("/api/forecast/detailed", methods=["GET"])
+@protect_api_keys
+def get_detailed_forecast():
+    """Proxy endpoint for Open-Meteo forecast API with expanded detailed daily parameters"""
+    try:
+        api_key = os.getenv('BACKEND_OPENMETEO_API_KEY')
+        lat = request.args.get("latitude", type=float)
+        lon = request.args.get("longitude", type=float)
+
+        if lat is None or lon is None:
+            return jsonify({"error": "Latitude and longitude are required"}), 400
+
+        # *** Define the NEW, EXPANDED detailed daily parameters ***
+        detailed_daily_params = [
+            "weather_code", "temperature_2m_max", "apparent_temperature_max",
+            "apparent_temperature_min", "wind_speed_10m_max", "wind_gusts_10m_max",
+            "wind_direction_10m_dominant", "uv_index_max", "uv_index_clear_sky_max",
+            "precipitation_hours", "precipitation_probability_max", "precipitation_sum",
+            "snowfall_sum", "showers_sum", "rain_sum", "sunshine_duration",
+            "daylight_duration", "sunset", "sunrise", "temperature_2m_mean",
+            "temperature_2m_min", "visibility_mean", "relative_humidity_2m_mean",
+            "wind_speed_10m_mean", "cape_mean", "cape_max", "cape_min",
+            "cloud_cover_mean", "cloud_cover_min", "cloud_cover_max",
+            "dew_point_2m_mean", "precipitation_probability_mean", "updraft_max",
+            "winddirection_10m_dominant", "wind_gusts_10m_mean", "wind_gusts_10m_min",
+            "wind_speed_10m_min",
+            # Added parameters from the new URL:
+            "dew_point_2m_max", "dew_point_2m_min", "precipitation_probability_min",
+            "relative_humidity_2m_min", "relative_humidity_2m_max",
+            "snowfall_water_equivalent_sum", "visibility_max", "visibility_min"
+        ]
+
+        # Set up parameters for Open-Meteo API
+        params = {
+            "latitude": lat,
+            "longitude": lon,
+            "daily": detailed_daily_params, # Use the new expanded list
+            "models": "best_match",
+            "timezone": "GMT",
+            "forecast_days": 16,
+            "temperature_unit": "fahrenheit", # Keep existing units
+            "precipitation_unit": "inch",     # Keep existing units
+        }
+
+        # Determine URL based on API key availability
+        if api_key:
+            url = "https://customer-api.open-meteo.com/v1/forecast"
+            params["apikey"] = api_key
+        else:
+            # The new example URL uses the free API base
+            url = "https://api.open-meteo.com/v1/forecast"
+
+        # Make the request to Open-Meteo
+        try:
+            logger.info(f"Fetching detailed forecast (expanded) for {lat}, {lon} from {url}")
+            response = requests.get(url, params=params, timeout=15) # Increased timeout slightly
+            response.raise_for_status()
+            logger.info(f"Successfully fetched detailed forecast (expanded) for {lat}, {lon}")
+            return jsonify(response.json())
+
+        except requests.exceptions.RequestException as e:
+            logger.error(f"Error fetching detailed forecast (expanded) from Open-Meteo: {str(e)}")
+
+            # Fall back to free API if we get an error with the customer API
+            # Note: The new example URL already uses the free API base, so fallback might be less relevant
+            # unless you were intending to primarily use the customer API.
+            if api_key and "customer-api" in url:
+                logger.info(f"Falling back to free API for detailed forecast (expanded) for {lat}, {lon}")
+                try:
+                    fallback_url = "https://api.open-meteo.com/v1/forecast"
+                    fallback_params = params.copy()
+                    fallback_params.pop("apikey", None)
+                    response = requests.get(fallback_url, params=fallback_params, timeout=15) # Increased timeout
+                    response.raise_for_status()
+                    logger.info(f"Successfully fetched detailed forecast (expanded) using fallback API for {lat}, {lon}")
+                    return jsonify(response.json())
+                except requests.exceptions.RequestException as e2:
+                    logger.error(f"Error with fallback API for detailed forecast (expanded): {str(e2)}")
+                    return jsonify({"error": f"API service unavailable: {str(e2)}"}), 503
+
+            # If not using customer API or fallback failed
+            return jsonify({"error": f"Weather service error: {str(e)}"}), 503
+
+    except Exception as e:
+        logger.error(f"Error in detailed forecast (expanded) endpoint: {str(e)}")
+        return jsonify({"error": f"Server error: {str(e)}"}), 500
+
+# Add this function inside Airstorm-GFS/backend/src/api/external_api.py
+# Ensure necessary imports are present at the top of the file:
+# import os
+# import requests
+# from flask import Blueprint, request, jsonify
+# from middleware.api_key_protection import protect_api_keys # Assuming this decorator exists
+# import logging # Assuming logger is configured
+
+# logger = logging.getLogger(__name__) # Assuming logger is set up
+
+@external_api_bp.route("/api/forecast/daily_extended", methods=["GET"])
+@protect_api_keys # Assuming you want to protect this like the other endpoint
+def get_graphcast_extended_forecast():
+    """Proxy endpoint for Open-Meteo forecast API with a specific set of daily parameters."""
+    try:
+        api_key = os.getenv('BACKEND_OPENMETEO_API_KEY')
+        lat = request.args.get("latitude", type=float)
+        lon = request.args.get("longitude", type=float)
+
+        if lat is None or lon is None:
+            logger.warning("Missing latitude or longitude for /api/forecast/daily_extended request.")
+            return jsonify({"error": "Latitude and longitude are required"}), 400
+
+        # Define the daily parameters based EXACTLY on the user's example URL
+        daily_params = [
+            "weather_code", "temperature_2m_max", "apparent_temperature_max",
+            "apparent_temperature_min", "wind_speed_10m_max", "wind_gusts_10m_max",
+            "wind_direction_10m_dominant", "uv_index_max", "uv_index_clear_sky_max",
+            "precipitation_hours", "precipitation_probability_max", "precipitation_sum",
+            "snowfall_sum", "showers_sum", "rain_sum", "sunshine_duration",
+            "daylight_duration", "sunset", "sunrise", "temperature_2m_mean",
+            "temperature_2m_min", "visibility_mean", "relative_humidity_2m_mean",
+            "wind_speed_10m_mean", "cape_mean", "cape_max", "cape_min",
+            "cloud_cover_mean", "cloud_cover_min", "cloud_cover_max",
+            "dew_point_2m_mean", "precipitation_probability_mean", "updraft_max",
+            "winddirection_10m_dominant", "wind_gusts_10m_mean", "wind_gusts_10m_min",
+            "wind_speed_10m_min"
+        ]
+
+        # Set up parameters for Open-Meteo API
+        params = {
+            "latitude": lat,
+            "longitude": lon,
+            "daily": ",".join(daily_params), # Join the list into a comma-separated string
+            "models": "best_match",         # As per user's example URL
+            "timezone": "GMT",              # As per user's example URL
+            "forecast_days": 16,            # As per user's example URL
+            # Adding units for consistency with other backend endpoints (modify if needed)
+            "temperature_unit": "fahrenheit",
+            "precipitation_unit": "inch",
+            "wind_speed_unit": "mph", # Added based on other endpoints, adjust if needed
+            # Note: The example JSON had km/h, mm etc. because units weren't specified in the URL
+            # Requesting specific units here will make the response use those units.
+        }
+
+        # Determine URL based on API key availability (prioritize customer API as per example URL)
+        if api_key:
+            url = "https://customer-api.open-meteo.com/v1/forecast"
+            params["apikey"] = api_key
+            logger.info(f"Using Customer API Key for daily_extended forecast.")
+        else:
+            url = "https://api.open-meteo.com/v1/forecast" # Fallback to free API
+            logger.warning("No Customer API Key found, using free API for daily_extended forecast.")
+
+
+        # Make the request to Open-Meteo
+        try:
+            logger.info(f"Fetching daily_extended forecast for {lat}, {lon} from {url}")
+            response = requests.get(url, params=params, timeout=15)
+            response.raise_for_status() # Raise HTTPError for bad responses (4xx or 5xx)
+            logger.info(f"Successfully fetched daily_extended forecast for {lat}, {lon}")
+            return jsonify(response.json())
+
+        except requests.exceptions.RequestException as e:
+            logger.error(f"Error fetching daily_extended forecast from {url}: {str(e)}")
+
+            # Optional: Fallback logic if customer API failed (if you started with customer API)
+            if api_key and "customer-api" in url:
+                logger.info(f"Falling back to free API for daily_extended forecast for {lat}, {lon}")
+                try:
+                    fallback_url = "https://api.open-meteo.com/v1/forecast"
+                    fallback_params = params.copy()
+                    fallback_params.pop("apikey", None)
+                    response = requests.get(fallback_url, params=fallback_params, timeout=15)
+                    response.raise_for_status()
+                    logger.info(f"Successfully fetched daily_extended forecast using fallback API for {lat}, {lon}")
+                    return jsonify(response.json())
+                except requests.exceptions.RequestException as e2:
+                    logger.error(f"Error with fallback API for daily_extended forecast: {str(e2)}")
+                    # Avoid returning specific error details from external service to client if possible
+                    return jsonify({"error": "Weather service currently unavailable after fallback."}), 503
+
+            # If not using customer API initially or fallback failed
+            return jsonify({"error": "Weather service error."}), 503 # Generic error
+
+    except Exception as e:
+        # Log the full error internally, but return a generic error to the client
+        logger.exception(f"Unexpected error in daily_extended forecast endpoint: {str(e)}") # Use logger.exception to include stack trace
+        return jsonify({"error": "An unexpected server error occurred."}), 500
+    
 # ====== GitHub Issues API ======
 github_service = GitHubService()
 
@@ -882,3 +1070,407 @@ def get_alerts():
     except Exception as e:
         logger.error(f"Unexpected error in alerts endpoint: {str(e)}")
         return jsonify({"error": "Internal server error"}), 500
+
+
+@external_api_bp.route("/api/graphcast-forecast", methods=["GET"])
+@protect_api_keys
+def get_graphcast_forecast():
+    try:
+        lat = request.args.get("latitude", type=float)
+        lon = request.args.get("longitude", type=float)
+        start_date = request.args.get("start_date")
+        end_date = request.args.get("end_date")
+        hourly_params = request.args.getlist("hourly[]")
+        models = request.args.getlist("models[]")
+
+        if not all([lat, lon, start_date, end_date, hourly_params]):
+            return jsonify({"error": "Missing required parameters"}), 400
+
+        api_key = os.getenv('BACKEND_OPENMETEO_API_KEY')
+        if not api_key:
+            logger.error("Open-Meteo API key not configured")
+            return jsonify({"error": "Service configuration error"}), 500
+
+        url = f"https://customer-previous-runs-api.open-meteo.com/v1/forecast"
+        params = {
+            "latitude": lat,
+            "longitude": lon,
+            "start_date": start_date,
+            "end_date": end_date,
+            "hourly": hourly_params,
+            "models": models or ["graphcast025"],
+            "temperature_unit": "fahrenheit",
+            "wind_speed_unit": "mph",
+            "precipitation_unit": "inch",
+            "timezone": "auto",
+            "apikey": api_key
+        }
+
+        responses = openmeteo.weather_api(url, params=params)
+
+        if not responses or len(responses) == 0:
+            return jsonify({"error": "No data received from weather service"}), 500
+
+        response = responses[0]
+
+        # Process the response and return formatted data
+        hourly_data = response.Hourly()
+        result = {
+            "hourly": {
+                "time": [datetime.fromtimestamp(t).strftime('%Y-%m-%dT%H:%M') for t in hourly_data.Time()]
+            }
+        }
+
+        # Add each requested variable to the result
+        for i, variable in enumerate(hourly_params):
+            result["hourly"][variable] = hourly_data.Variables(
+                i).ValuesAsNumpy().tolist()
+
+        return jsonify(result)
+
+    except Exception as e:
+        logger.error(f"Error fetching GraphCast forecast data: {str(e)}")
+        return jsonify({"error": f"Failed to fetch GraphCast forecast data: {str(e)}"}), 500
+
+
+@external_api_bp.route("/api/traditional-forecast", methods=["GET"])
+@protect_api_keys
+def get_traditional_forecast():
+    try:
+        lat = request.args.get("latitude", type=float)
+        lon = request.args.get("longitude", type=float)
+        start_date = request.args.get("start_date")
+        end_date = request.args.get("end_date")
+        hourly_params = request.args.getlist("hourly[]")
+        models = request.args.getlist("models[]")
+
+        if not all([lat, lon, start_date, end_date, hourly_params]):
+            return jsonify({"error": "Missing required parameters"}), 400
+
+        api_key = os.getenv('BACKEND_OPENMETEO_API_KEY')
+        if not api_key:
+            logger.error("Open-Meteo API key not configured")
+            return jsonify({"error": "Service configuration error"}), 500
+
+        url = f"https://customer-previous-runs-api.open-meteo.com/v1/forecast"
+        params = {
+            "latitude": lat,
+            "longitude": lon,
+            "start_date": start_date,
+            "end_date": end_date,
+            "hourly": hourly_params,
+            "models": models or ["gfs_hrrr"],
+            "temperature_unit": "fahrenheit",
+            "wind_speed_unit": "mph",
+            "precipitation_unit": "inch",
+            "timezone": "auto",
+            "apikey": api_key
+        }
+
+        responses = openmeteo.weather_api(url, params=params)
+
+        if not responses or len(responses) == 0:
+            return jsonify({"error": "No data received from weather service"}), 500
+
+        response = responses[0]
+
+        # Process the response and return formatted data
+        hourly_data = response.Hourly()
+        result = {
+            "hourly": {
+                "time": [datetime.fromtimestamp(t).strftime('%Y-%m-%dT%H:%M') for t in hourly_data.Time()]
+            }
+        }
+
+        # Add each requested variable to the result
+        for i, variable in enumerate(hourly_params):
+            result["hourly"][variable] = hourly_data.Variables(
+                i).ValuesAsNumpy().tolist()
+
+        return jsonify(result)
+
+    except Exception as e:
+        logger.error(f"Error fetching traditional forecast data: {str(e)}")
+        return jsonify({"error": f"Failed to fetch traditional forecast data: {str(e)}"}), 500
+
+# Updated functions for consistent comma-separated parameter handling
+
+
+@external_api_bp.route("/api/historical-weather", methods=["GET"])
+@protect_api_keys
+def get_historical_weather():
+    """
+    Get historical weather data from Open-Meteo Archive API
+
+    Supports both array and comma-separated formats for parameters.
+    Returns raw data in the original format from Open-Meteo.
+    """
+    try:
+        # Start with detailed logging
+        logger.info("Historical weather API request received")
+
+        # Get basic parameters
+        latitude = request.args.get("latitude", type=float)
+        longitude = request.args.get("longitude", type=float)
+        start_date = request.args.get("start_date")
+        end_date = request.args.get("end_date")
+
+        # Handle hourly parameters (support both formats)
+        hourly_params = request.args.get("hourly")
+        if not hourly_params:
+            # Try to get from array format
+            hourly_array = request.args.getlist("hourly[]")
+            if hourly_array:
+                hourly_params = ",".join(hourly_array)
+                logger.info(
+                    f"Converted hourly array to string: {hourly_params}")
+            else:
+                # Default values
+                hourly_params = "temperature_2m,relative_humidity_2m,precipitation,wind_speed_10m"
+                logger.info(
+                    f"Using default hourly parameters: {hourly_params}")
+
+        # Get other optional parameters
+        timezone = request.args.get("timezone", "auto")
+        temp_unit = request.args.get("temperature_unit", "celsius")
+        wind_unit = request.args.get("wind_speed_unit", "kmh")
+        precip_unit = request.args.get("precipitation_unit", "mm")
+
+        # Validate required parameters
+        if not all([latitude, longitude]):
+            logger.error("Missing required parameters: latitude and longitude")
+            return jsonify({"error": "Latitude and longitude are required"}), 400
+
+        # Calculate default dates if not provided
+        if not start_date or not end_date:
+            current_date = datetime.now().date()
+            end_date = end_date or (
+                current_date - timedelta(days=5)).strftime('%Y-%m-%d')
+            start_date = start_date or (
+                current_date - timedelta(days=21)).strftime('%Y-%m-%d')
+            logger.info(
+                f"Using calculated date range: {start_date} to {end_date}")
+
+        # Log all parameters
+        logger.info(f"Request parameters: lat={latitude}, lon={longitude}, " +
+                    f"dates={start_date} to {end_date}, hourly={hourly_params}")
+
+        # Prepare API request parameters
+        api_params = {
+            "latitude": latitude,
+            "longitude": longitude,
+            "start_date": start_date,
+            "end_date": end_date,
+            "hourly": hourly_params,
+            "timezone": timezone,
+            "temperature_unit": temp_unit,
+            "wind_speed_unit": wind_unit,
+            "precipitation_unit": precip_unit
+        }
+
+        # Get API key and set URL
+        api_key = os.getenv('BACKEND_OPENMETEO_API_KEY')
+        if api_key:
+            url = "https://customer-archive-api.open-meteo.com/v1/archive"
+            api_params["apikey"] = api_key
+            logger.info("Using paid Open-Meteo API")
+        else:
+            url = "https://archive-api.open-meteo.com/v1/archive"
+            logger.info("Using free Open-Meteo API")
+
+        # Make direct HTTP request
+        logger.info(f"Making request to {url}")
+        response = requests.get(url, params=api_params, timeout=30)
+
+        # Handle HTTP errors
+        if response.status_code != 200:
+            logger.error(
+                f"Open-Meteo API returned status code {response.status_code}")
+            logger.error(f"Response: {response.text}")
+            return jsonify({
+                "error": f"Open-Meteo API error: {response.status_code}",
+                "message": response.text
+            }), response.status_code
+
+        # Get response JSON
+        data = response.json()
+        logger.info("Successfully received data from Open-Meteo")
+
+        # Validate response structure
+        if "hourly" not in data:
+            logger.warning("Response missing 'hourly' data")
+            logger.warning(f"Response content: {data}")
+            return jsonify({
+                "error": "Invalid response from Open-Meteo: missing hourly data",
+                "data": data
+            }), 500
+
+        # Log the length of time data for debugging
+        if "time" in data["hourly"]:
+            logger.info(
+                f"Received {len(data['hourly']['time'])} hourly time points")
+
+        # Log the available parameters
+        logger.info(f"Received parameters: {list(data['hourly'].keys())}")
+
+        # Return the raw data from Open-Meteo
+        return jsonify(data)
+
+    except requests.RequestException as e:
+        logger.error(f"Request error to Open-Meteo: {str(e)}")
+        return jsonify({"error": f"Failed to connect to weather service: {str(e)}"}), 500
+    except ValueError as e:
+        logger.error(f"Value error in weather request: {str(e)}")
+        return jsonify({"error": f"Invalid parameter value: {str(e)}"}), 400
+    except Exception as e:
+        logger.error(f"Unexpected error in historical weather: {str(e)}")
+        return jsonify({"error": f"Server error: {str(e)}"}), 500
+
+
+@external_api_bp.route("/api/historical-forecasts", methods=["GET"])
+@protect_api_keys
+def get_historical_forecasts():
+    """
+    Get historical forecast data from Open-Meteo Historical Forecast API
+
+    Supports both array and comma-separated formats for parameters.
+    Returns raw data in the original format from Open-Meteo.
+
+    Based on the successful historical-weather endpoint pattern.
+    """
+    try:
+        # Start with detailed logging
+        logger.info("Historical forecasts API request received")
+
+        # Get basic parameters
+        latitude = request.args.get("latitude", type=float)
+        longitude = request.args.get("longitude", type=float)
+        start_date = request.args.get("start_date")
+        end_date = request.args.get("end_date")
+
+        # Handle hourly parameters (support both formats)
+        hourly_params = request.args.get("hourly")
+        if not hourly_params:
+            # Try to get from array format
+            hourly_array = request.args.getlist("hourly[]")
+            if hourly_array:
+                hourly_params = ",".join(hourly_array)
+                logger.info(
+                    f"Converted hourly array to string: {hourly_params}")
+            else:
+                # Default values
+                hourly_params = "temperature_2m,relative_humidity_2m,precipitation,wind_speed_10m"
+                logger.info(
+                    f"Using default hourly parameters: {hourly_params}")
+
+        # Handle models parameter (support both formats)
+        models_params = request.args.get("models")
+        if not models_params:
+            # Try to get from array format
+            models_array = request.args.getlist("models[]")
+            if models_array:
+                models_params = ",".join(models_array)
+                logger.info(
+                    f"Converted models array to string: {models_params}")
+            else:
+                # Default values
+                models_params = "gfs_hrrr,gfs_graphcast025"
+                logger.info(
+                    f"Using default models parameters: {models_params}")
+
+        # Get other optional parameters
+        timezone = request.args.get("timezone", "auto")
+        temp_unit = request.args.get("temperature_unit", "celsius")
+        wind_unit = request.args.get("wind_speed_unit", "kmh")
+        precip_unit = request.args.get("precipitation_unit", "mm")
+
+        # Validate required parameters
+        if not all([latitude, longitude]):
+            logger.error("Missing required parameters: latitude and longitude")
+            return jsonify({"error": "Latitude and longitude are required"}), 400
+
+        # Calculate default dates if not provided
+        if not start_date or not end_date:
+            current_date = datetime.now().date()
+            end_date = end_date or current_date.strftime('%Y-%m-%d')
+            start_date = start_date or (
+                current_date - timedelta(days=14)).strftime('%Y-%m-%d')
+            logger.info(
+                f"Using calculated date range: {start_date} to {end_date}")
+
+        # Log all parameters
+        logger.info(f"Request parameters: lat={latitude}, lon={longitude}, " +
+                    f"dates={start_date} to {end_date}, hourly={hourly_params}, models={models_params}")
+
+        # Prepare API request parameters
+        api_params = {
+            "latitude": latitude,
+            "longitude": longitude,
+            "start_date": start_date,
+            "end_date": end_date,
+            "hourly": hourly_params,
+            "models": models_params,
+            "timezone": timezone,
+            "temperature_unit": temp_unit,
+            "wind_speed_unit": wind_unit,
+            "precipitation_unit": precip_unit
+        }
+
+        # Get API key and set URL - for historical forecasts, API key is required
+        api_key = os.getenv('BACKEND_OPENMETEO_API_KEY')
+        if not api_key:
+            logger.error(
+                "Open-Meteo API key not configured - required for historical forecasts")
+            return jsonify({"error": "API configuration error - API key required"}), 500
+
+        url = "https://customer-historical-forecast-api.open-meteo.com/v1/forecast"
+        api_params["apikey"] = api_key
+        logger.info("Using historical forecast API")
+
+        # Make direct HTTP request
+        logger.info(f"Making request to {url}")
+        response = requests.get(url, params=api_params, timeout=30)
+
+        # Handle HTTP errors
+        if response.status_code != 200:
+            logger.error(
+                f"Open-Meteo API returned status code {response.status_code}")
+            logger.error(f"Response: {response.text}")
+            return jsonify({
+                "error": f"Open-Meteo API error: {response.status_code}",
+                "message": response.text
+            }), response.status_code
+
+        # Get response JSON
+        data = response.json()
+        logger.info("Successfully received data from Open-Meteo")
+
+        # Validate response structure
+        if "hourly" not in data:
+            logger.warning("Response missing 'hourly' data")
+            logger.warning(f"Response content: {data}")
+            return jsonify({
+                "error": "Invalid response from Open-Meteo: missing hourly data",
+                "data": data
+            }), 500
+
+        # Log the length of time data for debugging
+        if "time" in data["hourly"]:
+            logger.info(
+                f"Received {len(data['hourly']['time'])} hourly time points")
+
+        # Log the available parameters
+        logger.info(f"Received parameters: {list(data['hourly'].keys())}")
+
+        # Return the raw data from Open-Meteo
+        return jsonify(data)
+
+    except requests.RequestException as e:
+        logger.error(f"Request error to Open-Meteo: {str(e)}")
+        return jsonify({"error": f"Failed to connect to weather service: {str(e)}"}), 500
+    except ValueError as e:
+        logger.error(f"Value error in weather request: {str(e)}")
+        return jsonify({"error": f"Invalid parameter value: {str(e)}"}), 400
+    except Exception as e:
+        logger.error(f"Unexpected error in historical forecasts: {str(e)}")
+        return jsonify({"error": f"Server error: {str(e)}"}), 500

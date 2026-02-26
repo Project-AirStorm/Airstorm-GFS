@@ -4,14 +4,15 @@
   width: 16rem;
   height: 100%;
   background-color: white;
-  border-right: 1px solid rgb(229 231 235);
+  border-right: 0.0625rem solid rgb(229 231 235);
   z-index: 20;
   overflow-y: auto;
+  scrollbar-width: thin;
 }
 
 .header {
   padding: 1rem;
-  border-bottom: 1px solid rgb(229 231 235);
+  border-bottom: 0.0625rem solid rgb(229 231 235);
 }
 
 .logo-container {
@@ -23,7 +24,8 @@
 
 .profile-section {
   padding: 1rem;
-  margin-bottom: 1rem;
+  margin-bottom: 0.9rem;
+  margin-top: 0.3rem;
 }
 
 .profile-card {
@@ -33,14 +35,14 @@
   padding: 0.5rem;
   background-color: white;
   border-radius: 0.25rem;
-  border: 1px solid rgb(229 231 235);
+  border: 0.0625rem solid rgb(229 231 235);
 }
 
 .profile-image {
   width: 2rem;
   height: 2rem;
   background-color: rgb(229 231 235);
-  border-radius: 9999px;
+  border-radius: 624.9375rem;
 }
 
 .nav-section {

@@ -1,6 +1,6 @@
 import React from 'react';
 import { SignUp } from '@clerk/clerk-react';
-import Footer from '../../components/common/footer/Footer';
+// import Footer from '../../components/common/footer/Footer';
 import GlobeBackground from '../../components/specific/GlobeBackground/GlobeBackground';
 import './Signup.css';
 
@@ -14,7 +14,7 @@ function Signup() {
             <SignUp signInUrl="/login" />
           </main>
         </div>
-        <Footer />
+        {/* <Footer /> */}
       </div>
     </>
   );
