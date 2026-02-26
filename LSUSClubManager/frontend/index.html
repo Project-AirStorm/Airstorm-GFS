@@ -1143,6 +1143,7 @@
       // ── Clubs ─────────────────────────────────────────────────────
       async function loadClubs() {
         const r = await api('/api/clubs');
+
         allClubs = Array.isArray(r) ? r : [];
         const tabs = $('clubTabs');
         tabs.innerHTML =
