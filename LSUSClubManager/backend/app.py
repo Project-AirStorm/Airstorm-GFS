@@ -104,7 +104,11 @@ def user_owns_club(user_id, club_id):
     conn = get_db()
     cur = conn.cursor()
     cur.execute(
-        "SELECT 1 FROM Clubs WHERE ClubID=? AND CreatedBy=?", club_id, user_id)
+        "SELECT 1 FROM Clubs c "
+        "JOIN Users u ON u.UserID = c.CreatedBy "
+        "JOIN Roles r ON r.RoleID = u.RoleID "
+        "WHERE c.ClubID=? AND c.CreatedBy=? AND r.RoleName='ClubAdmin'",
+        club_id, user_id)
     ok = cur.fetchone() is not None
     conn.close()
     return ok
