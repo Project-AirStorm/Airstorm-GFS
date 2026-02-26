@@ -1373,7 +1373,9 @@
             ? '<span style="font-size:.78rem;color:#aaa">Past event</span>'
             : e.IsRegistered
               ? `<button class="btn btn-sm btn-danger" onclick="doUnregister(${e.EventID},'detail')">Unregister</button>`
-              : `<button class="btn btn-sm btn-purple" onclick="doRegister(${e.EventID},'detail')">Register</button>`
+              : clubDetailData && clubDetailData.IsMember
+                ? `<button class="btn btn-sm btn-purple" onclick="doRegister(${e.EventID},'detail')">Register</button>`
+                : ''
         }
         <button class="btn btn-sm btn-outline" onclick="viewAttendees(${e.EventID})">Attendees</button>
         ${owner ? `<button class="btn btn-sm btn-gold" onclick="openEditEvent(${e.EventID},\`${e.EventName}\`,\`${e.Description || ''}\`,'${e.EventDate}',\`${e.Location || ''}\`)">Edit</button>` : ''}
@@ -1423,7 +1425,9 @@
             ? '<span style="font-size:.78rem;color:#aaa">Past event</span>'
             : e.IsRegistered
               ? `<button class="btn btn-sm btn-danger" onclick="doUnregister(${e.EventID},'events')">Unregister</button>`
-              : `<button class="btn btn-sm btn-purple" onclick="doRegister(${e.EventID},'events')">Register</button>`
+              : e.IsMember
+                ? `<button class="btn btn-sm btn-purple" onclick="doRegister(${e.EventID},'events')">Register</button>`
+                : ''
         }
         <button class="btn btn-sm btn-outline" onclick="viewAttendees(${e.EventID})">Attendees</button>
       </div>

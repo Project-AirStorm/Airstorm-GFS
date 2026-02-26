@@ -440,19 +440,21 @@ def get_events():
             "SELECT e.EventID, e.EventName, e.Description, e.EventDate, e.Location, "
             "c.ClubName, c.ClubID, "
             "(SELECT COUNT(*) FROM Registrations r2 WHERE r2.EventID=e.EventID) AS AttendeeCount, "
-            "CASE WHEN reg.UserID IS NOT NULL THEN 1 ELSE 0 END AS IsRegistered "
+            "CASE WHEN reg.UserID IS NOT NULL THEN 1 ELSE 0 END AS IsRegistered, "
+            "CASE WHEN mem.UserID IS NOT NULL THEN 1 ELSE 0 END AS IsMember "
             "FROM Events e "
             "JOIN Clubs c ON e.ClubID=c.ClubID "
             "LEFT JOIN Registrations reg ON reg.EventID=e.EventID AND reg.UserID=? "
+            "LEFT JOIN ClubMemberships mem ON mem.ClubID=c.ClubID AND mem.UserID=? "
         )
         if g.user["role"] == "Admin":
-            cur.execute(base + "ORDER BY e.EventDate DESC", uid)
+            cur.execute(base + "ORDER BY e.EventDate DESC", uid, uid)
         else:
             cur.execute(
                 base +
                 "JOIN ClubMemberships cm ON cm.ClubID=c.ClubID AND cm.UserID=? "
                 "WHERE c.ApprovalStatus='Approved' ORDER BY e.EventDate DESC",
-                uid, uid)
+                uid, uid, uid)
         events = rows_to_list(cur, cur.fetchall())
         conn.close()
         return jsonify(events)
